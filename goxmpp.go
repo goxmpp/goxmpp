@@ -13,35 +13,117 @@ type Stream struct {
 	Version    string   `xml:"version,attr,omitempty"`
 }
 
-type Mechanisms struct {
+/*
+ * Features
+ */
+type StreamFeature interface {
+	ExposeTo(*StreamWrapper) StreamFeature
+}
+
+type CompositeStreamFeature interface {
+	AddSubfeature(StreamFeature) bool
+	ClearSubfeatures()
+	StreamFeature
+}
+type StreamFeaturesHolder struct {
+	Subfeatures []StreamFeature
+}
+func (sfh *StreamFeaturesHolder) AddSubfeature(f StreamFeature) bool {
+	if f != nil {
+		sfh.Subfeatures = append(sfh.Subfeatures, f)
+		return true
+	}
+	return false
+}
+func (sfh *StreamFeaturesHolder) ClearSubfeatures() {
+	sfh.Subfeatures = sfh.Subfeatures[:0]
+}
+func (sfh *StreamFeaturesHolder) ExposeSubfeatures(sw *StreamWrapper, csf CompositeStreamFeature) {
+	csf.ClearSubfeatures()
+	for _, feature := range sfh.Subfeatures {
+		csf.AddSubfeature(feature.ExposeTo(sw))
+	}
+}
+
+type XMPPStreamFeatures struct {
+	XMLName     xml.Name `xml:"stream:features"`
+	StreamFeaturesHolder
+}
+func (xsf *XMPPStreamFeatures) ExposeTo(sw *StreamWrapper) StreamFeature {
+	c_xsf := *xsf
+	xsf.ExposeSubfeatures(sw, &c_xsf)
+	return &c_xsf
+}
+
+type AuthMechanismsStreamFeature struct {
 	XMLName xml.Name `xml:"urn:ietf:params:xml:ns:xmpp-sasl mechanisms"`
-	Names   []string `xml:"mechanism"`
+	StreamFeaturesHolder
+}
+func (amsf *AuthMechanismsStreamFeature) ExposeTo(sw *StreamWrapper) StreamFeature {
+	if false {
+		c_amsf := *amsf
+		amsf.ExposeSubfeatures(sw, &c_amsf)
+		return &c_amsf
+	}
+	return nil
+}
+type AuthMechanismStreamFeature struct {
+	XMLName xml.Name `xml:"mechanism"`
+	Name    string   `xml:",chardata"`
+	StreamFeaturesHolder
+}
+func (amsf *AuthMechanismStreamFeature) ExposeTo(*StreamWrapper) StreamFeature {
+	c_amsf := *amsf
+	return &c_amsf
 }
 
-type DigestMD5Auth struct {
-	XMLName xml.Name `xml:"urn:ietf:params:xml:ns:xmpp-sasl auth"`
-	ID      string   `xml:"id,attr"`
+type CompressionMethodsStreamFeature struct {
+	XMLName xml.Name `xml:"urn:ietf:params:xml:ns:xmpp-sasl compression"`
+	StreamFeaturesHolder
+}
+func (cmsf *CompressionMethodsStreamFeature) ExposeTo(sw *StreamWrapper) StreamFeature {
+	c_cmsf := *cmsf
+	cmsf.ExposeSubfeatures(sw, &c_cmsf)
+	return &c_cmsf
+}
+type CompressionMethodStreamFeature struct {
+	XMLName xml.Name `xml:"method"`
+	Name    string   `xml:",chardata"`
+	StreamFeaturesHolder
+}
+func (cmsf *CompressionMethodStreamFeature) ExposeTo(*StreamWrapper) StreamFeature {
+	c_cmsf := *cmsf
+	return &c_cmsf
 }
 
-type PlainAuth struct {
-	XMLName xml.Name `xml:"urn:ietf:params:xml:ns:xmpp-sasl auth"`
-	Nonce   string   `xml:",chardata"`
-}
-
-type StartTLS struct {
+type StartTLSStreamFeature struct {
 	XMLName  xml.Name `xml:"urn:ietf:params:xml:ns:xmpp-tls starttls"`
 	Required bool     `xml:"required,omitempty"`
+	StreamFeaturesHolder
+}
+func (stsf *StartTLSStreamFeature) ExposeTo(*StreamWrapper) StreamFeature {
+	c_stsf := *stsf
+	return &c_stsf
 }
 
-type Features struct {
-	// http://tools.ietf.org/html/rfc3920#section-4.6
-	XMLName          xml.Name    `xml:"stream:features"`
-	Mechanisms       *Mechanisms
-	StartTLS         *StartTLS
-	Bind             bool        `xml:"urn:ietf:params:xml:ns:xmpp-bind bind,omitempty"`
-	Session          bool        `xml:"urn:ietf:params:xml:ns:xmpp-session session,omitempty"`
+var StreamFeatures XMPPStreamFeatures
+func RegisterFeatures() {
+	compressionMethods := CompressionMethodsStreamFeature{}
+	compressionMethods.AddSubfeature(&CompressionMethodStreamFeature{Name: "zlib"})
+	StreamFeatures.AddSubfeature(&compressionMethods)
+
+	authMechanisms := AuthMechanismsStreamFeature{}
+	authMechanisms.AddSubfeature(&AuthMechanismStreamFeature{Name: "PLAIN"})
+	authMechanisms.AddSubfeature(&AuthMechanismStreamFeature{Name: "DIGEST-MD5"})
+	StreamFeatures.AddSubfeature(&authMechanisms)
+
+	startTLS := StartTLSStreamFeature{}
+	StreamFeatures.AddSubfeature(&startTLS)
 }
 
+/*
+ * Stanzas
+ */
 type Error struct {
 	Type   string `xml:"type,attr,omitempty"`
 }
@@ -185,6 +267,10 @@ func (sw *StreamWrapper) WriteStreamOpen(stream *Stream, default_namespace strin
 
 	_, err = io.WriteString(sw.RW, data)
 	return
+}
+
+func (sw *StreamWrapper) WriteFeatures() error {
+	return nil
 }
 
 func (sw *StreamWrapper) ReadXMLChunk(types map[[2]string](func(xml.StartElement) interface{})) (interface{}, error) {
