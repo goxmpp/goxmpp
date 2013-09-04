@@ -23,6 +23,11 @@ type DigestMD5Auth struct {
 	ID      string   `xml:"id,attr"`
 }
 
+type PlainAuth struct {
+	XMLName xml.Name `xml:"urn:ietf:params:xml:ns:xmpp-sasl auth"`
+	Nonce   string   `xml:",chardata"`
+}
+
 type StartTLS struct {
 	XMLName  xml.Name `xml:"urn:ietf:params:xml:ns:xmpp-tls starttls"`
 	Required bool     `xml:"required,omitempty"`
