@@ -19,7 +19,6 @@ type Stream struct {
 type StreamFeature interface {
 	ExposeTo(*StreamWrapper) StreamFeature
 	AddSubfeature(StreamFeature) bool
-	ClearSubfeatures()
 }
 type SimpleStreamFeature struct {
 	Subfeatures []StreamFeature
@@ -31,11 +30,7 @@ func (self *SimpleStreamFeature) AddSubfeature(sf StreamFeature) bool {
 	}
 	return false
 }
-func (self *SimpleStreamFeature) ClearSubfeatures() {
-	self.Subfeatures = nil
-}
 func (self *SimpleStreamFeature) ExposeSubfeaturesTo(sw *StreamWrapper, sf StreamFeature) StreamFeature {
-	sf.ClearSubfeatures()
 	for _, feature := range self.Subfeatures {
 		sf.AddSubfeature(feature.ExposeTo(sw))
 	}
