@@ -24,19 +24,19 @@ type StreamFeature interface {
 type SimpleStreamFeature struct {
 	Subfeatures []StreamFeature
 }
-func (ssf *SimpleStreamFeature) AddSubfeature(sf StreamFeature) bool {
+func (self *SimpleStreamFeature) AddSubfeature(sf StreamFeature) bool {
 	if sf != nil {
-		ssf.Subfeatures = append(ssf.Subfeatures, sf)
+		self.Subfeatures = append(self.Subfeatures, sf)
 		return true
 	}
 	return false
 }
-func (ssf *SimpleStreamFeature) ClearSubfeatures() {
-	ssf.Subfeatures = nil
+func (self *SimpleStreamFeature) ClearSubfeatures() {
+	self.Subfeatures = nil
 }
-func (ssf *SimpleStreamFeature) ExposeSubfeaturesTo(sw *StreamWrapper, sf StreamFeature) StreamFeature {
+func (self *SimpleStreamFeature) ExposeSubfeaturesTo(sw *StreamWrapper, sf StreamFeature) StreamFeature {
 	sf.ClearSubfeatures()
-	for _, feature := range ssf.Subfeatures {
+	for _, feature := range self.Subfeatures {
 		sf.AddSubfeature(feature.ExposeTo(sw))
 	}
 	return sf
@@ -46,55 +46,75 @@ type StreamFeatures struct {
 	XMLName xml.Name `xml:"stream:features"`
 	SimpleStreamFeature
 }
-func (sf *StreamFeatures) ExposeTo(sw *StreamWrapper) StreamFeature {
+func (self *StreamFeatures) ExposeTo(sw *StreamWrapper) StreamFeature {
 	if sw.State["session"] != nil { return nil }
-	return sf.ExposeSubfeaturesTo(sw, new(StreamFeatures))
+	return self.ExposeSubfeaturesTo(sw, new(StreamFeatures))
 }
 
 type AuthMechanismsStreamFeature struct {
 	XMLName xml.Name `xml:"urn:ietf:params:xml:ns:xmpp-sasl mechanisms"`
 	SimpleStreamFeature
 }
-func (amsf *AuthMechanismsStreamFeature) ExposeTo(sw *StreamWrapper) StreamFeature {
+func (self *AuthMechanismsStreamFeature) ExposeTo(sw *StreamWrapper) StreamFeature {
 	if sw.State["authenticated"] != nil { return nil }
-	return amsf.ExposeSubfeaturesTo(sw, new(AuthMechanismsStreamFeature))
+	return self.ExposeSubfeaturesTo(sw, new(AuthMechanismsStreamFeature))
 }
 type AuthMechanismStreamFeature struct {
 	XMLName xml.Name `xml:"mechanism"`
 	Name    string   `xml:",chardata"`
 	SimpleStreamFeature
 }
-func (amsf *AuthMechanismStreamFeature) ExposeTo(*StreamWrapper) StreamFeature {
-	c_amsf := *amsf
-	return &c_amsf
+func (self *AuthMechanismStreamFeature) ExposeTo(*StreamWrapper) StreamFeature {
+	c := *self
+	return &c
 }
 
 type CompressionMethodsStreamFeature struct {
 	XMLName xml.Name `xml:"urn:ietf:params:xml:ns:xmpp-sasl compression"`
 	SimpleStreamFeature
 }
-func (cmsf *CompressionMethodsStreamFeature) ExposeTo(sw *StreamWrapper) StreamFeature {
+func (self *CompressionMethodsStreamFeature) ExposeTo(sw *StreamWrapper) StreamFeature {
 	if sw.State["compressed"] != nil { return nil }
-	return cmsf.ExposeSubfeaturesTo(sw, new(CompressionMethodsStreamFeature))
+	return self.ExposeSubfeaturesTo(sw, new(CompressionMethodsStreamFeature))
 }
 type CompressionMethodStreamFeature struct {
 	XMLName xml.Name `xml:"method"`
 	Name    string   `xml:",chardata"`
 	SimpleStreamFeature
 }
-func (cmsf *CompressionMethodStreamFeature) ExposeTo(*StreamWrapper) StreamFeature {
-	c_cmsf := *cmsf
-	return &c_cmsf
+func (self *CompressionMethodStreamFeature) ExposeTo(*StreamWrapper) StreamFeature {
+	c := *self
+	return &c
 }
 
 type StartTLSStreamFeature struct {
-	XMLName  xml.Name `xml:"urn:ietf:params:xml:ns:xmpp-tls starttls"`
-	Required bool     `xml:"required,omitempty"`
+	XMLName     xml.Name `xml:"urn:ietf:params:xml:ns:xmpp-tls starttls"`
+	Required    bool     `xml:"required,omitempty"`
+	Certificate []byte
 	SimpleStreamFeature
 }
-func (stsf *StartTLSStreamFeature) ExposeTo(sw *StreamWrapper) StreamFeature {
+func (self *StartTLSStreamFeature) ExposeTo(sw *StreamWrapper) StreamFeature {
 	if sw.State["tls"] != nil { return nil }
-	return stsf.ExposeSubfeaturesTo(sw, new(StartTLSStreamFeature))
+	if self.Certificate == nil { return nil }
+	return self.ExposeSubfeaturesTo(sw, new(StartTLSStreamFeature))
+}
+
+type BindStreamFeature struct {
+	XMLName xml.Name `xml:"urn:ietf:params:xml:ns:xmpp-bind bind"`
+	SimpleStreamFeature
+}
+func (self *BindStreamFeature) ExposeTo(sw *StreamWrapper) StreamFeature {
+	if sw.State["authenticated"] == nil { return nil }
+	return self.ExposeSubfeaturesTo(sw, new(BindStreamFeature))
+}
+
+type SessionStreamFeature struct {
+	XMLName xml.Name `xml:"urn:ietf:params:xml:ns:xmpp-session session"`
+	SimpleStreamFeature
+}
+func (self *SessionStreamFeature) ExposeTo(sw *StreamWrapper) StreamFeature {
+	if sw.State["authenticated"] == nil { return nil }
+	return self.ExposeSubfeaturesTo(sw, new(SessionStreamFeature))
 }
 
 var GlobalStreamFeatures StreamFeatures
@@ -107,6 +127,9 @@ func RegisterGlobalStreamFeatures() {
 	authMechanisms.AddSubfeature(&AuthMechanismStreamFeature{Name: "PLAIN"})
 	authMechanisms.AddSubfeature(&AuthMechanismStreamFeature{Name: "DIGEST-MD5"})
 	GlobalStreamFeatures.AddSubfeature(&authMechanisms)
+
+	GlobalStreamFeatures.AddSubfeature(new(SessionStreamFeature))
+	GlobalStreamFeatures.AddSubfeature(new(BindStreamFeature))
 
 	startTLS := StartTLSStreamFeature{}
 	startTLS.Required = true
