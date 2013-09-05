@@ -47,7 +47,7 @@ type StreamFeatures struct {
 	SimpleStreamFeature
 }
 func (sf *StreamFeatures) ExposeTo(sw *StreamWrapper) StreamFeature {
-	// TODO(artem): check availability
+	if sw.State["session"] != nil { return nil }
 	return sf.ExposeSubfeaturesTo(sw, new(StreamFeatures))
 }
 
@@ -56,7 +56,7 @@ type AuthMechanismsStreamFeature struct {
 	SimpleStreamFeature
 }
 func (amsf *AuthMechanismsStreamFeature) ExposeTo(sw *StreamWrapper) StreamFeature {
-	// TODO(artem): check availability
+	if sw.State["authenticated"] != nil { return nil }
 	return amsf.ExposeSubfeaturesTo(sw, new(AuthMechanismsStreamFeature))
 }
 type AuthMechanismStreamFeature struct {
@@ -65,7 +65,6 @@ type AuthMechanismStreamFeature struct {
 	SimpleStreamFeature
 }
 func (amsf *AuthMechanismStreamFeature) ExposeTo(*StreamWrapper) StreamFeature {
-	// TODO(artem): check availability
 	c_amsf := *amsf
 	return &c_amsf
 }
@@ -75,7 +74,7 @@ type CompressionMethodsStreamFeature struct {
 	SimpleStreamFeature
 }
 func (cmsf *CompressionMethodsStreamFeature) ExposeTo(sw *StreamWrapper) StreamFeature {
-	// TODO(artem): check availability
+	if sw.State["compressed"] != nil { return nil }
 	return cmsf.ExposeSubfeaturesTo(sw, new(CompressionMethodsStreamFeature))
 }
 type CompressionMethodStreamFeature struct {
@@ -84,7 +83,6 @@ type CompressionMethodStreamFeature struct {
 	SimpleStreamFeature
 }
 func (cmsf *CompressionMethodStreamFeature) ExposeTo(*StreamWrapper) StreamFeature {
-	// TODO(artem): check availability
 	c_cmsf := *cmsf
 	return &c_cmsf
 }
@@ -94,10 +92,9 @@ type StartTLSStreamFeature struct {
 	Required bool     `xml:"required,omitempty"`
 	SimpleStreamFeature
 }
-func (stsf *StartTLSStreamFeature) ExposeTo(*StreamWrapper) StreamFeature {
-	// TODO(artem): check availability
-	c_stsf := *stsf
-	return &c_stsf
+func (stsf *StartTLSStreamFeature) ExposeTo(sw *StreamWrapper) StreamFeature {
+	if sw.State["tls"] != nil { return nil }
+	return stsf.ExposeSubfeaturesTo(sw, new(StartTLSStreamFeature))
 }
 
 var GlobalStreamFeatures StreamFeatures
@@ -205,9 +202,10 @@ type Presence struct {
 }
 
 type StreamWrapper struct {
-	RW io.ReadWriter
+	RW      io.ReadWriter
 	Encoder *xml.Encoder
 	Decoder *xml.Decoder
+	State   map[string]interface{}
 }
 
 func NewStreamWrapper(rw io.ReadWriter) *StreamWrapper {
