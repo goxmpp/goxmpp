@@ -1,5 +1,101 @@
 package goxmpp
 
+/*
+  Overall architecture is following:
+
+##################################
+USER-A Session thread#           #
+######################           #
+Loop:                            #
+            --------             #
+            |INPUT |             #
+            --------             #
+               |                 #
+           is eaten by           #
+   ____________|_____________    #
+   |    |    |    |    |    |    #
+  ---  ---  ---  ---  ---  ---   #
+  |H|  |H|  |H|  |H|  |H|  |H|   #
+  ---  ---  ---  ---  ---  ---   #
+   |    |    |    |    |    |    #
+   --------------------------    #
+               |                 #
+      perform changes under      #
+               |                 #
+        --------------           #
+        |STATE OBJECT|           #
+        --------------           #
+               |                 #
+           is fed to             #
+   ____________|_____________    #
+   |    |    |    |    |    |    #
+  ---  ---  ---  ---  ---  ---   #
+  |A|  |A|  |A|  |A|  |A|  |A|   #
+  ---  ---  ---  ---  ---  ---   #
+   |    |    |    |    |    |    #
+   --------------------------    #
+               |                 #
+            produce              #
+               |                 #
+           --------              #
+           |OUTPUT|              #
+           --------              #       [Randezvous point (map of channels)]
+                                 #               |
+    check for induced changes <-[CHANNEL USER-A]--
+               |                 #
+            changes              #
+               |                 #
+        --------------           #
+        |STATE OBJECT|           #
+        --------------           #
+               |                 #
+           is fed to             #
+   ____________|_____________    #
+   |    |    |    |    |    |    #
+  ---  ---  ---  ---  ---  ---   #
+  |A|  |A|  |A|  |A|  |A|  |A|   #
+  ---  ---  ---  ---  ---  ---   #
+   |    |    |    |    |    |    #
+   --------------------------    #
+               |                 #
+            produce              #
+               |                 #
+           --------              #
+           |OUTPUT|              #
+           --------              #
+##################################
+
+H (handlers) is a tree as well as A (answers)
+*/
+
+type TreeNode interface {
+	AddDependant( *TreeNode ) bool
+	CallDependants( ... ) bool
+}
+
+type Handler interface {
+	TreeNode
+	IsIn( *ParentTag ) bool
+	Permute( *State, *ParentTag ) *State
+	// can return passed ParentTag for children if it doesn't have its own subtag
+	ExtractTag( *ParentTag ) *ParentTag 
+}
+
+type Answer interface {
+	TreeNode
+	WantToSay( *ParentState ) bool
+	// can return passed ParentTag for children if it doesn't have its own subtag
+	Say( *ParentState, *ParentTag ) *ParentTag
+}
+
+var handlers := map[string]int {
+	
+}
+
+var answers := map[string]interface{} {
+	
+}
+
 import (
 	"encoding/xml"
 	"io"
