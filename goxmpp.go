@@ -5,7 +5,7 @@ import (
 	"io"
 )
 
-type Stream struct {
+/*type Stream struct {
 	XMLName    xml.Name `xml:"http://etherx.jabber.org/streams stream"`
 	ID         string   `xml:"id,attr,omitempty"`
 	From       string   `xml:"from,attr,omitempty"`
@@ -15,8 +15,8 @@ type Stream struct {
 
 /*
  * Features
- */
-type StreamFeature interface {
+*/
+/*type StreamFeature interface {
 	ExposeTo(*StreamWrapper) StreamFeature
 	AddSubfeature(StreamFeature) bool
 }
@@ -45,74 +45,97 @@ func (self *StreamFeatures) ExposeTo(sw *StreamWrapper) StreamFeature {
 	if sw.State["session"] != nil { return nil }
 	return self.ExposeSubfeaturesTo(sw, new(StreamFeatures))
 }
+*/
 
-type AuthMechanismsStreamFeature struct {
+/*type AuthMechanismsStreamFeature struct {
 	XMLName xml.Name `xml:"urn:ietf:params:xml:ns:xmpp-sasl mechanisms"`
 	SimpleStreamFeature
-}
+}*/
+
 func (self *AuthMechanismsStreamFeature) ExposeTo(sw *StreamWrapper) StreamFeature {
-	if sw.State["authenticated"] != nil { return nil }
+	if sw.State["authenticated"] != nil {
+		return nil
+	}
 	return self.ExposeSubfeaturesTo(sw, new(AuthMechanismsStreamFeature))
 }
-type AuthMechanismStreamFeature struct {
+
+/*type AuthMechanismStreamFeature struct {
 	XMLName xml.Name `xml:"mechanism"`
 	Name    string   `xml:",chardata"`
 	SimpleStreamFeature
-}
+}*/
+
 func (self *AuthMechanismStreamFeature) ExposeTo(*StreamWrapper) StreamFeature {
 	c := *self
 	return &c
 }
 
-type CompressionMethodsStreamFeature struct {
+/*type CompressionMethodsStreamFeature struct {
 	XMLName xml.Name `xml:"urn:ietf:params:xml:ns:xmpp-sasl compression"`
 	SimpleStreamFeature
-}
+}*/
+
 func (self *CompressionMethodsStreamFeature) ExposeTo(sw *StreamWrapper) StreamFeature {
-	if sw.State["compressed"] != nil { return nil }
+	if sw.State["compressed"] != nil {
+		return nil
+	}
 	return self.ExposeSubfeaturesTo(sw, new(CompressionMethodsStreamFeature))
 }
-type CompressionMethodStreamFeature struct {
+
+/*type CompressionMethodStreamFeature struct {
 	XMLName xml.Name `xml:"method"`
 	Name    string   `xml:",chardata"`
 	SimpleStreamFeature
-}
+}*/
+
 func (self *CompressionMethodStreamFeature) ExposeTo(*StreamWrapper) StreamFeature {
 	c := *self
 	return &c
 }
 
-type StartTLSStreamFeature struct {
+/*type StartTLSStreamFeature struct {
 	XMLName     xml.Name `xml:"urn:ietf:params:xml:ns:xmpp-tls starttls"`
 	Required    bool     `xml:"required,omitempty"`
 	Certificate []byte
 	SimpleStreamFeature
-}
+}*/
+
 func (self *StartTLSStreamFeature) ExposeTo(sw *StreamWrapper) StreamFeature {
-	if sw.State["tls"] != nil { return nil }
-	if self.Certificate == nil { return nil }
+	if sw.State["tls"] != nil {
+		return nil
+	}
+	if self.Certificate == nil {
+		return nil
+	}
 	return self.ExposeSubfeaturesTo(sw, new(StartTLSStreamFeature))
 }
 
-type BindStreamFeature struct {
+/*type BindStreamFeature struct {
 	XMLName xml.Name `xml:"urn:ietf:params:xml:ns:xmpp-bind bind"`
 	SimpleStreamFeature
 }
-func (self *BindStreamFeature) ExposeTo(sw *StreamWrapper) StreamFeature {
-	if sw.State["authenticated"] == nil { return nil }
-	return self.ExposeSubfeaturesTo(sw, new(BindStreamFeature))
-}
 
-type SessionStreamFeature struct {
+func (self *BindStreamFeature) ExposeTo(sw *StreamWrapper) StreamFeature {
+	if sw.State["authenticated"] == nil {
+		return nil
+	}
+	return self.ExposeSubfeaturesTo(sw, new(BindStreamFeature))
+}*/
+
+/*type SessionStreamFeature struct {
 	XMLName xml.Name `xml:"urn:ietf:params:xml:ns:xmpp-session session"`
 	SimpleStreamFeature
 }
+
 func (self *SessionStreamFeature) ExposeTo(sw *StreamWrapper) StreamFeature {
-	if sw.State["authenticated"] == nil { return nil }
+	if sw.State["authenticated"] == nil {
+		return nil
+	}
 	return self.ExposeSubfeaturesTo(sw, new(SessionStreamFeature))
-}
+}*/
 
 var GlobalStreamFeatures StreamFeatures
+
 func RegisterGlobalStreamFeatures() {
 	compressionMethods := CompressionMethodsStreamFeature{}
 	compressionMethods.AddSubfeature(&CompressionMethodStreamFeature{Name: "zlib"})
@@ -134,40 +157,40 @@ func RegisterGlobalStreamFeatures() {
 /*
  * Stanzas
  */
-type Error struct {
-	Type   string `xml:"type,attr,omitempty"`
-}
+/*type Error struct {
+	Type string `xml:"type,attr,omitempty"`
+}*/
 
-type Stanza struct {
-	From   string `xml:"from,attr,omitempty"`
-	To     string `xml:"to,attr,omitempty"`
-	Type   string `xml:"type,attr,omitempty"`
-	ID     string `xml:"id,attr,omitempty"`
-	Error  Error
-}
+/*type Stanza struct {
+	From  string `xml:"from,attr,omitempty"`
+	To    string `xml:"to,attr,omitempty"`
+	Type  string `xml:"type,attr,omitempty"`
+	ID    string `xml:"id,attr,omitempty"`
+	Error Error
+}*/
 
-type Message struct {
+/*type Message struct {
 	XMLName xml.Name `xml:"message"`
 	Stanza
-	Body    string   `xml:"body,omitempty"`
-}
+	Body string `xml:"body,omitempty"`
+}*/
 
-type VersionQuery struct {
+/*type VersionQuery struct {
 	// http://xmpp.org/extensions/xep-0092.html
 	XMLName xml.Name `xml:"jabber:iq:version query"`
 	Name    string   `xml:"name,attr,omitempty"`
 	Version string   `xml:"version,attr,omitempty"`
 	OS      string   `xml:"os,attr,omitempty"`
-}
+}*/
 
-type TimeQuery struct {
+/*type TimeQuery struct {
 	// http://xmpp.org/extensions/xep-0202.html
 	XMLName xml.Name `xml:"urn:xmpp:time time"`
 	TZO     string   `xml:"tzo,omitempty"`
 	UTC     string   `xml:"utc,omitempty"`
-}
+}*/
 
-type DiscoInfoQuery struct {
+/*type DiscoInfoQuery struct {
 	// http://xmpp.org/extensions/xep-0030.html
 	XMLName xml.Name `xml:"http://jabber.org/protocol/disco#info query"`
 }
@@ -196,9 +219,9 @@ type LastQuery struct {
 type PrivacyQuery struct {
 	// http://xmpp.org/rfcs/rfc3921.html
 	XMLName xml.Name `xml:"jabber:iq:privacy query"`
-}
+}*/
 
-type IQ struct {
+/*type IQ struct {
 	Stanza
 	XMLName         xml.Name `xml:"iq"`
 	VersionQuery    VersionQuery
@@ -209,15 +232,15 @@ type IQ struct {
 	StatsQuery      StatsQuery
 	LastQuery       LastQuery
 	PrivacyQuery    PrivacyQuery
-}
+}*/
 
-type Presence struct {
+/*type Presence struct {
 	Stanza
 	XMLName  xml.Name `xml:"presence"`
 	Show     string   `xml:"show,omitempty"`
 	Status   string   `xml:"status,omitempty"`
 	Priority int      `xml:"priority,omitempty"`
-}
+}*/
 
 type StreamWrapper struct {
 	RW      io.ReadWriter
@@ -228,16 +251,18 @@ type StreamWrapper struct {
 
 func NewStreamWrapper(rw io.ReadWriter) *StreamWrapper {
 	return &StreamWrapper{
-		RW: rw,
+		RW:      rw,
 		Encoder: xml.NewEncoder(rw),
-		Decoder: xml.NewDecoder(rw) }
+		Decoder: xml.NewDecoder(rw)}
 }
 
 func (sw *StreamWrapper) ReadStreamOpen() (*Stream, error) {
 	stream := Stream{}
 	for {
 		t, err := sw.Decoder.Token()
-		if err != nil { return nil, err }
+		if err != nil {
+			return nil, err
+		}
 		switch t := t.(type) {
 		case xml.ProcInst:
 			// Good.
@@ -245,9 +270,12 @@ func (sw *StreamWrapper) ReadStreamOpen() (*Stream, error) {
 			if t.Name.Local == "stream" {
 				for _, attr := range t.Attr {
 					switch attr.Name.Local {
-					case "to": stream.To = attr.Value
-					case "from": stream.From = attr.Value
-					case "version": stream.Version = attr.Value
+					case "to":
+						stream.To = attr.Value
+					case "from":
+						stream.From = attr.Value
+					case "version":
+						stream.Version = attr.Value
 					}
 				}
 
@@ -287,7 +315,9 @@ func (sw *StreamWrapper) WriteFeatures() error {
 func (sw *StreamWrapper) ReadXMLChunk(types map[[2]string](func(xml.StartElement) interface{})) (interface{}, error) {
 	for {
 		t, err := sw.Decoder.Token()
-		if err != nil { return nil, err }
+		if err != nil {
+			return nil, err
+		}
 		if element, ok := t.(xml.StartElement); ok {
 			// TODO(artem): handle </stream:stream> etc
 			if tp, ok := types[[2]string{element.Name.Local, element.Name.Space}]; ok {
