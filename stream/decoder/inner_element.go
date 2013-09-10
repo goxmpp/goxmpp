@@ -15,8 +15,8 @@ type InnerXML struct {
 	xep.Registrator
 }
 
-func (self *InnerXML) HandleInnerXML(sw goxmpp.StreamWrapper) []ElementHandler {
-	sw.Buffer.PutXML(self.XML)
+func (self *InnerXML) HandleInnerXML(sw stream.Wrapper) []ElementHandler {
+	sw.Decoder.PutXML(self.XML)
 
 	handlers := make([]ElementHandler)
 	for token, terr := sw.Decoder.Token(); err == nil; token, terr := sw.Decoder.Token() {
@@ -31,7 +31,7 @@ func (self *InnerXML) HandleInnerXML(sw goxmpp.StreamWrapper) []ElementHandler {
 	return handlers
 }
 
-func (self *InnerXML) HandleElement(sw goxmpp.StreamWrapper) {
+func (self *InnerXML) HandleElement(sw stream.Wrapper) {
 	for _, element := range self.HandlerInnerXML(sw) {
 		element.HandleElement(sw)
 	}

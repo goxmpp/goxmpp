@@ -4,22 +4,26 @@ import "github.com/dotdoom/goxmpp/stream/decoder"
 
 type Wrapper struct {
 	rwStream      io.ReadWriter
-	streamEncoder *xml.Encoder
-	streamDecoder *xml.Decoder
+	StreamEncoder *xml.Encoder
+	StreamDecoder *xml.Decoder
 	InnerDecoder  *decoder.InnerDecoder
 	State         map[string]interface{}
 }
 
-func NewWrapper(rw io.ReadWriter) *StreamWrapper {
-	xml_buffer := NewXMLBuffer()
-
+func NewWrapper(rw io.ReadWriter) *Wrapper {
 	return &Wrapper{
 		rwStream:      rw,
-		streamEncoder: xml.NewEncoder(rw),
-		streamDecoder: xml.NewDecoder(rw),
+		StreamEncoder: xml.NewEncoder(rw),
+		StreamDecoder: xml.NewDecoder(rw),
 		InnerDecoder:  decoder.NewInnerDecoder(),
 		State:         make(map[string]interface{}),
 	}
+}
+
+func (self *Wrapper) SwapIOStream(rw io.ReadWriter) {
+	self.rwStream = rw
+	self.StreamEncoder = xml.NewEncoder(rw)
+	self.StreamDecoder = xml.NewDecoder(rw)
 }
 
 func (sw *Wrapper) ReadStreamOpen() (*Stream, error) {
