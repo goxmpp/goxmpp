@@ -242,18 +242,61 @@ type PrivacyQuery struct {
 	Priority int      `xml:"priority,omitempty"`
 }*/
 
+type XMLBuffer struct {
+	buffer []byte
+	pos    int
+	size   int
+}
+
+func NewXMLBuffer() *XMLBuffer {
+	// TODO: Figure out "good" starting size
+	return &XMLBuffer{make([]byte, 100)}
+}
+
+func (self *XMLBuffer) PutXML(inner_xml []byte) {
+	// Reallocate if buffer is too small
+	if len(self.buffer) < len(inner_xml) {
+		self.buffer = make([]byte, len(inner_xml))
+	}
+
+	self.size = copy(self.buffer, inner_xml)
+	self.pos = 0
+}
+
+func (self *XMLBuffer) Read(b []byte) (int, error) {
+	if len(b) == 0 {
+		return 0, nil
+	}
+
+	if self.pos >= self.size {
+		return 0, io.EOF
+	}
+
+	n = copy(b, self.buffer[self.pos:self.size])
+	self.pos += n
+	return n, nil
+}
+
 type StreamWrapper struct {
-	RW      io.ReadWriter
-	Encoder *xml.Encoder
-	Decoder *xml.Decoder
-	State   map[string]interface{}
+	rwStream      io.ReadWriter
+	streamEncoder *xml.Encoder
+	streamDecoder *xml.Decoder
+	Decoder       *xml.Decoder
+	Buffer        XMLBuffer
+	State         map[string]interface{}
 }
 
 func NewStreamWrapper(rw io.ReadWriter) *StreamWrapper {
+	xml_buffer := NewXMLBuffer()
+
 	return &StreamWrapper{
-		RW:      rw,
-		Encoder: xml.NewEncoder(rw),
-		Decoder: xml.NewDecoder(rw)}
+		rwStream:      rw,
+		streamEncoder: xml.NewEncoder(rw),
+		streamDecoder: xml.NewDecoder(rw),
+		Decoder:       xml.NewDecoder(xml_buffer),
+		Buffer:        xml_buffer,
+		State:         make(map[string]interface{}),
+	}
 }
 
 func (sw *StreamWrapper) ReadStreamOpen() (*Stream, error) {

@@ -2,6 +2,7 @@ package stream
 
 import "encoding/xml"
 import "github.com/dotdoom/goxmpp"
+import "github.com/dotdoom/goxmpp/xep"
 import . "github.com/dotdoom/goxmpp/interfaces"
 
 type Stream struct {
@@ -11,6 +12,8 @@ type Stream struct {
 	To      string   `xml:"to,attr,omitempty"`
 	Version string   `xml:"version,attr,omitempty"`
 }
+
+var Registrator = xep.NewRegistrator()
 
 type InnerElements struct {
 	Elements []InnerElementAdder
@@ -26,10 +29,26 @@ func (self *InnerElements) AddInnerElement(se InnerElementAdder) bool {
 
 type InnerXML struct {
 	XML []byte `xml:"innerxml"`
+	xep.Registrator
 }
 
 func (self *InnerXML) HandleInnerXML(sw goxmpp.StreamWrapper) []ElementHandler {
-	// TODO: Put innerXML parser here
+	sw.Buffer.PutXML(self.XML)
+
+	handlers := make([]ElementHandler)
+	for token, terr := sw.Decoder.Token(); err == nil; token, terr := sw.Decoder.Token() {
+		switch element, realType := token.(type); realType {
+		case xml.StartElement:
+			if handler, err := self.Registrator.GetHandler(elemnt.Name.Space + " " + element.Name.Local); err == nil {
+				handlers = append(handlers, handler)
+			}
+		}
+	}
+
+	for _, handler := range handlers {
+		handler.Handle()
+	}
+
 	return make([]ElementHandler)
 }
 
