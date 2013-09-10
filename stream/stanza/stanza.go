@@ -1,5 +1,7 @@
 package stanza
 
+import "encoding/xml"
+
 type InnerElementAdder interface {
 	AddInnerElement(interface{}) bool
 }
@@ -17,11 +19,12 @@ func (self *InnerElements) AddInnerElement(e interface{}) bool {
 }
 
 type BaseStanza struct {
-	From string `xml:"from,attr,omitempty"`
-	To   string `xml:"to,attr,omitempty"`
-	Type string `xml:"type,attr,omitempty"`
-	ID   string `xml:"id,attr,omitempty"`
-	Lang string `xml:"xml:lang,attr,omitempty"`
+	XMLName xml.Name
+	From    string `xml:"from,attr,omitempty"`
+	To      string `xml:"to,attr,omitempty"`
+	Type    string `xml:"type,attr,omitempty"`
+	ID      string `xml:"id,attr,omitempty"`
+	Lang    string `xml:"xml:lang,attr,omitempty"`
 }
 
 type StanzaWriter struct {

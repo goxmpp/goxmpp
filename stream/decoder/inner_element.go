@@ -11,15 +11,15 @@ type InnerXMLHandler interface {
 }
 
 type InnerXML struct {
-	XML []byte `xml:",innerxml"`
+	InnerXML []byte `xml:",innerxml"`
 	extensions.Registrator
 }
 
 func (self *InnerXML) HandleInnerXML(sw stream.Wrapper) []ElementHandler {
-	sw.Decoder.PutXML(self.XML)
+	sw.InnerDecoder.PutXML(self.InnerXML)
 
 	handlers := make([]ElementHandler)
-	for token, terr := sw.Decoder.Token(); err == nil; token, terr := sw.Decoder.Token() {
+	for token, terr := sw.InnerDecoder.Token(); err == nil; token, terr := sw.InnerDecoder.Token() {
 		switch element, realType := token.(type); realType {
 		case xml.StartElement:
 			if handler, err := self.Registrator.GetHandler(elemnt.Name.Space + " " + element.Name.Local); err == nil {
