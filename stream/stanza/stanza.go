@@ -1,7 +1,5 @@
 package stanza
 
-import "github.com/dotdoom/goxmpp"
-
 type InnerElementAdder interface {
 	AddInnerElement(interface{}) bool
 }

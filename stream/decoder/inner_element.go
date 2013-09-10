@@ -12,7 +12,7 @@ type InnerXMLHandler interface {
 
 type InnerXML struct {
 	XML []byte `xml:",innerxml"`
-	xep.Registrator
+	extensions.Registrator
 }
 
 func (self *InnerXML) HandleInnerXML(sw stream.Wrapper) []ElementHandler {

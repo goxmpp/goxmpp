@@ -1,4 +1,4 @@
-package xep
+package extensions
 
 import "errors"
 import . "github.com/dotdoom/goxmpp/stream/decoder"

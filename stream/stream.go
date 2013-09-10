@@ -1,6 +1,5 @@
 package stream
 
-import "github.com/dotdoom/goxmpp"
 import "github.com/dotdoom/goxmpp/extensions"
 
 var HandlerRegistrator = extensions.NewHandlerRegistrator()
