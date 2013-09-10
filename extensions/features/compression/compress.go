@@ -12,7 +12,7 @@ const (
 )
 
 func init(){
-	stream.Registrator.Register(STREAM_NS + " " + STREAD_NODE, &CompressionHandler{
+	stream.HandlerRegistrator.Register(STREAM_NS + " " + STREAD_NODE, &CompressionHandler{
 		Registrator: HandlerRegistrator,
 	})
 }

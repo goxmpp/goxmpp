@@ -1,6 +1,6 @@
 package disco_info
 
-import "enconding/xml"
+import "encoding/xml"
 
 type DiscoInfoQuery struct {
 	// http://xmpp.org/extensions/xep-0030.html

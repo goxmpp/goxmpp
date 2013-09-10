@@ -1,6 +1,6 @@
 package disco_items
 
-import "enconding/xml"
+import "encoding/xml"
 
 type DiscoItemsQuery struct {
 	// http://xmpp.org/extensions/xep-0030.html

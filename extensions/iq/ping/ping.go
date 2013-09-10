@@ -1,6 +1,6 @@
 package ping
 
-import "enconding/xml"
+import "encoding/xml"
 
 type PingQuery struct {
 	// http://xmpp.org/extensions/xep-0199.html
