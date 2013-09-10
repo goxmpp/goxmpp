@@ -1,14 +1,15 @@
 package features
 
 import "encoding/xml"
-import "github.com/dotdoom/goxmpp/stream"
+import "github.com/dotdoom/goxmpp/stream/stanza"
 
-type FeatureCopier interface {
+type FeatureEntry interface {
 	CopyIfAvailable(*StreamWrapper) interface{}
 	IsRequiredFor(*StreamWrapper) bool
 }
 
-type FeatureEntry struct {
+type FeaturesInnerElement struct {
+	stanza.InnerElements
 }
 
 func (self *FeatureEntry) CopyInnerElements(sw *StreamWrapper, dest stream.InnerElementAdder) stream.InnerElementAdder {
