@@ -3,7 +3,7 @@ package compression
 import "encoding/xml"
 import "github.com/dotdoom/goxmpp/stream"
 import "github.com/dotdoom/goxmpp/stream/stanza"
-import "github.com/dotdoom/goxmpp/xep"
+import "github.com/dotdoom/goxmpp/extentions"
 
 const (
 	STREAM_NS = "urn:ietf:params:xml:ns:xmpp-sasl"
@@ -16,14 +16,14 @@ func init(){
 	})
 }
 
-var Registrator = xep.NewRegistrator()
+var Registrator = extentions.NewRegistrator()
 
 type BaseCompression struct {
 	XMLName xml.Name `xml:"urn:ietf:params:xml:ns:xmpp-sasl compression"`
 }
 
 // This struct is used for marshaling
-type Compression struct {
+type CompressionFeature struct {
 	BaseCompression
 	stanza.InnerElements
 }

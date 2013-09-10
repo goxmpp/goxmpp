@@ -36,7 +36,7 @@ type Stanza struct {
 }
 
 type InnerXML struct {
-	XML []byte `xml:"innerxml"`
+	XML []byte `xml:",innerxml"`
 	xep.Registrator
 }
 
@@ -54,7 +54,7 @@ func (self *InnerXML) HandleInnerXML(sw goxmpp.StreamWrapper) []ElementHandler {
 	}
 
 	for _, handler := range handlers {
-		handler.Handle()
+		handler.HandleElement()
 	}
 
 	return make([]ElementHandler)
