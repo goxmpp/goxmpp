@@ -15,10 +15,10 @@ type XMLHandler interface {
 }
 
 type InnerElements struct {
-	InnerElements []InnerElementAdder
+	InnerElements []interface{}
 }
 
-func (self *InnerElements) AddInnerElement(e InnerElementAdder) bool {
+func (self *InnerElements) AddInnerElement(e interface{}) bool {
 	if e != nil {
 		self.InnerElements = append(self.InnerElements, e)
 		return true

@@ -34,6 +34,6 @@ type CompressionHandler {
 	stanza.InnerXML
 }
 
-func (self *CompressionHandler) Handle() {
+func (self *CompressionHandler) HandleElement() {
 // TODO: here will be handling and parsing code
 }

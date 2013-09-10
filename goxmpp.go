@@ -266,24 +266,24 @@ func (self *XMLBuffer) Read(b []byte) (int, error) {
 }
 
 type StreamWrapper struct {
-	rwStream      io.ReadWriter
-	streamEncoder *xml.Encoder
-	streamDecoder *xml.Decoder
-	Decoder       *xml.Decoder
-	Buffer        XMLBuffer
-	State         map[string]interface{}
+	rwStream           io.ReadWriter
+	streamEncoder      *xml.Encoder
+	streamDecoder      *xml.Decoder
+	InnerDecoder       *xml.Decoder
+	InnerDecoderBuffer XMLBuffer
+	State              map[string]interface{}
 }
 
 func NewStreamWrapper(rw io.ReadWriter) *StreamWrapper {
 	xml_buffer := NewXMLBuffer()
 
 	return &StreamWrapper{
-		rwStream:      rw,
-		streamEncoder: xml.NewEncoder(rw),
-		streamDecoder: xml.NewDecoder(rw),
-		Decoder:       xml.NewDecoder(xml_buffer),
-		Buffer:        xml_buffer,
-		State:         make(map[string]interface{}),
+		rwStream:           rw,
+		streamEncoder:      xml.NewEncoder(rw),
+		streamDecoder:      xml.NewDecoder(rw),
+		InnerDecoder:       xml.NewDecoder(xml_buffer),
+		InnerDecoderBuffer: xml_buffer,
+		State:              make(map[string]interface{}),
 	}
 }
 
