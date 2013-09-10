@@ -1,9 +1,9 @@
 package stream
 
 import "github.com/dotdoom/goxmpp"
-import "github.com/dotdoom/goxmpp/xep"
+import "github.com/dotdoom/goxmpp/extensions"
 
-var Registrator = xep.NewRegistrator()
+var HandlerRegistrator = extensions.NewHandlerRegistrator()
 
 type Stream struct {
 	XMLName xml.Name

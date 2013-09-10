@@ -1,25 +1,25 @@
 package xep
 
 import "errors"
-import . "github.com/dotdoom/goxmpp/stream/stanza"
+import . "github.com/dotdoom/goxmpp/stream/decoder"
 
 const (
 	UnknownKey = errors.New("There is no such handler registered")
 )
 
-type Registrator map[string]ElementHandler
+type HandlerRegistrator map[string]decoder.ElementHandler
 
-func NewRegistrator() Registrator {
+func NewHandlerRegistrator() Registrator {
 	return make(Registrator)
 }
 
-func (self *Registrator) Register(key string, handler ElementHandler) {
+func (self HandlerRegistrator) Register(key string, handler decoder.ElementHandler) {
 	r := *self
 	r[key] = handler
 	self = &r
 }
 
-func (self Registrator) GetHandler(key string) (ElementHandler, error) {
+func (self HandlerRegistrator) GetHandler(key string) (decoder.ElementHandler, error) {
 	if handler, ok := self[key]; ok {
 		return handler, nil
 	}

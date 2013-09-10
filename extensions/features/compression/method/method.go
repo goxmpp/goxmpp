@@ -1,10 +1,10 @@
 package method
 
 import "encoding/xml"
-import "github.com/dotdoom/goxmpp/stream"
+import "github.com/dotdoom/goxmpp/stream/stanza"
 
 type Method struct {
 	XMLName xml.Name `xml:"method"`
 	Name    string   `xml:",chardata"`
-	stream.InnerElements
+	stanza.InnerElements
 }

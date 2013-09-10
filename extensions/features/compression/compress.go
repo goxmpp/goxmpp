@@ -2,8 +2,9 @@ package compression
 
 import "encoding/xml"
 import "github.com/dotdoom/goxmpp/stream"
+import "github.com/dotdoom/goxmpp/stream/decoder"
 import "github.com/dotdoom/goxmpp/stream/stanza"
-import "github.com/dotdoom/goxmpp/extentions"
+import "github.com/dotdoom/goxmpp/extensions"
 
 const (
 	STREAM_NS = "urn:ietf:params:xml:ns:xmpp-sasl"
@@ -12,11 +13,11 @@ const (
 
 func init(){
 	stream.Registrator.Register(STREAM_NS + " " + STREAD_NODE, &CompressionHandler{
-		Registrator: Registrator,
+		Registrator: HandlerRegistrator,
 	})
 }
 
-var Registrator = extentions.NewRegistrator()
+var HandlerRegistrator = extensions.NewHandlerRegistrator()
 
 type BaseCompression struct {
 	XMLName xml.Name `xml:"urn:ietf:params:xml:ns:xmpp-sasl compression"`
@@ -31,7 +32,7 @@ type CompressionFeature struct {
 // This struct is used for unmarshaling and stream handling
 type CompressionHandler {
 	BaseCompression
-	stanza.InnerXML
+	decoder.InnerXML
 }
 
 func (self *CompressionHandler) HandleElement() {
