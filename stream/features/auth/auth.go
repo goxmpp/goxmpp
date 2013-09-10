@@ -8,7 +8,7 @@ type Mechanisms struct {
 	stream.InnerElements
 }
 
-type AuthMechanismStreamFeature struct {
+type Mechanism struct {
 	XMLName xml.Name `xml:"mechanism"`
 	Name    string   `xml:",chardata"`
 	stream.InnerElements

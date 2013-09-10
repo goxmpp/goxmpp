@@ -122,18 +122,6 @@ func (self *BindStreamFeature) ExposeTo(sw *StreamWrapper) StreamFeature {
 	return self.ExposeSubfeaturesTo(sw, new(BindStreamFeature))
 }*/
 
-/*type SessionStreamFeature struct {
-	XMLName xml.Name `xml:"urn:ietf:params:xml:ns:xmpp-session session"`
-	SimpleStreamFeature
-}
-
-func (self *SessionStreamFeature) ExposeTo(sw *StreamWrapper) StreamFeature {
-	if sw.State["authenticated"] == nil {
-		return nil
-	}
-	return self.ExposeSubfeaturesTo(sw, new(SessionStreamFeature))
-}*/
-
 var GlobalStreamFeatures StreamFeatures
 
 func RegisterGlobalStreamFeatures() {
