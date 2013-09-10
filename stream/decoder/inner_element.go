@@ -28,11 +28,7 @@ func (self *InnerXML) HandleInnerXML(sw goxmpp.StreamWrapper) []ElementHandler {
 		}
 	}
 
-	for _, handler := range handlers {
-		handler.HandleElement()
-	}
-
-	return make([]ElementHandler)
+	return handlers
 }
 
 func (self *InnerXML) HandleElement(sw goxmpp.StreamWrapper) {
