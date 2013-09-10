@@ -2,6 +2,7 @@ package compression
 
 import "encoding/xml"
 import "github.com/dotdoom/goxmpp/stream"
+import "github.com/dotdoom/goxmpp/stream/stanza"
 import "github.com/dotdoom/goxmpp/xep"
 
 const (
@@ -24,13 +25,13 @@ type BaseCompression struct {
 // This struct is used for marshaling
 type Compression struct {
 	BaseCompression
-	stream.InnerElements
+	stanza.InnerElements
 }
 
 // This struct is used for unmarshaling and stream handling
 type CompressionHandler {
 	BaseCompression
-	stream.InnerXML
+	stanza.InnerXML
 }
 
 func (self *CompressionHandler) Handle() {

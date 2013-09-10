@@ -1,7 +1,7 @@
 package xep
 
 import "errors"
-import . "github.com/dotdoom/goxmpp/interfaces"
+import . "github.com/dotdoom/goxmpp/stream/stanza"
 
 const (
 	UnknownKey = errors.New("There is no such handler registered")
