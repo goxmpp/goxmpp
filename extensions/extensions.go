@@ -1,7 +1,7 @@
 package extensions
 
 import "errors"
-import . "github.com/dotdoom/goxmpp/stream/decoder"
+import "github.com/dotdoom/goxmpp/stream/decoder"
 
 const (
 	UnknownKey = errors.New("There is no such handler registered")

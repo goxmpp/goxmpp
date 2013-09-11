@@ -1,13 +1,11 @@
-package decoder
-
-import "github.com/dotdoom/goxmpp/stream"
+package stream
 
 type ElementHandler interface {
-	HandleElement(stream.Wrapper)
+	HandleElement(Wrapper)
 }
 
 type InnerXMLHandler interface {
-	HandleInnerXML(stream.Wrapper) []ElementHandler
+	HandleInnerXML(Wrapper) []ElementHandler
 }
 
 type InnerXML struct {
@@ -15,7 +13,7 @@ type InnerXML struct {
 	extensions.Registrator
 }
 
-func (self *InnerXML) HandleInnerXML(sw stream.Wrapper) []ElementHandler {
+func (self *InnerXML) HandleInnerXML(sw Wrapper) []ElementHandler {
 	sw.InnerDecoder.PutXML(self.InnerXML)
 
 	handlers := make([]ElementHandler)
@@ -31,7 +29,7 @@ func (self *InnerXML) HandleInnerXML(sw stream.Wrapper) []ElementHandler {
 	return handlers
 }
 
-func (self *InnerXML) HandleElement(sw stream.Wrapper) {
+func (self *InnerXML) HandleElement(sw Wrapper) {
 	for _, element := range self.HandlerInnerXML(sw) {
 		element.HandleElement(sw)
 	}
