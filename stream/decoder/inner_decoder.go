@@ -2,28 +2,19 @@ package decoder
 
 import (
 	"encoding/xml"
+	"io"
 )
 
-type InnerXMLBuffer struct {
-	buffer []byte
-}
-
-func NewInnerXMLBuffer() *InnerXMLBuffer {
-	return &InnerXMLBuffer{make([]byte, 0)}
-}
+type InnerXMLBuffer []byte
 
 func (self *InnerXMLBuffer) Read(b []byte) (int, error) {
-	if len(self.buffer) == 0 {
+	if len(*self) == 0 {
 		return 0, io.EOF
 	}
 
-	n := copy(b, self.buffer)
-	self.buffer = self.buffer[n:]
+	n := copy(b, *self)
+	*self = (*self)[n:]
 	return n, nil
-}
-
-func (self *InnerXMLBuffer) PutXML(b []byte) {
-	self.buffer = b
 }
 
 type InnerDecoder struct {
@@ -32,9 +23,13 @@ type InnerDecoder struct {
 }
 
 func NewInnerDecoder() *InnerDecoder {
-	buffer := NewInnerXMLBuffer()
+	buffer := new(InnerXMLBuffer)
 	return &InnerDecoder{
 		Decoder:        xml.NewDecoder(buffer),
 		InnerXMLBuffer: buffer,
 	}
+}
+
+func (self *InnerDecoder) PutXML(b []byte) {
+	*self.InnerXMLBuffer = b
 }

@@ -1,6 +1,10 @@
 package stream
 
-import "github.com/dotdoom/goxmpp/stream/decoder"
+import (
+	"encoding/xml"
+	"github.com/dotdoom/goxmpp/stream/decoder"
+	"io"
+)
 
 type Wrapper struct {
 	rwStream      io.ReadWriter
@@ -29,7 +33,7 @@ func (self *Wrapper) SwapIOStream(rw io.ReadWriter) {
 func (sw *Wrapper) ReadStreamOpen() (*Stream, error) {
 	stream := Stream{}
 	for {
-		t, err := sw.Decoder.Token()
+		t, err := sw.StreamDecoder.Token()
 		if err != nil {
 			return nil, err
 		}
@@ -74,7 +78,7 @@ func (sw *Wrapper) WriteStreamOpen(stream *Stream, default_namespace string) (er
 	}
 	data += ">"
 
-	_, err = io.WriteString(sw.RW, data)
+	_, err = io.WriteString(sw.rwStream, data)
 	return
 }
 
