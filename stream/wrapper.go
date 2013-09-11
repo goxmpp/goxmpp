@@ -31,7 +31,6 @@ func (self *Wrapper) SwapIOStream(rw io.ReadWriter) {
 }
 
 func (sw *Wrapper) ReadStreamOpen() (*Stream, error) {
-	stream := Stream{}
 	for {
 		t, err := sw.StreamDecoder.Token()
 		if err != nil {
@@ -42,6 +41,8 @@ func (sw *Wrapper) ReadStreamOpen() (*Stream, error) {
 			// Good.
 		case xml.StartElement:
 			if t.Name.Local == "stream" {
+				stream := Stream{}
+				stream.XMLName = t.Name
 				for _, attr := range t.Attr {
 					switch attr.Name.Local {
 					case "to":
@@ -60,7 +61,7 @@ func (sw *Wrapper) ReadStreamOpen() (*Stream, error) {
 }
 
 // TODO(artem): refactor
-func (sw *Wrapper) WriteStreamOpen(stream *Stream, default_namespace string) (err error) {
+func (sw *Wrapper) WriteStreamOpen(stream *Stream, default_namespace string) error {
 	data := xml.Header
 
 	data += "<stream:stream xmlns='" + default_namespace + "' xmlns:stream='" + stream.XMLName.Space + "'"
@@ -78,10 +79,6 @@ func (sw *Wrapper) WriteStreamOpen(stream *Stream, default_namespace string) (er
 	}
 	data += ">"
 
-	_, err = io.WriteString(sw.rwStream, data)
-	return
-}
-
-func (sw *Wrapper) WriteFeatures() error {
-	return nil
+	_, err := io.WriteString(sw.rwStream, data)
+	return err
 }
