@@ -17,31 +17,14 @@ type Stream struct {
 // An entry point for decoding elements in response to features
 // anouncment from server, before sission is opened
 func handleFeature(sw *Wrapper) {
-	decodeStream(sw)
+	processStreamElements(sw.StreamDecoder, HandlerRegistrator, func(handler ElementHandler) {
+		handler.HandleElement(sw)
+	})
 }
 
 // This is an entry point for decode stanzas
 func NextStanza(sw *Wrapper) {
-	decodeStream(sw)
-}
-
-func decodeStream(sw *Wrapper) {
-	for token, err := sw.StreamDecoder.Token(); err == nil; token, err = sw.StreamDecoder.Token() {
-		switch element := token.(type) {
-		case *xml.StartElement:
-			handler, err := HandlerRegistrator.GetHandler(element.Name.Space + " " + element.Name.Local)
-			if err != nil {
-				// TODO: do logging here
-				continue
-			}
-
-			if decode_err := sw.StreamDecoder.DecodeElement(handler, element); decode_err != nil {
-				// TODO: do logging here
-				continue
-			}
-
-			// All further processing goes in stanza hadler which may generate some output
-			handler.HandleElement(sw)
-		}
-	}
+	processStreamElements(sw.StreamDecoder, HandlerRegistrator, func(handler ElementHandler) {
+		handler.HandleElement(sw)
+	})
 }
