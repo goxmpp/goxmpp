@@ -4,38 +4,62 @@ import (
 	"encoding/xml"
 )
 
-type ElementHandlerAction func(ElementHandler)
+type ElementHandlerAction func(Element) bool
 
-type ElementHandler interface {
-	HandleElement(*Wrapper)
+type InnerElementAdder interface {
+	AddInnerElement(Element) bool
+}
+
+type InnerElements struct {
+	InnerElements []Element
+}
+
+func (self *InnerElements) AddInnerElement(e Element) bool {
+	if e != nil {
+		self.InnerElements = append(self.InnerElements, e)
+		return true
+	}
+	return false
 }
 
 type InnerXMLHandler interface {
-	HandleInnerXML(*Wrapper) []ElementHandler
+	InnerElementAdder
+	HandleInnerXML(*Wrapper) []Element
 }
 
 type InnerXML struct {
-	InnerXML    []byte `xml:",innerxml"`
-	Registrator ElementHandlerRegistrator
+	InnerElements `xml:"omitempty"`
+	InnerXML      []byte                    `xml:",innerxml"`
+	Registrator   ElementHandlerRegistrator `xml:"-"`
 }
 
-func (self *InnerXML) HandleInnerXML(sw *Wrapper) []ElementHandler {
-	sw.InnerDecoder.PutXML(self.InnerXML)
-	handlers := make([]ElementHandler, 0)
+func (self *InnerXML) HandleInnerXML(sw *Wrapper) []Element {
+	handlers := make([]Element, 0)
 
-	processStreamElements(sw.InnerDecoder.Decoder, self.Registrator, func(handler ElementHandler) {
-		handlers = append(handlers, handler)
-	})
+	if len(self.InnerXML) > 0 {
+		sw.InnerDecoder.PutXML(self.InnerXML)
+
+		processStreamElements(sw.InnerDecoder.Decoder, self.Registrator, func(handler Element) bool {
+			handlers = append(handlers, handler)
+			return len(*sw.InnerDecoder.InnerXMLBuffer) > 0
+		})
+	}
+	self.InnerXML = []byte{}
 
 	return handlers
 }
 
 func processStreamElements(decoder *xml.Decoder, registry ElementHandlerRegistrator, elementAction ElementHandlerAction) {
-	for token, terr := decoder.Token(); terr == nil; token, terr = decoder.Token() {
+	var token xml.Token
+	var terr error
+
+OUT:
+	for token, terr = decoder.Token(); terr == nil; token, terr = decoder.Token() {
 		switch element := token.(type) {
 		case xml.StartElement:
-			var handler ElementHandler
+			var handler Element
 			var err error
+
 			if handler, err = registry.GetHandler(element.Name.Space + " " + element.Name.Local); err != nil {
 				// TODO: added logging here
 				continue
@@ -46,13 +70,23 @@ func processStreamElements(decoder *xml.Decoder, registry ElementHandlerRegistra
 				continue
 			}
 
-			elementAction(handler)
+			if !elementAction(handler) {
+				break OUT
+			}
 		}
+	}
+
+	if terr != nil {
+		// TODO: log error
 	}
 }
 
-func (self *InnerXML) HandleElement(sw *Wrapper) {
-	for _, element := range self.HandleInnerXML(sw) {
-		element.HandleElement(sw)
+func unmarshalStreamElement(self Element, sw *Wrapper) Element {
+	// For elements other than InnerXMLHandler consider they don't have InnerElements
+	if adder, ok := self.(InnerXMLHandler); ok {
+		for _, element := range adder.HandleInnerXML(sw) {
+			adder.AddInnerElement(unmarshalStreamElement(element, sw))
+		}
 	}
+	return self
 }

@@ -1,22 +1,9 @@
 package stanza
 
-import "encoding/xml"
-
-type InnerElementAdder interface {
-	AddInnerElement(interface{}) bool
-}
-
-type InnerElements struct {
-	InnerElements []interface{}
-}
-
-func (self *InnerElements) AddInnerElement(e interface{}) bool {
-	if e != nil {
-		self.InnerElements = append(self.InnerElements, e)
-		return true
-	}
-	return false
-}
+import (
+	"encoding/xml"
+	"github.com/dotdoom/goxmpp/stream"
+)
 
 type BaseStanza struct {
 	XMLName xml.Name
@@ -29,7 +16,7 @@ type BaseStanza struct {
 
 type StanzaWriter struct {
 	BaseStanza
-	InnerElements
+	stream.InnerElements
 }
 
 type ParsedStanza struct {

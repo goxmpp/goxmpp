@@ -4,11 +4,10 @@ import (
 	"encoding/xml"
 	"github.com/dotdoom/goxmpp/extensions/features/compression"
 	"github.com/dotdoom/goxmpp/stream"
-	"github.com/dotdoom/goxmpp/stream/stanza"
 )
 
 func init() {
-	compression.HandlerRegistrator.Register(" method", &BasicMethod{})
+	compression.HandlerRegistrator.Register(" method", func() stream.Element { return &BasicMethod{} })
 }
 
 type BasicMethod struct {
@@ -18,9 +17,5 @@ type BasicMethod struct {
 
 type Method struct {
 	BasicMethod
-	stanza.InnerElements
-}
-
-func (self *BasicMethod) HandleElement(sw *stream.Wrapper) {
-
+	stream.InnerElements
 }
