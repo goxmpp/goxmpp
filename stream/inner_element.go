@@ -33,7 +33,7 @@ func (self *InnerXML) HandleInnerXML(sw *Wrapper) []ElementHandler {
 func processStreamElements(decoder *xml.Decoder, registry ElementHandlerRegistrator, elementAction ElementHandlerAction) {
 	for token, terr := decoder.Token(); terr == nil; token, terr = decoder.Token() {
 		switch element := token.(type) {
-		case *xml.StartElement:
+		case xml.StartElement:
 			var handler ElementHandler
 			var err error
 			if handler, err = registry.GetHandler(element.Name.Space + " " + element.Name.Local); err != nil {
@@ -41,7 +41,7 @@ func processStreamElements(decoder *xml.Decoder, registry ElementHandlerRegistra
 				continue
 			}
 
-			if err = decoder.DecodeElement(handler, element); err != nil {
+			if err = decoder.DecodeElement(handler, &element); err != nil {
 				// TODO: added logging here
 				continue
 			}
