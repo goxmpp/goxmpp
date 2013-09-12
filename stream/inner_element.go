@@ -29,8 +29,8 @@ type InnerXMLHandler interface {
 
 type InnerXML struct {
 	InnerElements `xml:"omitempty"`
-	InnerXML      []byte                    `xml:",innerxml"`
-	Registrator   ElementHandlerRegistrator `xml:"-"`
+	InnerXML      []byte                      `xml:",innerxml"`
+	Registrator   ElementGeneratorRegistrator `xml:"-"`
 }
 
 func (self *InnerXML) Erase() {
@@ -53,7 +53,7 @@ func (self *InnerXML) HandleInnerXML(sw *Wrapper) []Element {
 	return handlers
 }
 
-func processStreamElements(decoder *xml.Decoder, registry ElementHandlerRegistrator, elementAction ElementHandlerAction) {
+func processStreamElements(decoder *xml.Decoder, registry ElementGeneratorRegistrator, elementAction ElementHandlerAction) {
 	var token xml.Token
 	var terr error
 

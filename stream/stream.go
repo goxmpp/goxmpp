@@ -4,7 +4,7 @@ import (
 	"encoding/xml"
 )
 
-var HandlerRegistrator = NewElementHandlerRegistrator()
+var HandlerRegistrator = NewElementGeneratorRegistrator()
 
 type Stream struct {
 	XMLName xml.Name

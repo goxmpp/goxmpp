@@ -14,7 +14,7 @@ func init() {
 	})
 }
 
-var HandlerRegistrator = stream.NewElementHandlerRegistrator()
+var HandlerRegistrator = stream.NewElementGeneratorRegistrator()
 
 type BaseCompression struct {
 	XMLName xml.Name `xml:"urn:ietf:params:xml:ns:xmpp-sasl compression"`

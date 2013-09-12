@@ -5,17 +5,17 @@ import "errors"
 var UnknownKey = errors.New("There is no such handler registered")
 
 type ElementGenerator func() Element
-type ElementHandlerRegistrator map[string]ElementGenerator
+type ElementGeneratorRegistrator map[string]ElementGenerator
 
-func NewElementHandlerRegistrator() ElementHandlerRegistrator {
-	return make(ElementHandlerRegistrator)
+func NewElementGeneratorRegistrator() ElementGeneratorRegistrator {
+	return make(ElementGeneratorRegistrator)
 }
 
-func (self ElementHandlerRegistrator) Register(key string, generator ElementGenerator) {
+func (self ElementGeneratorRegistrator) Register(key string, generator ElementGenerator) {
 	self[key] = generator
 }
 
-func (self ElementHandlerRegistrator) GetHandler(key string) (Element, error) {
+func (self ElementGeneratorRegistrator) GetHandler(key string) (Element, error) {
 	if generator, ok := self[key]; ok {
 		return generator(), nil
 	}
