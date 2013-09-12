@@ -33,6 +33,10 @@ type InnerXML struct {
 	Registrator   ElementHandlerRegistrator `xml:"-"`
 }
 
+func (self *InnerXML) Erase() {
+	self.InnerXML = self.InnerXML[:0]
+}
+
 func (self *InnerXML) HandleInnerXML(sw *Wrapper) []Element {
 	handlers := make([]Element, 0)
 
@@ -44,7 +48,7 @@ func (self *InnerXML) HandleInnerXML(sw *Wrapper) []Element {
 			return len(*sw.InnerDecoder.InnerXMLBuffer) > 0
 		})
 	}
-	self.InnerXML = []byte{}
+	self.Erase()
 
 	return handlers
 }
