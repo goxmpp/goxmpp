@@ -10,11 +10,15 @@ type InnerXMLBuffer []byte
 
 func (self *InnerXMLBuffer) ReadByte() (byte, error) {
 	var b byte
+	var err error
 	if len(*self) > 0 {
 		b = (*self)[0]
 		*self = append((*self)[:0], (*self)[1:]...)
+	} else {
+		err = io.EOF
 	}
-	return b, nil
+
+	return b, err
 }
 
 func (self *InnerXMLBuffer) Read(b []byte) (int, error) {
@@ -42,4 +46,13 @@ func NewInnerDecoder() *InnerDecoder {
 
 func (self *InnerDecoder) PutXML(b []byte) {
 	*self.InnerXMLBuffer = bytes.TrimSpace(b)
+	// We need this fake tag to trick xml.Decoder and exit the parsing loop once inner XML buffer is empty.
+	// We check if buffer is empty after every tag parsed. Without this tag we can have "chardata" before
+	// outer closing tag and xml.Decoder.Token will never return till EOF,
+	// but after EOF it won't read any more data from buffer even if we provide any
+	*self.InnerXMLBuffer = append(*self.InnerXMLBuffer, "<nonexisting_node_this_is_a_hack/>"...)
+}
+
+func (self *InnerDecoder) IsEmpty() bool {
+	return len(*self.InnerXMLBuffer) == 0
 }

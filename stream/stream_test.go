@@ -7,19 +7,32 @@ import "github.com/dotdoom/goxmpp/stream/decoder"
 import "bytes"
 import "testing"
 
-var x = `<iq to="test@conference.jabber.ru" type="set" id="ab7ca">
+var iqSource = `<iq to="test@conference.jabber.ru" id="ab7ca" type="set">
+sdfsdf
+    <query xmlns="http://jabber.org/protocol/muc#admin">
+    sfsdf
+        <item affiliation="outcast" jid="test1@example.net">test</item>
+        sdfsdf
+        <item affiliation="outcast" jid="test2@example.net">test1</item>
+        sfsdf
+    </query>
+    sdfsdf
+</iq>
+sdfdf`
+
+var iqExpect = `<iq to="test@conference.jabber.ru" type="set" id="ab7ca">
     <query xmlns="http://jabber.org/protocol/muc#admin">
         <item affiliation="outcast" jid="test1@example.net">test</item>
         <item affiliation="outcast" jid="test2@example.net">test1</item>
     </query>
 </iq>`
 
-func TestUnmarshal(t *testing.T) {
-	d := decoder.NewInnerDecoder()
+func getWrapper(source []byte) *stream.Wrapper {
+	return &stream.Wrapper{StreamDecoder: xml.NewDecoder(bytes.NewReader([]byte(iqSource))), InnerDecoder: decoder.NewInnerDecoder()}
+}
 
-	w := &stream.Wrapper{StreamDecoder: xml.NewDecoder(bytes.NewReader([]byte(x))), InnerDecoder: d}
-
-	s := stream.NextStanza(w)
+func TestIQUnmarshal(t *testing.T) {
+	s := stream.NextStanza(getWrapper([]byte(iqSource)))
 
 	var buffer []byte
 	var err error
@@ -28,11 +41,11 @@ func TestUnmarshal(t *testing.T) {
 	}
 
 	t.Log("Result (bytes):", buffer)
-	t.Log("Source (bytes):", []byte(x))
+	t.Log("Source (bytes):", []byte(iqSource))
 	t.Log("Result:", string(buffer))
-	t.Log("Source:", x)
-	for index, b := range []byte(x) {
-		if buffer[index] != b {
+	t.Log("Source:", iqSource)
+	for index, b := range buffer {
+		if iqExpect[index] != b {
 			t.Fatal("Source doesn't match to result in pos", index)
 		}
 	}

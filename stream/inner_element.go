@@ -2,6 +2,7 @@ package stream
 
 import (
 	"encoding/xml"
+	"github.com/dotdoom/goxmpp/stream/decoder"
 )
 
 type ElementHandlerAction func(Element) bool
@@ -43,9 +44,9 @@ func (self *InnerXML) HandleInnerXML(sw *Wrapper) []Element {
 	if len(self.InnerXML) > 0 {
 		sw.InnerDecoder.PutXML(self.InnerXML)
 
-		processStreamElements(sw.InnerDecoder.Decoder, self.Registrator, func(handler Element) bool {
+		processStreamElements(sw.InnerDecoder, self.Registrator, func(handler Element) bool {
 			handlers = append(handlers, handler)
-			return len(*sw.InnerDecoder.InnerXMLBuffer) > 0
+			return true
 		})
 	}
 	self.Erase()
@@ -53,14 +54,17 @@ func (self *InnerXML) HandleInnerXML(sw *Wrapper) []Element {
 	return handlers
 }
 
-func processStreamElements(decoder *xml.Decoder, registry ElementGeneratorRegistrator, elementAction ElementHandlerAction) {
+type XMLDecoder interface {
+	Token() (xml.Token, error)
+	DecodeElement(interface{}, *xml.StartElement) error
+}
+
+func processStreamElements(xmldecoder XMLDecoder, registry ElementGeneratorRegistrator, elementAction ElementHandlerAction) {
 	var token xml.Token
 	var terr error
 
-OUT:
-	for token, terr = decoder.Token(); terr == nil; token, terr = decoder.Token() {
-		switch element := token.(type) {
-		case xml.StartElement:
+	for token, terr = xmldecoder.Token(); terr == nil; token, terr = xmldecoder.Token() {
+		if element, ok := token.(xml.StartElement); ok {
 			var handler Element
 			var err error
 
@@ -69,14 +73,18 @@ OUT:
 				continue
 			}
 
-			if err = decoder.DecodeElement(handler, &element); err != nil {
+			if err = xmldecoder.DecodeElement(handler, &element); err != nil {
 				// TODO: added logging here
 				continue
 			}
 
 			if !elementAction(handler) {
-				break OUT
+				break
 			}
+		}
+
+		if innerDecoder, ok := xmldecoder.(*decoder.InnerDecoder); ok && innerDecoder.IsEmpty() {
+			break
 		}
 	}
 
