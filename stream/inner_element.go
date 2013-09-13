@@ -3,6 +3,8 @@ package stream
 import (
 	"encoding/xml"
 	"github.com/dotdoom/goxmpp/stream/decoder"
+	"io"
+	"log"
 )
 
 type ElementHandlerAction func(Element) bool
@@ -64,7 +66,7 @@ func processStreamElements(xmldecoder XMLDecoder, registry ElementGeneratorRegis
 	var terr error
 
 	for token, terr = xmldecoder.Token(); terr == nil; token, terr = xmldecoder.Token() {
-		if element, ok := token.(xml.StartElement); ok {
+		if element, ok := token.(xml.StartElement); ok && element.Name.Local != decoder.TERMINATOR {
 			var handler Element
 			var err error
 
@@ -75,6 +77,7 @@ func processStreamElements(xmldecoder XMLDecoder, registry ElementGeneratorRegis
 
 			if err = xmldecoder.DecodeElement(handler, &element); err != nil {
 				// TODO: added logging here
+				log.Println(err)
 				continue
 			}
 
@@ -88,8 +91,8 @@ func processStreamElements(xmldecoder XMLDecoder, registry ElementGeneratorRegis
 		}
 	}
 
-	if terr != nil {
-		// TODO: log error
+	if terr != nil && terr != io.EOF {
+		log.Println(terr)
 	}
 }
 

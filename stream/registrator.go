@@ -19,5 +19,10 @@ func (self ElementGeneratorRegistrator) GetHandler(key string) (Element, error) 
 	if generator, ok := self[key]; ok {
 		return generator(), nil
 	}
+
+	// This is default registrator if defined
+	if generator, ok := self["*"]; ok {
+		return generator(), nil
+	}
 	return nil, errors.New("Wrong key" + key)
 }

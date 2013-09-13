@@ -3,6 +3,8 @@ package goxmpp
 import (
 	_ "github.com/dotdoom/goxmpp/extensions/features/compression"
 	_ "github.com/dotdoom/goxmpp/extensions/features/compression/method"
+	_ "github.com/dotdoom/goxmpp/stream/iq"
+	_ "github.com/dotdoom/goxmpp/stream/message"
 	_ "github.com/dotdoom/goxmpp/extensions/features/starttls"
 	_ "github.com/dotdoom/goxmpp/extensions/iq/disco_info"
 	_ "github.com/dotdoom/goxmpp/extensions/iq/disco_items"

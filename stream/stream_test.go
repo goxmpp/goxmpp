@@ -28,25 +28,68 @@ var iqExpect = `<iq to="test@conference.jabber.ru" type="set" id="ab7ca">
 </iq>`
 
 func getWrapper(source []byte) *stream.Wrapper {
-	return &stream.Wrapper{StreamDecoder: xml.NewDecoder(bytes.NewReader([]byte(iqSource))), InnerDecoder: decoder.NewInnerDecoder()}
+	return &stream.Wrapper{StreamDecoder: xml.NewDecoder(bytes.NewReader([]byte(source))), InnerDecoder: decoder.NewInnerDecoder()}
+}
+
+func is(got, expect []byte) bool {
+	if len(got) != len(expect) {
+		return false
+	}
+
+	for index, b := range got {
+		if expect[index] != b {
+			return false
+		}
+	}
+
+	return true
+}
+
+func logEpectations(t *testing.T, got, expect, source []byte) {
+	t.Log("Result (bytes):", got)
+	t.Log("Expected (bytes):", expect)
+	t.Log("Source:", string(source))
+	t.Log("Result:", string(got))
+	t.Log("Expected:", string(expect))
+}
+
+func unmarshalTester(t *testing.T, source, expect []byte) {
+	s := stream.NextStanza(getWrapper(source))
+
+	buffer, err := xml.MarshalIndent(s, "", "    ")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	logEpectations(t, buffer, expect, source)
+
+	if !is(buffer, expect) {
+		t.Fatal("Source doesn't match the result")
+	}
 }
 
 func TestIQUnmarshal(t *testing.T) {
-	s := stream.NextStanza(getWrapper([]byte(iqSource)))
+	unmarshalTester(t, []byte(iqSource), []byte(iqExpect))
+}
 
-	var buffer []byte
-	var err error
-	if buffer, err = xml.MarshalIndent(s, "", "    "); err != nil {
-		t.Error(err)
-	}
+var messageSource = `<message>
+    <body>hi!</body>
+    <html xmlns="http://jabber.org/protocol/xhtml-im">
+        <body xmlns="http://www.w3.org/1999/xhtml">
+            <p style='font-weight:bold'>hi!</p>
+        </body>
+    </html>
+</message>`
 
-	t.Log("Result (bytes):", buffer)
-	t.Log("Source (bytes):", []byte(iqSource))
-	t.Log("Result:", string(buffer))
-	t.Log("Source:", iqSource)
-	for index, b := range buffer {
-		if iqExpect[index] != b {
-			t.Fatal("Source doesn't match to result in pos", index)
-		}
-	}
+var messageExpect = `<message>
+    <body>hi!</body>
+    <html xmlns="http://jabber.org/protocol/xhtml-im">
+        <body xmlns="http://www.w3.org/1999/xhtml">
+            <p style='font-weight:bold'>hi!</p>
+        </body>
+    </html>
+</message>`
+
+func TestMessageUnmarshal(t *testing.T) {
+	unmarshalTester(t, []byte(messageSource), []byte(messageExpect))
 }

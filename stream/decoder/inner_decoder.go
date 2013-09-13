@@ -6,6 +6,8 @@ import (
 	"io"
 )
 
+const TERMINATOR = "nonexisting_node_this_is_a_hack"
+
 type InnerXMLBuffer []byte
 
 func (self *InnerXMLBuffer) ReadByte() (byte, error) {
@@ -50,7 +52,7 @@ func (self *InnerDecoder) PutXML(b []byte) {
 	// We check if buffer is empty after every tag parsed. Without this tag we can have "chardata" before
 	// outer closing tag and xml.Decoder.Token will never return till EOF,
 	// but after EOF it won't read any more data from buffer even if we provide any
-	*self.InnerXMLBuffer = append(*self.InnerXMLBuffer, "<nonexisting_node_this_is_a_hack/>"...)
+	*self.InnerXMLBuffer = append(*self.InnerXMLBuffer, "<"+TERMINATOR+"/>"...)
 }
 
 func (self *InnerDecoder) IsEmpty() bool {
