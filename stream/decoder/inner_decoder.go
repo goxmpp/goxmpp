@@ -15,7 +15,7 @@ func (self *InnerXMLBuffer) ReadByte() (byte, error) {
 	var err error
 	if len(*self) > 0 {
 		b = (*self)[0]
-		*self = append((*self)[:0], (*self)[1:]...)
+		*self = (*self)[1:]
 	} else {
 		err = io.EOF
 	}
