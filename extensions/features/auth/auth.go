@@ -17,9 +17,8 @@ func (self *Mechanisms) IsRequiredFor(fs features.FeatureState) bool {
 func (self *Mechanisms) CopyIfAvailable(fs features.FeatureState) interface{} {
 	if self.IsRequiredFor(fs) {
 		return self.CopyAvailableInnerFeatures(fs, new(Mechanisms))
-	} else {
-		return nil
 	}
+	return nil
 }
 
 type Mechanism struct {
