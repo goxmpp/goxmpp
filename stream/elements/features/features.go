@@ -1,5 +1,6 @@
 package features
 
+/*
 import "encoding/xml"
 import "github.com/dotdoom/goxmpp/stream/elements/stanza"
 
@@ -23,3 +24,4 @@ type Features struct {
 	XMLName xml.Name `xml:"stream:features"`
 	stream.InnerElements
 }
+*/

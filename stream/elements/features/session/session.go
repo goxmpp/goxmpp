@@ -1,5 +1,6 @@
 package session
 
+/*
 import "encoding/xml"
 import "github.com/dotdoom/goxmpp/stream"
 
@@ -13,4 +14,4 @@ func (self *Feature) CopyAvailableElements(sw *StreamWrapper) StreamFeature {
 		return nil
 	}
 	return self.ExposeSubfeaturesTo(sw, new(SessionStreamFeature))
-}
+}*/
