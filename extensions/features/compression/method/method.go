@@ -3,7 +3,6 @@ package method
 import (
 	"encoding/xml"
 	"github.com/dotdoom/goxmpp/extensions/features/compression"
-	"github.com/dotdoom/goxmpp/stream"
 	"github.com/dotdoom/goxmpp/stream/elements"
 )
 
@@ -18,5 +17,5 @@ type BasicMethod struct {
 
 type Method struct {
 	BasicMethod
-	stream.InnerElements
+	elements.InnerElements
 }

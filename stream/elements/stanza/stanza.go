@@ -2,7 +2,7 @@ package stanza
 
 import (
 	_ "encoding/xml"
-	"github.com/dotdoom/goxmpp/stream"
+	"github.com/dotdoom/goxmpp/stream/elements"
 )
 
 type BaseStanza struct {
@@ -15,7 +15,7 @@ type BaseStanza struct {
 
 type StanzaWriter struct {
 	BaseStanza
-	stream.InnerElements
+	elements.InnerElements
 }
 
 type ParsedStanza struct {

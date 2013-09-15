@@ -1,13 +1,12 @@
 package message
 
 import "encoding/xml"
-import "github.com/dotdoom/goxmpp/stream"
 import "github.com/dotdoom/goxmpp/stream/elements"
 import "github.com/dotdoom/goxmpp/stream/elements/stanza"
 
 func init() {
-	stream.GlobalStanzasFactory.AddConstructor(" message", func() elements.Element {
-		return &Message{InnerXML: stream.InnerXML{ElementFactory: ElementFactory}}
+	elements.GlobalStanzasFactory.AddConstructor(" message", func() elements.Element {
+		return &Message{InnerXML: elements.InnerXML{ElementFactory: ElementFactory}}
 	})
 
 	ElementFactory.AddConstructor(" body", func() elements.Element {
@@ -34,5 +33,5 @@ type Body struct {
 type Message struct {
 	XMLName xml.Name `xml:"message"`
 	stanza.BaseStanza
-	stream.InnerXML
+	elements.InnerXML
 }

@@ -4,6 +4,7 @@ import (
 	"encoding/xml"
 	"github.com/dotdoom/goxmpp/stream/decoder"
 	"github.com/dotdoom/goxmpp/stream/elements"
+	"github.com/dotdoom/goxmpp/stream/elements/features"
 	"io"
 )
 
@@ -13,7 +14,8 @@ type Wrapper struct {
 	StreamDecoder  *xml.Decoder
 	InnerDecoder   *decoder.InnerDecoder
 	ElementFactory elements.Factory
-	State          map[string]interface{}
+	FeatureSet     *features.Features
+	State          features.FeatureState
 }
 
 func NewWrapper(rw io.ReadWriter) *Wrapper {
@@ -23,7 +25,8 @@ func NewWrapper(rw io.ReadWriter) *Wrapper {
 		StreamDecoder:  xml.NewDecoder(rw),
 		InnerDecoder:   decoder.NewInnerDecoder(),
 		State:          make(map[string]interface{}),
-		ElementFactory: GlobalFeaturesFactory,
+		ElementFactory: elements.GlobalFeaturesFactory,
+		FeatureSet:     features.GlobalFeaturesList,
 	}
 }
 
@@ -31,6 +34,10 @@ func (self *Wrapper) SwapIOStream(rw io.ReadWriter) {
 	self.rwStream = rw
 	self.StreamEncoder = xml.NewEncoder(rw)
 	self.StreamDecoder = xml.NewDecoder(rw)
+}
+
+func (self *Wrapper) SendFeatures() {
+	//self.StreamEncoder.Encode(
 }
 
 /*

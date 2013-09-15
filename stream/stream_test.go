@@ -3,6 +3,7 @@ package stream_test
 import "encoding/xml"
 import _ "github.com/dotdoom/goxmpp"
 import "github.com/dotdoom/goxmpp/stream"
+import "github.com/dotdoom/goxmpp/stream/elements"
 import "github.com/dotdoom/goxmpp/stream/decoder"
 import "bytes"
 import "testing"
@@ -31,7 +32,7 @@ func getWrapper(source []byte) *stream.Wrapper {
 	return &stream.Wrapper{
 		StreamDecoder:  xml.NewDecoder(bytes.NewReader([]byte(source))),
 		InnerDecoder:   decoder.NewInnerDecoder(),
-		ElementFactory: stream.GlobalStanzasFactory,
+		ElementFactory: elements.GlobalStanzasFactory,
 	}
 }
 
