@@ -31,9 +31,9 @@ type InnerXMLHandler interface {
 }
 
 type InnerXML struct {
-	InnerElements `xml:"omitempty"`
-	InnerXML      []byte                      `xml:",innerxml"`
-	Registrator   ElementGeneratorRegistrator `xml:"-"`
+	InnerElements  `xml:"omitempty"`
+	InnerXML       []byte         `xml:",innerxml"`
+	ElementFactory ElementFactory `xml:"-"`
 }
 
 func (self *InnerXML) Erase() {
@@ -46,7 +46,7 @@ func (self *InnerXML) HandleInnerXML(sw *Wrapper) []Element {
 	if len(self.InnerXML) > 0 {
 		sw.InnerDecoder.PutXML(self.InnerXML)
 
-		processStreamElements(sw.InnerDecoder, self.Registrator, func(handler Element) bool {
+		processStreamElements(sw.InnerDecoder, self.ElementFactory, func(handler Element) bool {
 			handlers = append(handlers, handler)
 			return true
 		})
@@ -61,7 +61,7 @@ type XMLDecoder interface {
 	DecodeElement(interface{}, *xml.StartElement) error
 }
 
-func processStreamElements(xmldecoder XMLDecoder, registry ElementGeneratorRegistrator, elementAction ElementHandlerAction) {
+func processStreamElements(xmldecoder XMLDecoder, factory ElementFactory, elementAction ElementHandlerAction) {
 	var token xml.Token
 	var terr error
 
@@ -70,7 +70,7 @@ func processStreamElements(xmldecoder XMLDecoder, registry ElementGeneratorRegis
 			var handler Element
 			var err error
 
-			if handler, err = registry.GetHandler(element.Name.Space + " " + element.Name.Local); err != nil {
+			if handler, err = factory.Create(element.Name.Space + " " + element.Name.Local); err != nil {
 				// TODO: added logging here
 				continue
 			}

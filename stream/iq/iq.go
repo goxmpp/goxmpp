@@ -9,26 +9,12 @@ const (
 )
 
 func init() {
-	stream.HandlerRegistrator.Register(" "+STREAD_NODE, func() stream.Element {
-		return &IQ{InnerXML: stream.InnerXML{Registrator: HandlerRegistrator}}
+	stream.GlobalElementFactory.AddConstructor(" "+STREAD_NODE, func() stream.Element {
+		return &IQ{InnerXML: stream.InnerXML{ElementFactory: ElementFactory}}
 	})
 }
 
-var HandlerRegistrator = stream.NewElementGeneratorRegistrator()
-
-/*type IQ struct {
-	stream.Stanza
-	XMLName         xml.Name `xml:"iq"`
-	VersionQuery    VersionQuery
-	TimeQuery       TimeQuery
-	DiscoInfoQuery  DiscoInfoQuery
-	DiscoItemsQuery DiscoItemsQuery
-	PingQuery       PingQuery
-	StatsQuery      StatsQuery
-	LastQuery       LastQuery
-	PrivacyQuery    PrivacyQuery
-}
-*/
+var ElementFactory = stream.NewElementFactory()
 
 type IQ struct {
 	XMLName xml.Name `xml:"iq"`

@@ -7,7 +7,7 @@ import (
 )
 
 func init() {
-	query.HandlerRegistrator.Register(" item", func() stream.Element {
+	query.ElementFactory.AddConstructor(" item", func() stream.Element {
 		return &Item{}
 	})
 }

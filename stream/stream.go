@@ -4,7 +4,7 @@ import (
 	"encoding/xml"
 )
 
-var HandlerRegistrator = NewElementGeneratorRegistrator()
+var GlobalElementFactory = NewElementFactory()
 
 type Stream struct {
 	XMLName xml.Name
@@ -19,7 +19,7 @@ type Element interface{}
 // An entry point for decoding elements in response to features
 // anouncment from server, before sission is opened
 func handleFeature(sw *Wrapper) {
-	processStreamElements(sw.StreamDecoder, HandlerRegistrator, func(handler Element) bool {
+	processStreamElements(sw.StreamDecoder, GlobalElementFactory, func(handler Element) bool {
 		// TODO: need to check sw for the state when all required features processed and exit the loop
 		unmarshalStreamElement(handler, sw)
 		return true
@@ -30,7 +30,7 @@ func handleFeature(sw *Wrapper) {
 func NextStanza(sw *Wrapper) Element {
 	var stanza Element
 
-	processStreamElements(sw.StreamDecoder, HandlerRegistrator, func(handler Element) bool {
+	processStreamElements(sw.StreamDecoder, GlobalElementFactory, func(handler Element) bool {
 		stanza = unmarshalStreamElement(handler, sw)
 		return false // We need process stanzas one by one
 	})

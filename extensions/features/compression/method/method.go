@@ -7,7 +7,7 @@ import (
 )
 
 func init() {
-	compression.HandlerRegistrator.Register(" method", func() stream.Element { return &BasicMethod{} })
+	compression.ElementFactory.AddConstructor(" method", func() stream.Element { return &BasicMethod{} })
 }
 
 type BasicMethod struct {

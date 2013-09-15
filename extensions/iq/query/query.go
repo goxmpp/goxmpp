@@ -7,15 +7,15 @@ import (
 )
 
 func init() {
-	iq.HandlerRegistrator.Register("http://jabber.org/protocol/muc#admin query", func() stream.Element {
-		return &MucQuery{InnerXML: stream.InnerXML{Registrator: HandlerRegistrator}}
+	iq.ElementFactory.AddConstructor("http://jabber.org/protocol/muc#admin query", func() stream.Element {
+		return &MucQuery{InnerXML: stream.InnerXML{ElementFactory: ElementFactory}}
 	})
-	iq.HandlerRegistrator.Register("http://jabber.org/protocol/disco#info query", func() stream.Element {
-		return &DiscoQuery{InnerXML: stream.InnerXML{Registrator: HandlerRegistrator}}
+	iq.ElementFactory.AddConstructor("http://jabber.org/protocol/disco#info query", func() stream.Element {
+		return &DiscoQuery{InnerXML: stream.InnerXML{ElementFactory: ElementFactory}}
 	})
 }
 
-var HandlerRegistrator = stream.NewElementGeneratorRegistrator()
+var ElementFactory = stream.NewElementFactory()
 
 type MucQuery struct {
 	XMLName xml.Name `xml:"http://jabber.org/protocol/muc#admin query"`

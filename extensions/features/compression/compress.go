@@ -9,12 +9,12 @@ const (
 )
 
 func init() {
-	stream.HandlerRegistrator.Register(STREAM_NS+" "+STREAD_NODE, func() stream.Element {
-		return &CompressionHandler{InnerXML: stream.InnerXML{Registrator: HandlerRegistrator}}
+	stream.GlobalElementFactory.AddConstructor(STREAM_NS+" "+STREAD_NODE, func() stream.Element {
+		return &CompressionHandler{InnerXML: stream.InnerXML{ElementFactory: ElementFactory}}
 	})
 }
 
-var HandlerRegistrator = stream.NewElementGeneratorRegistrator()
+var ElementFactory = stream.NewElementFactory()
 
 type BaseCompression struct {
 	XMLName xml.Name `xml:"urn:ietf:params:xml:ns:xmpp-sasl compression"`
