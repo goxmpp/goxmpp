@@ -18,7 +18,7 @@ type Stream struct {
 type Element interface{}
 
 // An entry point for decoding elements in response to features
-// anouncment from server, before sission is opened
+// announcment from server, before session is opened
 func handleFeature(sw *Wrapper) {
 	processStreamElements(sw.StreamDecoder, GlobalElementFactory, func(handler Element) bool {
 		// TODO: need to check sw for the state when all required features processed and exit the loop
