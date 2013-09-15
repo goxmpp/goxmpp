@@ -5,7 +5,8 @@ import (
 	"github.com/dotdoom/goxmpp/stream/elements"
 )
 
-var GlobalElementFactory = elements.NewFactory()
+var GlobalStanzasFactory = elements.NewFactory()
+var GlobalFeaturesFactory = elements.NewFactory()
 
 type Stream struct {
 	XMLName xml.Name
@@ -20,9 +21,9 @@ type Element interface{}
 // An entry point for decoding elements in response to features
 // announcment from server, before session is opened
 func handleFeature(sw *Wrapper) {
-	processStreamElements(sw.StreamDecoder, GlobalElementFactory, func(handler Element) bool {
+	unmarshalSiblingElements(sw.StreamDecoder, sw.ElementFactory, func(element Element) bool {
 		// TODO: need to check sw for the state when all required features processed and exit the loop
-		unmarshalStreamElement(handler, sw)
+		unmarshalElement(element, sw.InnerDecoder)
 		return true
 	})
 }
@@ -31,8 +32,8 @@ func handleFeature(sw *Wrapper) {
 func NextStanza(sw *Wrapper) Element {
 	var stanza Element
 
-	processStreamElements(sw.StreamDecoder, GlobalElementFactory, func(handler Element) bool {
-		stanza = unmarshalStreamElement(handler, sw)
+	unmarshalSiblingElements(sw.StreamDecoder, sw.ElementFactory, func(element Element) bool {
+		stanza = unmarshalElement(element, sw.InnerDecoder)
 		return false // We need process stanzas one by one
 	})
 

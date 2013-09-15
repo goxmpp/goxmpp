@@ -10,7 +10,7 @@ const (
 )
 
 func init() {
-	stream.GlobalElementFactory.AddConstructor(" "+STREAD_NODE, func() elements.Element {
+	stream.GlobalStanzasFactory.AddConstructor(" "+STREAD_NODE, func() elements.Element {
 		return &IQ{InnerXML: stream.InnerXML{ElementFactory: ElementFactory}}
 	})
 }

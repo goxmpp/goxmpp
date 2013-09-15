@@ -10,7 +10,7 @@ const (
 )
 
 func init() {
-	stream.GlobalElementFactory.AddConstructor(STREAM_NS+" "+STREAD_NODE, func() elements.Element {
+	stream.GlobalFeaturesFactory.AddConstructor(STREAM_NS+" "+STREAD_NODE, func() elements.Element {
 		return &CompressionHandler{InnerXML: stream.InnerXML{ElementFactory: ElementFactory}}
 	})
 }

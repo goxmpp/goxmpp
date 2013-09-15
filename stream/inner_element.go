@@ -8,10 +8,15 @@ import (
 	"log"
 )
 
-type ElementHandlerAction func(Element) bool
+// Callback function to be called on each sibling element.
+// Returns false to stop further processing.
+type ElementParsedCallback func(Element) bool
 
-type InnerElementAdder interface {
+// Containers implementing this interface may accept inner elements,
+// parsed by unmarshalStreamElement
+type InnerElementsContainer interface {
 	AddInnerElement(Element) bool
+	ParseInnerElements(*decoder.InnerDecoder) []Element
 }
 
 type InnerElements struct {
@@ -26,35 +31,35 @@ func (self *InnerElements) AddInnerElement(e Element) bool {
 	return false
 }
 
-type InnerXMLHandler interface {
-	InnerElementAdder
-	HandleInnerXML(*Wrapper) []Element
-}
-
 type InnerXML struct {
-	InnerElements  `xml:"omitempty"`
+	InnerElements
 	InnerXML       []byte           `xml:",innerxml"`
 	ElementFactory elements.Factory `xml:"-"`
 }
 
-func (self *InnerXML) Erase() {
-	self.InnerXML = self.InnerXML[:0]
-}
-
-func (self *InnerXML) HandleInnerXML(sw *Wrapper) []Element {
-	handlers := make([]Element, 0)
-
+func (self *InnerXML) ParseInnerElements(decoder *decoder.InnerDecoder) (elements []Element) {
 	if len(self.InnerXML) > 0 {
-		sw.InnerDecoder.PutXML(self.InnerXML)
+		decoder.PutXML(self.InnerXML)
 
-		processStreamElements(sw.InnerDecoder, self.ElementFactory, func(handler Element) bool {
-			handlers = append(handlers, handler)
+		unmarshalSiblingElements(decoder, self.ElementFactory, func(element Element) bool {
+			elements = append(elements, element)
 			return true
 		})
 	}
-	self.Erase()
+	// Reset InnerXML to avoid duplicates when marshalling
+	self.InnerXML = nil
+	return
+}
 
-	return handlers
+// Recursively unmarshal an element.
+func unmarshalElement(self Element, decoder *decoder.InnerDecoder) Element {
+	// For elements other than InnerXMLParser consider they don't have InnerElements
+	if adder, ok := self.(InnerElementsContainer); ok {
+		for _, element := range adder.ParseInnerElements(decoder) {
+			adder.AddInnerElement(unmarshalElement(element, decoder))
+		}
+	}
+	return self
 }
 
 type XMLDecoder interface {
@@ -62,27 +67,31 @@ type XMLDecoder interface {
 	DecodeElement(interface{}, *xml.StartElement) error
 }
 
-func processStreamElements(xmldecoder XMLDecoder, factory elements.Factory, elementAction ElementHandlerAction) {
+// Run through the linear loop:
+//  - get next sibling tag name from xmldecoder
+//  - call factory to create an appropriate empty element instance
+//  - unmarshal XML element into language object created by factory using DecodeElement
+//  - pass parsed object to callback, breaking the loop if it returns false
+func unmarshalSiblingElements(xmldecoder XMLDecoder, factory elements.Factory, callback ElementParsedCallback) {
 	var token xml.Token
 	var terr error
 
 	for token, terr = xmldecoder.Token(); terr == nil; token, terr = xmldecoder.Token() {
-		if element, ok := token.(xml.StartElement); ok && element.Name.Local != decoder.TERMINATOR {
-			var handler Element
+		if xml_element, ok := token.(xml.StartElement); ok && xml_element.Name.Local != decoder.TERMINATOR {
+			var obj_element Element
 			var err error
 
-			if handler, err = factory.Create(element.Name.Space + " " + element.Name.Local); err != nil {
-				// TODO: added logging here
-				continue
-			}
-
-			if err = xmldecoder.DecodeElement(handler, &element); err != nil {
-				// TODO: added logging here
+			if obj_element, err = factory.Create(xml_element.Name.Space + " " + xml_element.Name.Local); err != nil {
 				log.Println(err)
 				continue
 			}
 
-			if !elementAction(handler) {
+			if err = xmldecoder.DecodeElement(obj_element, &xml_element); err != nil {
+				log.Println(err)
+				continue
+			}
+
+			if !callback(obj_element) {
 				break
 			}
 		}
@@ -95,14 +104,4 @@ func processStreamElements(xmldecoder XMLDecoder, factory elements.Factory, elem
 	if terr != nil && terr != io.EOF {
 		log.Println(terr)
 	}
-}
-
-func unmarshalStreamElement(self Element, sw *Wrapper) Element {
-	// For elements other than InnerXMLHandler consider they don't have InnerElements
-	if adder, ok := self.(InnerXMLHandler); ok {
-		for _, element := range adder.HandleInnerXML(sw) {
-			adder.AddInnerElement(unmarshalStreamElement(element, sw))
-		}
-	}
-	return self
 }

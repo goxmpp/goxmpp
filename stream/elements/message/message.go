@@ -6,7 +6,7 @@ import "github.com/dotdoom/goxmpp/stream/elements"
 import "github.com/dotdoom/goxmpp/stream/elements/stanza"
 
 func init() {
-	stream.GlobalElementFactory.AddConstructor(" message", func() elements.Element {
+	stream.GlobalStanzasFactory.AddConstructor(" message", func() elements.Element {
 		return &Message{InnerXML: stream.InnerXML{ElementFactory: ElementFactory}}
 	})
 

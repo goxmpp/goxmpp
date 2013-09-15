@@ -3,24 +3,27 @@ package stream
 import (
 	"encoding/xml"
 	"github.com/dotdoom/goxmpp/stream/decoder"
+	"github.com/dotdoom/goxmpp/stream/elements"
 	"io"
 )
 
 type Wrapper struct {
-	rwStream      io.ReadWriter
-	StreamEncoder *xml.Encoder
-	StreamDecoder *xml.Decoder
-	InnerDecoder  *decoder.InnerDecoder
-	State         map[string]interface{}
+	rwStream       io.ReadWriter
+	StreamEncoder  *xml.Encoder
+	StreamDecoder  *xml.Decoder
+	InnerDecoder   *decoder.InnerDecoder
+	ElementFactory elements.Factory
+	State          map[string]interface{}
 }
 
 func NewWrapper(rw io.ReadWriter) *Wrapper {
 	return &Wrapper{
-		rwStream:      rw,
-		StreamEncoder: xml.NewEncoder(rw),
-		StreamDecoder: xml.NewDecoder(rw),
-		InnerDecoder:  decoder.NewInnerDecoder(),
-		State:         make(map[string]interface{}),
+		rwStream:       rw,
+		StreamEncoder:  xml.NewEncoder(rw),
+		StreamDecoder:  xml.NewDecoder(rw),
+		InnerDecoder:   decoder.NewInnerDecoder(),
+		State:          make(map[string]interface{}),
+		ElementFactory: GlobalFeaturesFactory,
 	}
 }
 
