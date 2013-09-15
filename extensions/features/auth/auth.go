@@ -10,13 +10,13 @@ type Mechanisms struct {
 	features.InnerElements
 }
 
-func (self *Mechanisms) IsRequiredFor(sw *stream.Wrapper) bool {
-	return sw.State["authenticated"] == nil
+func (self *Mechanisms) IsRequiredFor(fs features.FeatureState) bool {
+	return fs["authenticated"] == nil
 }
 
-func (self *Mechanisms) CopyIfAvailable(sw *stream.Wrapper) interface{} {
-	if self.IsRequiredFor(sw) {
-		return self.CopyAvailableInnerFeatures(sw, new(Mechanisms))
+func (self *Mechanisms) CopyIfAvailable(fs features.FeatureState) interface{} {
+	if self.IsRequiredFor(fs) {
+		return self.CopyAvailableInnerFeatures(fs, new(Mechanisms))
 	} else {
 		return nil
 	}

@@ -7,6 +7,7 @@ import (
 
 var GlobalFeaturesList = new(Features)
 
+// TODO(artem): move to another package?
 type FeatureState map[string]interface{}
 
 type Entry interface {
