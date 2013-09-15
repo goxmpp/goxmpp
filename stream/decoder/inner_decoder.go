@@ -1,7 +1,6 @@
 package decoder
 
 import (
-	"bytes"
 	"encoding/xml"
 	"io"
 )
@@ -47,7 +46,7 @@ func NewInnerDecoder() *InnerDecoder {
 }
 
 func (self *InnerDecoder) PutXML(b []byte) {
-	*self.InnerXMLBuffer = bytes.TrimSpace(b)
+	*self.InnerXMLBuffer = b
 	// We need this fake tag to trick xml.Decoder and exit the parsing loop once inner XML buffer is empty.
 	// We check if buffer is empty after every tag parsed. Without this tag we can have "chardata" before
 	// outer closing tag and xml.Decoder.Token will never return till EOF,
