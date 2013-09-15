@@ -3,6 +3,7 @@ package stream
 import (
 	"encoding/xml"
 	"github.com/dotdoom/goxmpp/stream/decoder"
+	"github.com/dotdoom/goxmpp/stream/elements"
 	"io"
 	"log"
 )
@@ -32,8 +33,8 @@ type InnerXMLHandler interface {
 
 type InnerXML struct {
 	InnerElements  `xml:"omitempty"`
-	InnerXML       []byte         `xml:",innerxml"`
-	ElementFactory ElementFactory `xml:"-"`
+	InnerXML       []byte           `xml:",innerxml"`
+	ElementFactory elements.Factory `xml:"-"`
 }
 
 func (self *InnerXML) Erase() {
@@ -61,7 +62,7 @@ type XMLDecoder interface {
 	DecodeElement(interface{}, *xml.StartElement) error
 }
 
-func processStreamElements(xmldecoder XMLDecoder, factory ElementFactory, elementAction ElementHandlerAction) {
+func processStreamElements(xmldecoder XMLDecoder, factory elements.Factory, elementAction ElementHandlerAction) {
 	var token xml.Token
 	var terr error
 

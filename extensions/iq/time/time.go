@@ -1,11 +1,11 @@
 package time
 
 import "encoding/xml"
-import "github.com/dotdoom/goxmpp/stream"
-import "github.com/dotdoom/goxmpp/stream/iq"
+import "github.com/dotdoom/goxmpp/stream/elements"
+import "github.com/dotdoom/goxmpp/stream/elements/iq"
 
 func init() {
-	iq.ElementFactory.AddConstructor("urn:xmpp:time time", func() stream.Element { return &TimeQuery{} })
+	iq.ElementFactory.AddConstructor("urn:xmpp:time time", func() elements.Element { return &TimeQuery{} })
 }
 
 type TimeQuery struct {

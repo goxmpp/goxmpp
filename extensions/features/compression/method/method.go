@@ -4,10 +4,11 @@ import (
 	"encoding/xml"
 	"github.com/dotdoom/goxmpp/extensions/features/compression"
 	"github.com/dotdoom/goxmpp/stream"
+	"github.com/dotdoom/goxmpp/stream/elements"
 )
 
 func init() {
-	compression.ElementFactory.AddConstructor(" method", func() stream.Element { return &BasicMethod{} })
+	compression.ElementFactory.AddConstructor(" method", func() elements.Element { return &BasicMethod{} })
 }
 
 type BasicMethod struct {

@@ -3,11 +3,11 @@ package item
 import (
 	"encoding/xml"
 	"github.com/dotdoom/goxmpp/extensions/iq/query"
-	"github.com/dotdoom/goxmpp/stream"
+	"github.com/dotdoom/goxmpp/stream/elements"
 )
 
 func init() {
-	query.ElementFactory.AddConstructor(" item", func() stream.Element {
+	query.ElementFactory.AddConstructor(" item", func() elements.Element {
 		return &Item{}
 	})
 }

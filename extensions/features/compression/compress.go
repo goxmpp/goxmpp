@@ -2,6 +2,7 @@ package compression
 
 import "encoding/xml"
 import "github.com/dotdoom/goxmpp/stream"
+import "github.com/dotdoom/goxmpp/stream/elements"
 
 const (
 	STREAM_NS   = "urn:ietf:params:xml:ns:xmpp-sasl"
@@ -9,12 +10,12 @@ const (
 )
 
 func init() {
-	stream.GlobalElementFactory.AddConstructor(STREAM_NS+" "+STREAD_NODE, func() stream.Element {
+	stream.GlobalElementFactory.AddConstructor(STREAM_NS+" "+STREAD_NODE, func() elements.Element {
 		return &CompressionHandler{InnerXML: stream.InnerXML{ElementFactory: ElementFactory}}
 	})
 }
 
-var ElementFactory = stream.NewElementFactory()
+var ElementFactory = elements.NewFactory()
 
 type BaseCompression struct {
 	XMLName xml.Name `xml:"urn:ietf:params:xml:ns:xmpp-sasl compression"`

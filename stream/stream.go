@@ -2,9 +2,10 @@ package stream
 
 import (
 	"encoding/xml"
+	"github.com/dotdoom/goxmpp/stream/elements"
 )
 
-var GlobalElementFactory = NewElementFactory()
+var GlobalElementFactory = elements.NewFactory()
 
 type Stream struct {
 	XMLName xml.Name

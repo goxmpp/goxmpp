@@ -1,7 +1,7 @@
 package features
 
 import "encoding/xml"
-import "github.com/dotdoom/goxmpp/stream/stanza"
+import "github.com/dotdoom/goxmpp/stream/elements/stanza"
 
 type FeatureEntry interface {
 	CopyIfAvailable(*StreamWrapper) interface{}
