@@ -30,6 +30,7 @@ func (self *Wrapper) SwapIOStream(rw io.ReadWriter) {
 	self.StreamDecoder = xml.NewDecoder(rw)
 }
 
+/*
 func (sw *Wrapper) ReadStreamOpen() (*Stream, error) {
 	for {
 		t, err := sw.StreamDecoder.Token()
@@ -58,7 +59,7 @@ func (sw *Wrapper) ReadStreamOpen() (*Stream, error) {
 			}
 		}
 	}
-}
+}*/
 
 // TODO(artem): refactor
 func (sw *Wrapper) WriteStreamOpen(stream *Stream, default_namespace string) error {

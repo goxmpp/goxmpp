@@ -32,6 +32,7 @@ func getWrapper(source []byte) *stream.Wrapper {
 }
 
 func is(got, expect []byte) bool {
+	got = bytes.TrimSpace(got)
 	if len(got) != len(expect) {
 		return false
 	}
