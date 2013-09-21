@@ -2,6 +2,7 @@ package bind
 
 import (
 	"encoding/xml"
+	"github.com/dotdoom/goxmpp/stream/connection"
 	"github.com/dotdoom/goxmpp/stream/elements/features"
 )
 
@@ -10,11 +11,11 @@ type bind struct {
 	features.Elements
 }
 
-func (self *bind) IsRequiredFor(fs features.FeatureState) bool {
+func (self *bind) IsRequiredFor(fs connection.State) bool {
 	return fs["bound"] == nil
 }
 
-func (self *bind) CopyIfAvailable(fs features.FeatureState) interface{} {
+func (self *bind) CopyIfAvailable(fs connection.State) interface{} {
 	if self.IsRequiredFor(fs) && fs["authenticated"] != nil {
 		return self.CopyAvailableFeatures(fs, new(bind))
 	}

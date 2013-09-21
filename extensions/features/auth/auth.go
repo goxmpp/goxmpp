@@ -3,6 +3,7 @@ package auth
 import (
 	"encoding/xml"
 	_ "github.com/dotdoom/goxmpp/stream"
+	"github.com/dotdoom/goxmpp/stream/connection"
 	"github.com/dotdoom/goxmpp/stream/elements"
 	"github.com/dotdoom/goxmpp/stream/elements/features"
 )
@@ -12,11 +13,11 @@ type mechanisms struct {
 	features.Elements
 }
 
-func (self *mechanisms) IsRequiredFor(fs features.FeatureState) bool {
+func (self *mechanisms) IsRequiredFor(fs connection.State) bool {
 	return fs["authenticated"] == nil
 }
 
-func (self *mechanisms) CopyIfAvailable(fs features.FeatureState) interface{} {
+func (self *mechanisms) CopyIfAvailable(fs connection.State) interface{} {
 	if self.IsRequiredFor(fs) {
 		return self.CopyAvailableFeatures(fs, new(mechanisms))
 	}
@@ -37,7 +38,7 @@ type Auth struct {
 	elements.UnmarshallableElements
 }
 
-func (self *Auth) React() {
+func (self *Auth) React(conn *connection.Connection) {
 	println("Reacting on: Auth")
 }
 

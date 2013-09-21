@@ -3,6 +3,7 @@ package stream_test
 import "encoding/xml"
 import _ "github.com/dotdoom/goxmpp"
 import "github.com/dotdoom/goxmpp/stream"
+import "github.com/dotdoom/goxmpp/stream/connection"
 import "github.com/dotdoom/goxmpp/stream/elements/stanzas"
 import "github.com/dotdoom/goxmpp/stream/decoder"
 import "bytes"
@@ -30,7 +31,9 @@ var iqExpect = `<iq to="test@conference.jabber.ru" type="set" id="ab7ca">
 
 func getWrapper(source []byte) *stream.Wrapper {
 	return &stream.Wrapper{
-		StreamDecoder:  xml.NewDecoder(bytes.NewReader([]byte(source))),
+		Connection: &connection.Connection{
+			StreamDecoder: xml.NewDecoder(bytes.NewReader([]byte(source))),
+		},
 		InnerDecoder:   decoder.NewInnerDecoder(),
 		ElementFactory: stanzas.Factory,
 	}
