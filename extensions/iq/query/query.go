@@ -3,7 +3,7 @@ package query
 import (
 	"encoding/xml"
 	"github.com/dotdoom/goxmpp/stream/elements"
-	"github.com/dotdoom/goxmpp/stream/elements/iq"
+	"github.com/dotdoom/goxmpp/stream/elements/stanzas/iq"
 )
 
 func init() {

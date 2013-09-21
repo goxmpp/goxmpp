@@ -2,7 +2,7 @@ package message
 
 import "encoding/xml"
 import "github.com/dotdoom/goxmpp/stream/elements"
-import "github.com/dotdoom/goxmpp/stream/elements/stanza"
+import "github.com/dotdoom/goxmpp/stream/elements/stanzas"
 
 func init() {
 	elements.GlobalStanzasFactory.AddConstructor(" message", func() elements.Element {
@@ -32,6 +32,6 @@ type Body struct {
 
 type Message struct {
 	XMLName xml.Name `xml:"message"`
-	stanza.BaseStanza
+	stanzas.Base
 	elements.InnerXML
 }

@@ -1,23 +1,13 @@
-package stanza
+package stanzas
 
 import (
 	_ "encoding/xml"
-	"github.com/dotdoom/goxmpp/stream/elements"
 )
 
-type BaseStanza struct {
+type Base struct {
 	From string `xml:"from,attr,omitempty"`
 	To   string `xml:"to,attr,omitempty"`
 	Type string `xml:"type,attr,omitempty"`
 	ID   string `xml:"id,attr,omitempty"`
 	Lang string `xml:"xml:lang,attr,omitempty"`
-}
-
-type StanzaWriter struct {
-	BaseStanza
-	elements.InnerElements
-}
-
-type ParsedStanza struct {
-	BaseStanza
 }
