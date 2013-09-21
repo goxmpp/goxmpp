@@ -39,3 +39,11 @@ type Features struct {
 	XMLName xml.Name `xml:"stream:features"`
 	Elements
 }
+
+func (self *Features) IsRequiredFor(fs FeatureState) bool {
+	return self.HasFeaturesRequiredFor(fs)
+}
+
+func (self *Features) CopyIfAvailable(fs FeatureState) interface{} {
+	return self.CopyAvailableFeatures(fs, new(Features))
+}

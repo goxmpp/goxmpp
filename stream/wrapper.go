@@ -24,7 +24,7 @@ func NewWrapper(rw io.ReadWriter) *Wrapper {
 		StreamEncoder:  xml.NewEncoder(rw),
 		StreamDecoder:  xml.NewDecoder(rw),
 		InnerDecoder:   decoder.NewInnerDecoder(),
-		State:          make(map[string]interface{}),
+		State:          features.FeatureState{},
 		ElementFactory: elements.GlobalFeaturesFactory,
 		FeatureSet:     features.GlobalFeaturesList,
 	}
@@ -36,8 +36,10 @@ func (self *Wrapper) SwapIOStream(rw io.ReadWriter) {
 	self.StreamDecoder = xml.NewDecoder(rw)
 }
 
-func (self *Wrapper) SendFeatures() {
-	//self.StreamEncoder.Encode(
+func (self *Wrapper) FeaturesLoop() {
+	for self.FeatureSet.IsRequiredFor(self.State) {
+		self.StreamEncoder.Encode(self.FeatureSet.CopyIfAvailable(self.State))
+	}
 }
 
 /*
