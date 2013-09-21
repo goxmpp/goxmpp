@@ -1,7 +1,8 @@
 package goxmpp
 
 import (
-	_ "github.com/dotdoom/goxmpp/extensions/features/auth"
+	_ "github.com/dotdoom/goxmpp/extensions/features/auth/mechanisms"
+	_ "github.com/dotdoom/goxmpp/extensions/features/bind"
 	_ "github.com/dotdoom/goxmpp/extensions/features/compression"
 	_ "github.com/dotdoom/goxmpp/extensions/features/compression/method"
 	_ "github.com/dotdoom/goxmpp/extensions/features/starttls"

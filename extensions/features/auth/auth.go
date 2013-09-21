@@ -5,21 +5,23 @@ import (
 	"github.com/dotdoom/goxmpp/stream/elements/features"
 )
 
-type Mechanisms struct {
+type mechanisms struct {
 	XMLName xml.Name `xml:"urn:ietf:params:xml:ns:xmpp-sasl mechanisms"`
 	features.Elements
 }
 
-func (self *Mechanisms) IsRequiredFor(fs features.FeatureState) bool {
+func (self *mechanisms) IsRequiredFor(fs features.FeatureState) bool {
 	return fs["authenticated"] == nil
 }
 
-func (self *Mechanisms) CopyIfAvailable(fs features.FeatureState) interface{} {
+func (self *mechanisms) CopyIfAvailable(fs features.FeatureState) interface{} {
 	if self.IsRequiredFor(fs) {
-		return self.CopyAvailableFeatures(fs, new(Mechanisms))
+		return self.CopyAvailableFeatures(fs, new(mechanisms))
 	}
 	return nil
 }
+
+var Mechanisms = new(mechanisms)
 
 type Mechanism struct {
 	XMLName xml.Name `xml:"mechanism"`
@@ -28,5 +30,5 @@ type Mechanism struct {
 }
 
 func init() {
-	features.GlobalFeaturesList.AddElement(new(Mechanisms))
+	features.GlobalFeaturesList.AddElement(Mechanisms)
 }

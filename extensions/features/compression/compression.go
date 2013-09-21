@@ -7,11 +7,11 @@ import (
 
 const (
 	STREAM_NS   = "urn:ietf:params:xml:ns:xmpp-sasl"
-	STREAD_NODE = "compression"
+	STREAM_NODE = "compression"
 )
 
 func init() {
-	elements.GlobalFeaturesFactory.AddConstructor(STREAM_NS+" "+STREAD_NODE, func() elements.Element {
+	elements.GlobalFeaturesFactory.AddConstructor(STREAM_NS+" "+STREAM_NODE, func() elements.Element {
 		return &CompressionHandler{
 			UnmarshallableElements: elements.UnmarshallableElements{ElementFactory: ElementFactory}}
 	})
