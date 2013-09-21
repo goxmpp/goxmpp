@@ -13,11 +13,11 @@ type mechanisms struct {
 	features.Elements
 }
 
-func (self *mechanisms) IsRequiredFor(fs connection.State) bool {
+func (self *mechanisms) IsRequiredFor(fs features.State) bool {
 	return fs["authenticated"] == nil
 }
 
-func (self *mechanisms) CopyIfAvailable(fs connection.State) interface{} {
+func (self *mechanisms) CopyIfAvailable(fs features.State) interface{} {
 	if self.IsRequiredFor(fs) {
 		return self.CopyAvailableFeatures(fs, new(mechanisms))
 	}

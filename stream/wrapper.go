@@ -12,6 +12,7 @@ type Wrapper struct {
 	ElementFactory elements.Factory
 	FeatureSet     *features.Features
 	InnerDecoder   *decoder.InnerDecoder
+	State          features.State
 	*connection.Connection
 }
 

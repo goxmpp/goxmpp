@@ -9,9 +9,11 @@ import (
 var List = new(Features)
 var Factory = elements.NewFactory()
 
+type State map[string]interface{}
+
 type Entry interface {
-	CopyIfAvailable(connection.State) interface{}
-	IsRequiredFor(connection.State) bool
+	CopyIfAvailable(State) interface{}
+	IsRequiredFor(State) bool
 }
 
 type Reactor interface {
@@ -22,7 +24,7 @@ type Elements struct {
 	elements.Elements
 }
 
-func (self *Elements) CopyAvailableFeatures(fs connection.State, dest elements.ElementsAdder) elements.ElementsAdder {
+func (self *Elements) CopyAvailableFeatures(fs State, dest elements.ElementsAdder) elements.ElementsAdder {
 	for _, feature := range self.Elements.Elements {
 		if feature_entry, ok := feature.(Entry); ok {
 			dest.AddElement(feature_entry.CopyIfAvailable(fs))
@@ -33,7 +35,7 @@ func (self *Elements) CopyAvailableFeatures(fs connection.State, dest elements.E
 	return dest
 }
 
-func (self *Elements) HasFeaturesRequiredFor(fs connection.State) bool {
+func (self *Elements) HasFeaturesRequiredFor(fs State) bool {
 	for _, feature := range self.Elements.Elements {
 		if feature.(Entry).IsRequiredFor(fs) {
 			return true
@@ -47,10 +49,10 @@ type Features struct {
 	Elements
 }
 
-func (self *Features) IsRequiredFor(fs connection.State) bool {
+func (self *Features) IsRequiredFor(fs State) bool {
 	return self.HasFeaturesRequiredFor(fs)
 }
 
-func (self *Features) CopyIfAvailable(fs connection.State) interface{} {
+func (self *Features) CopyIfAvailable(fs State) interface{} {
 	return self.CopyAvailableFeatures(fs, new(Features))
 }

@@ -5,10 +5,7 @@ import (
 	"io"
 )
 
-type State map[string]interface{}
-
 type Connection struct {
-	State         State
 	RW            io.ReadWriter
 	StreamEncoder *xml.Encoder
 	StreamDecoder *xml.Decoder
