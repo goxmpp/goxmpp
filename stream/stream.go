@@ -18,7 +18,7 @@ type Stream struct {
 func handleFeature(sw *Wrapper) {
 	elements.UnmarshalSiblingElements(sw.StreamDecoder, sw.ElementFactory, func(element elements.Element) bool {
 		// TODO: need to check sw for the state when all required features processed and exit the loop
-		elements.UnmarshalElement(element, sw.InnerDecoder)
+		elements.ParseElement(element, sw.InnerDecoder)
 		return true
 	})
 }
@@ -28,7 +28,7 @@ func NextStanza(sw *Wrapper) elements.Element {
 	var stanza elements.Element
 
 	elements.UnmarshalSiblingElements(sw.StreamDecoder, sw.ElementFactory, func(element elements.Element) bool {
-		stanza = elements.UnmarshalElement(element, sw.InnerDecoder)
+		stanza = elements.ParseElement(element, sw.InnerDecoder)
 		return false // We need process stanzas one by one
 	})
 

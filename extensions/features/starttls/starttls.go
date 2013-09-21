@@ -9,5 +9,5 @@ type StartTLSStreamFeature struct {
 	XMLName     xml.Name `xml:"urn:ietf:params:xml:ns:xmpp-tls starttls"`
 	Required    bool     `xml:"required,omitempty"`
 	Certificate []byte
-	features.InnerElements
+	features.Elements
 }

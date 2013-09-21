@@ -13,36 +13,36 @@ type Element interface{}
 // Returns false to stop further processing.
 type ElementParsedCallback func(Element) bool
 
-type InnerElementsAdder interface {
-	AddInnerElement(Element) bool
+type ElementsAdder interface {
+	AddElement(Element) bool
 }
 
 // Containers implementing this interface may accept inner elements,
-// parsed by unmarshalStreamElement
-type ParsedInnerElementsContainer interface {
-	InnerElementsAdder
-	ParseInnerElements(*decoder.InnerDecoder) []Element
+// parsed by ParseElements.
+type ParsableElementsContainer interface {
+	ElementsAdder
+	ParseElements(*decoder.InnerDecoder) []Element
 }
 
-type InnerElements struct {
-	InnerElements []Element
+type Elements struct {
+	Elements []Element
 }
 
-func (self *InnerElements) AddInnerElement(e Element) bool {
+func (self *Elements) AddElement(e Element) bool {
 	if e != nil {
-		self.InnerElements = append(self.InnerElements, e)
+		self.Elements = append(self.Elements, e)
 		return true
 	}
 	return false
 }
 
-type InnerXML struct {
-	InnerElements
+type UnmarshallableElements struct {
+	Elements
 	InnerXML       []byte  `xml:",innerxml"`
 	ElementFactory Factory `xml:"-"`
 }
 
-func (self *InnerXML) ParseInnerElements(decoder *decoder.InnerDecoder) (elements []Element) {
+func (self *UnmarshallableElements) ParseElements(decoder *decoder.InnerDecoder) (elements []Element) {
 	if len(self.InnerXML) > 0 {
 		decoder.PutXML(self.InnerXML)
 
@@ -56,12 +56,11 @@ func (self *InnerXML) ParseInnerElements(decoder *decoder.InnerDecoder) (element
 	return
 }
 
-// Recursively unmarshal an element.
-func UnmarshalElement(self Element, decoder *decoder.InnerDecoder) Element {
-	// For elements other than InnerXMLParser consider they don't have InnerElements
-	if adder, ok := self.(ParsedInnerElementsContainer); ok {
-		for _, element := range adder.ParseInnerElements(decoder) {
-			adder.AddInnerElement(UnmarshalElement(element, decoder))
+// Recursively parse an element.
+func ParseElement(self Element, decoder *decoder.InnerDecoder) Element {
+	if adder, ok := self.(ParsableElementsContainer); ok {
+		for _, element := range adder.ParseElements(decoder) {
+			adder.AddElement(ParseElement(element, decoder))
 		}
 	}
 	return self

@@ -15,19 +15,19 @@ type Entry interface {
 	IsRequiredFor(FeatureState) bool
 }
 
-type InnerElements struct {
-	elements.InnerElements
+type Elements struct {
+	elements.Elements
 }
 
-func (self *InnerElements) CopyAvailableInnerFeatures(fs FeatureState, dest elements.InnerElementsAdder) elements.InnerElementsAdder {
-	for _, feature := range self.InnerElements.InnerElements {
-		self.AddInnerElement(feature.(Entry).CopyIfAvailable(fs))
+func (self *Elements) CopyAvailableFeatures(fs FeatureState, dest elements.ElementsAdder) elements.ElementsAdder {
+	for _, feature := range self.Elements.Elements {
+		self.AddElement(feature.(Entry).CopyIfAvailable(fs))
 	}
 	return self
 }
 
-func (self *InnerElements) HasInnerFeaturesRequiredFor(fs FeatureState) bool {
-	for _, feature := range self.InnerElements.InnerElements {
+func (self *Elements) HasFeaturesRequiredFor(fs FeatureState) bool {
+	for _, feature := range self.Elements.Elements {
 		if feature.(Entry).IsRequiredFor(fs) {
 			return true
 		}
@@ -37,5 +37,5 @@ func (self *InnerElements) HasInnerFeaturesRequiredFor(fs FeatureState) bool {
 
 type Features struct {
 	XMLName xml.Name `xml:"stream:features"`
-	InnerElements
+	Elements
 }

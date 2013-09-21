@@ -12,7 +12,8 @@ const (
 
 func init() {
 	elements.GlobalFeaturesFactory.AddConstructor(STREAM_NS+" "+STREAD_NODE, func() elements.Element {
-		return &CompressionHandler{InnerXML: elements.InnerXML{ElementFactory: ElementFactory}}
+		return &CompressionHandler{
+			UnmarshallableElements: elements.UnmarshallableElements{ElementFactory: ElementFactory}}
 	})
 }
 
@@ -25,11 +26,11 @@ type BaseCompression struct {
 // This struct is used for marshaling
 type CompressionFeature struct {
 	BaseCompression
-	elements.InnerElements
+	elements.Elements
 }
 
 // This struct is used for unmarshaling and stream handling
 type CompressionHandler struct {
 	BaseCompression
-	elements.InnerXML
+	elements.UnmarshallableElements
 }

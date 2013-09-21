@@ -7,5 +7,5 @@ import (
 
 type Feature struct {
 	XMLName xml.Name `xml:"urn:ietf:params:xml:ns:xmpp-bind bind"`
-	features.InnerElements
+	features.Elements
 }

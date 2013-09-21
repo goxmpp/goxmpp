@@ -6,7 +6,7 @@ import "github.com/dotdoom/goxmpp/stream/elements/stanzas"
 
 func init() {
 	elements.GlobalStanzasFactory.AddConstructor(" message", func() elements.Element {
-		return &Message{InnerXML: elements.InnerXML{ElementFactory: ElementFactory}}
+		return &Message{UnmarshallableElements: elements.UnmarshallableElements{ElementFactory: ElementFactory}}
 	})
 
 	ElementFactory.AddConstructor(" body", func() elements.Element {
@@ -33,5 +33,5 @@ type Body struct {
 type Message struct {
 	XMLName xml.Name `xml:"message"`
 	stanzas.Base
-	elements.InnerXML
+	elements.UnmarshallableElements
 }

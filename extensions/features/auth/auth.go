@@ -7,7 +7,7 @@ import (
 
 type Mechanisms struct {
 	XMLName xml.Name `xml:"urn:ietf:params:xml:ns:xmpp-sasl mechanisms"`
-	features.InnerElements
+	features.Elements
 }
 
 func (self *Mechanisms) IsRequiredFor(fs features.FeatureState) bool {
@@ -16,7 +16,7 @@ func (self *Mechanisms) IsRequiredFor(fs features.FeatureState) bool {
 
 func (self *Mechanisms) CopyIfAvailable(fs features.FeatureState) interface{} {
 	if self.IsRequiredFor(fs) {
-		return self.CopyAvailableInnerFeatures(fs, new(Mechanisms))
+		return self.CopyAvailableFeatures(fs, new(Mechanisms))
 	}
 	return nil
 }
@@ -24,9 +24,9 @@ func (self *Mechanisms) CopyIfAvailable(fs features.FeatureState) interface{} {
 type Mechanism struct {
 	XMLName xml.Name `xml:"mechanism"`
 	Name    string   `xml:",chardata"`
-	features.InnerElements
+	features.Elements
 }
 
 func init() {
-	features.GlobalFeaturesList.AddInnerElement(Mechanisms{})
+	features.GlobalFeaturesList.AddElement(Mechanisms{})
 }
