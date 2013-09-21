@@ -2,6 +2,8 @@ package auth
 
 import (
 	"encoding/xml"
+	_ "github.com/dotdoom/goxmpp/stream"
+	"github.com/dotdoom/goxmpp/stream/elements"
 	"github.com/dotdoom/goxmpp/stream/elements/features"
 )
 
@@ -29,6 +31,21 @@ type Mechanism struct {
 	features.Elements
 }
 
+type Auth struct {
+	XMLName   xml.Name `xml:"auth"`
+	Mechanism string   `xml:"mechanism,attr"`
+	elements.UnmarshallableElements
+}
+
+func (self *Auth) React() {
+	println("Reacting on: Auth")
+}
+
+var ElementFactory = elements.NewFactory()
+
 func init() {
-	features.GlobalFeaturesList.AddElement(Mechanisms)
+	features.List.AddElement(Mechanisms)
+	features.Factory.AddConstructor("urn:ietf:params:xml:ns:xmpp-sasl auth", func() elements.Element {
+		return &Auth{UnmarshallableElements: elements.UnmarshallableElements{ElementFactory: ElementFactory}}
+	})
 }

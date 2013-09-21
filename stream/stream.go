@@ -2,7 +2,7 @@ package stream
 
 import (
 	"encoding/xml"
-	"github.com/dotdoom/goxmpp/stream/elements"
+	"io"
 )
 
 type Stream struct {
@@ -13,24 +13,56 @@ type Stream struct {
 	Version string
 }
 
-// An entry point for decoding elements in response to features
-// announcment from server, before session is opened
-func handleFeature(sw *Wrapper) {
-	elements.UnmarshalSiblingElements(sw.StreamDecoder, sw.ElementFactory, func(element elements.Element) bool {
-		// TODO: need to check sw for the state when all required features processed and exit the loop
-		elements.ParseElement(element, sw.InnerDecoder)
-		return true
-	})
+func (sw *Wrapper) ReadStreamOpen() (*Stream, error) {
+	for {
+		t, err := sw.StreamDecoder.Token()
+		if err != nil {
+			return nil, err
+		}
+		switch t := t.(type) {
+		case xml.ProcInst:
+			// Good.
+		case xml.StartElement:
+			if t.Name.Local == "stream" {
+				stream := Stream{}
+				stream.XMLName = t.Name
+				for _, attr := range t.Attr {
+					switch attr.Name.Local {
+					case "to":
+						stream.To = attr.Value
+					case "from":
+						stream.From = attr.Value
+					case "version":
+						stream.Version = attr.Value
+					}
+				}
+
+				return &stream, nil
+			}
+		}
+	}
+	return nil, nil
 }
 
-// This is an entry point for decode stanzas
-func NextStanza(sw *Wrapper) elements.Element {
-	var stanza elements.Element
+// TODO(artem): refactor
+func (sw *Wrapper) WriteStreamOpen(stream *Stream, default_namespace string) error {
+	data := xml.Header
 
-	elements.UnmarshalSiblingElements(sw.StreamDecoder, sw.ElementFactory, func(element elements.Element) bool {
-		stanza = elements.ParseElement(element, sw.InnerDecoder)
-		return false // We need process stanzas one by one
-	})
+	data += "<stream:stream xmlns='" + default_namespace + "' xmlns:stream='" + stream.XMLName.Space + "'"
+	if stream.ID != "" {
+		data += " id='" + stream.ID + "'"
+	}
+	if stream.From != "" {
+		data += " from='" + stream.From + "'"
+	}
+	if stream.To != "" {
+		data += " to='" + stream.To + "'"
+	}
+	if stream.Version != "" {
+		data += " version='" + stream.Version + "'"
+	}
+	data += ">"
 
-	return stanza
+	_, err := io.WriteString(sw.rwStream, data)
+	return err
 }

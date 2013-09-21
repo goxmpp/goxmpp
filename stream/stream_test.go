@@ -3,7 +3,7 @@ package stream_test
 import "encoding/xml"
 import _ "github.com/dotdoom/goxmpp"
 import "github.com/dotdoom/goxmpp/stream"
-import "github.com/dotdoom/goxmpp/stream/elements"
+import "github.com/dotdoom/goxmpp/stream/elements/stanzas"
 import "github.com/dotdoom/goxmpp/stream/decoder"
 import "bytes"
 import "testing"
@@ -32,7 +32,7 @@ func getWrapper(source []byte) *stream.Wrapper {
 	return &stream.Wrapper{
 		StreamDecoder:  xml.NewDecoder(bytes.NewReader([]byte(source))),
 		InnerDecoder:   decoder.NewInnerDecoder(),
-		ElementFactory: elements.GlobalStanzasFactory,
+		ElementFactory: stanzas.Factory,
 	}
 }
 
@@ -60,7 +60,7 @@ func logEpectations(t *testing.T, got, expect, source []byte) {
 }
 
 func unmarshalTester(t *testing.T, source, expect []byte) {
-	s := stream.NextStanza(getWrapper(source))
+	s := getWrapper(source).NextElement()
 
 	buffer, err := xml.MarshalIndent(s, "", "    ")
 	if err != nil {

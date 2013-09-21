@@ -2,6 +2,7 @@ package stanzas
 
 import (
 	_ "encoding/xml"
+	"github.com/dotdoom/goxmpp/stream/elements"
 )
 
 type Base struct {
@@ -11,3 +12,5 @@ type Base struct {
 	ID   string `xml:"id,attr,omitempty"`
 	Lang string `xml:"xml:lang,attr,omitempty"`
 }
+
+var Factory = elements.NewFactory()

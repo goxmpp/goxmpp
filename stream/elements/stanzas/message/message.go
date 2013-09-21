@@ -5,7 +5,7 @@ import "github.com/dotdoom/goxmpp/stream/elements"
 import "github.com/dotdoom/goxmpp/stream/elements/stanzas"
 
 func init() {
-	elements.GlobalStanzasFactory.AddConstructor(" message", func() elements.Element {
+	stanzas.Factory.AddConstructor(" message", func() elements.Element {
 		return &Message{UnmarshallableElements: elements.UnmarshallableElements{ElementFactory: ElementFactory}}
 	})
 

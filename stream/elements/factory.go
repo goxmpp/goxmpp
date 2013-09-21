@@ -16,9 +16,6 @@ func (self Factory) AddConstructor(key string, constructor Constructor) {
 	self[key] = constructor
 }
 
-var GlobalStanzasFactory = NewFactory()
-var GlobalFeaturesFactory = NewFactory()
-
 // Call a constructor for specified key or "*", if defined. Otherwise return an error
 func (self Factory) Create(key string) (Element, error) {
 	if constructor, ok := self[key]; ok {

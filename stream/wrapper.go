@@ -25,8 +25,8 @@ func NewWrapper(rw io.ReadWriter) *Wrapper {
 		StreamDecoder:  xml.NewDecoder(rw),
 		InnerDecoder:   decoder.NewInnerDecoder(),
 		State:          features.FeatureState{},
-		ElementFactory: elements.GlobalFeaturesFactory,
-		FeatureSet:     features.GlobalFeaturesList,
+		ElementFactory: features.Factory,
+		FeatureSet:     features.List,
 	}
 }
 
@@ -36,63 +36,21 @@ func (self *Wrapper) SwapIOStream(rw io.ReadWriter) {
 	self.StreamDecoder = xml.NewDecoder(rw)
 }
 
+func (self *Wrapper) NextElement() elements.Element {
+	var element elements.Element
+
+	elements.UnmarshalSiblingElements(self.StreamDecoder, self.ElementFactory, func(e elements.Element) bool {
+		element = elements.ParseElement(e, self.InnerDecoder)
+		return false
+	})
+
+	return element
+}
+
 func (self *Wrapper) FeaturesLoop() {
 	for self.FeatureSet.IsRequiredFor(self.State) {
 		self.StreamEncoder.Encode(self.FeatureSet.CopyIfAvailable(self.State))
+		self.NextElement().(features.Reactor).React()
 		break
 	}
-}
-
-func (sw *Wrapper) ReadStreamOpen() (*Stream, error) {
-	for {
-		t, err := sw.StreamDecoder.Token()
-		if err != nil {
-			return nil, err
-		}
-		switch t := t.(type) {
-		case xml.ProcInst:
-			// Good.
-		case xml.StartElement:
-			if t.Name.Local == "stream" {
-				stream := Stream{}
-				stream.XMLName = t.Name
-				for _, attr := range t.Attr {
-					switch attr.Name.Local {
-					case "to":
-						stream.To = attr.Value
-					case "from":
-						stream.From = attr.Value
-					case "version":
-						stream.Version = attr.Value
-					}
-				}
-
-				return &stream, nil
-			}
-		}
-	}
-	return nil, nil
-}
-
-// TODO(artem): refactor
-func (sw *Wrapper) WriteStreamOpen(stream *Stream, default_namespace string) error {
-	data := xml.Header
-
-	data += "<stream:stream xmlns='" + default_namespace + "' xmlns:stream='" + stream.XMLName.Space + "'"
-	if stream.ID != "" {
-		data += " id='" + stream.ID + "'"
-	}
-	if stream.From != "" {
-		data += " from='" + stream.From + "'"
-	}
-	if stream.To != "" {
-		data += " to='" + stream.To + "'"
-	}
-	if stream.Version != "" {
-		data += " version='" + stream.Version + "'"
-	}
-	data += ">"
-
-	_, err := io.WriteString(sw.rwStream, data)
-	return err
 }

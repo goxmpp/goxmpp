@@ -3,6 +3,7 @@ package compression
 import (
 	"encoding/xml"
 	"github.com/dotdoom/goxmpp/stream/elements"
+	"github.com/dotdoom/goxmpp/stream/elements/features"
 )
 
 const (
@@ -11,7 +12,7 @@ const (
 )
 
 func init() {
-	elements.GlobalFeaturesFactory.AddConstructor(STREAM_NS+" "+STREAM_NODE, func() elements.Element {
+	features.Factory.AddConstructor(STREAM_NS+" "+STREAM_NODE, func() elements.Element {
 		return &CompressionHandler{
 			UnmarshallableElements: elements.UnmarshallableElements{ElementFactory: ElementFactory}}
 	})

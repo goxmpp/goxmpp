@@ -15,12 +15,12 @@ func (self *bind) IsRequiredFor(fs features.FeatureState) bool {
 }
 
 func (self *bind) CopyIfAvailable(fs features.FeatureState) interface{} {
-	if self.IsRequiredFor(fs) {
+	if self.IsRequiredFor(fs) && fs["authenticated"] != nil {
 		return self.CopyAvailableFeatures(fs, new(bind))
 	}
 	return nil
 }
 
 func init() {
-	features.GlobalFeaturesList.AddElement(new(bind))
+	features.List.AddElement(new(bind))
 }

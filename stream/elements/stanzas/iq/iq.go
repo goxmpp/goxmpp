@@ -9,7 +9,7 @@ const (
 )
 
 func init() {
-	elements.GlobalStanzasFactory.AddConstructor(" "+STREAM_NODE, func() elements.Element {
+	stanzas.Factory.AddConstructor(" "+STREAM_NODE, func() elements.Element {
 		return &IQ{UnmarshallableElements: elements.UnmarshallableElements{ElementFactory: ElementFactory}}
 	})
 }

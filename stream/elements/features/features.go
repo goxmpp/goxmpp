@@ -5,7 +5,8 @@ import (
 	"github.com/dotdoom/goxmpp/stream/elements"
 )
 
-var GlobalFeaturesList = new(Features)
+var List = new(Features)
+var Factory = elements.NewFactory()
 
 // TODO(artem): move to another package?
 type FeatureState map[string]interface{}
@@ -13,6 +14,10 @@ type FeatureState map[string]interface{}
 type Entry interface {
 	CopyIfAvailable(FeatureState) interface{}
 	IsRequiredFor(FeatureState) bool
+}
+
+type Reactor interface {
+	React()
 }
 
 type Elements struct {
