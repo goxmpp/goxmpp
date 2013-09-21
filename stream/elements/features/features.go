@@ -2,8 +2,8 @@ package features
 
 import (
 	"encoding/xml"
-	"github.com/dotdoom/goxmpp/stream/connection"
 	"github.com/dotdoom/goxmpp/stream/elements"
+	"io"
 )
 
 var List = new(Features)
@@ -16,8 +16,13 @@ type Entry interface {
 	IsRequiredFor(State) bool
 }
 
+type SuperInterface interface {
+	SetIO(io.ReadWriter)
+	NextElement() elements.Element
+}
+
 type Reactor interface {
-	React(*connection.Connection)
+	React(State, SuperInterface)
 }
 
 type Elements struct {

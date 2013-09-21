@@ -1,7 +1,7 @@
 package stream
 
 import (
-	"github.com/dotdoom/goxmpp/stream/connection"
+	"encoding/xml"
 	"github.com/dotdoom/goxmpp/stream/decoder"
 	"github.com/dotdoom/goxmpp/stream/elements"
 	"github.com/dotdoom/goxmpp/stream/elements/features"
@@ -9,20 +9,29 @@ import (
 )
 
 type Wrapper struct {
+	rw             io.ReadWriter
+	StreamEncoder  *xml.Encoder
+	StreamDecoder  *xml.Decoder
 	ElementFactory elements.Factory
 	FeatureSet     *features.Features
 	InnerDecoder   *decoder.InnerDecoder
 	State          features.State
-	*connection.Connection
+}
+
+func (self *Wrapper) SetIO(rw io.ReadWriter) {
+	self.rw = rw
+	self.StreamEncoder = xml.NewEncoder(rw)
+	self.StreamDecoder = xml.NewDecoder(rw)
 }
 
 func NewWrapper(rw io.ReadWriter) *Wrapper {
-	return &Wrapper{
-		Connection:     connection.NewConnection(rw),
+	w := &Wrapper{
 		InnerDecoder:   decoder.NewInnerDecoder(),
 		ElementFactory: features.Factory,
 		FeatureSet:     features.List,
 	}
+	w.SetIO(rw)
+	return w
 }
 
 func (self *Wrapper) NextElement() elements.Element {
@@ -39,7 +48,7 @@ func (self *Wrapper) NextElement() elements.Element {
 func (self *Wrapper) FeaturesLoop() {
 	for self.FeatureSet.IsRequiredFor(self.State) {
 		self.StreamEncoder.Encode(self.FeatureSet.CopyIfAvailable(self.State))
-		self.NextElement().(features.Reactor).React(self.Connection)
+		self.NextElement().(features.Reactor).React(self.State, self)
 		break
 	}
 }

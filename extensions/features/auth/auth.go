@@ -3,7 +3,6 @@ package auth
 import (
 	"encoding/xml"
 	_ "github.com/dotdoom/goxmpp/stream"
-	"github.com/dotdoom/goxmpp/stream/connection"
 	"github.com/dotdoom/goxmpp/stream/elements"
 	"github.com/dotdoom/goxmpp/stream/elements/features"
 )
@@ -38,8 +37,9 @@ type Auth struct {
 	elements.UnmarshallableElements
 }
 
-func (self *Auth) React(conn *connection.Connection) {
+func (self *Auth) React(state features.State, conn features.SuperInterface) {
 	println("Reacting on: Auth")
+	conn.NextElement()
 }
 
 var ElementFactory = elements.NewFactory()

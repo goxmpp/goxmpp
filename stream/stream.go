@@ -63,6 +63,6 @@ func (sw *Wrapper) WriteStreamOpen(stream *Stream, default_namespace string) err
 	}
 	data += ">"
 
-	_, err := io.WriteString(sw.RW, data)
+	_, err := io.WriteString(sw.rw, data)
 	return err
 }
