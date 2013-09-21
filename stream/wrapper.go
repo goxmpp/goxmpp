@@ -39,10 +39,10 @@ func (self *Wrapper) SwapIOStream(rw io.ReadWriter) {
 func (self *Wrapper) FeaturesLoop() {
 	for self.FeatureSet.IsRequiredFor(self.State) {
 		self.StreamEncoder.Encode(self.FeatureSet.CopyIfAvailable(self.State))
+		break
 	}
 }
 
-/*
 func (sw *Wrapper) ReadStreamOpen() (*Stream, error) {
 	for {
 		t, err := sw.StreamDecoder.Token()
@@ -71,7 +71,8 @@ func (sw *Wrapper) ReadStreamOpen() (*Stream, error) {
 			}
 		}
 	}
-}*/
+	return nil, nil
+}
 
 // TODO(artem): refactor
 func (sw *Wrapper) WriteStreamOpen(stream *Stream, default_namespace string) error {

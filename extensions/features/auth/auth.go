@@ -28,5 +28,5 @@ type Mechanism struct {
 }
 
 func init() {
-	features.GlobalFeaturesList.AddElement(Mechanisms{})
+	features.GlobalFeaturesList.AddElement(new(Mechanisms))
 }

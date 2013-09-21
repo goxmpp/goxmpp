@@ -21,9 +21,13 @@ type Elements struct {
 
 func (self *Elements) CopyAvailableFeatures(fs FeatureState, dest elements.ElementsAdder) elements.ElementsAdder {
 	for _, feature := range self.Elements.Elements {
-		self.AddElement(feature.(Entry).CopyIfAvailable(fs))
+		if feature_entry, ok := feature.(Entry); ok {
+			dest.AddElement(feature_entry.CopyIfAvailable(fs))
+		} else {
+			dest.AddElement(feature)
+		}
 	}
-	return self
+	return dest
 }
 
 func (self *Elements) HasFeaturesRequiredFor(fs FeatureState) bool {
