@@ -60,7 +60,7 @@ func logEpectations(t *testing.T, got, expect, source []byte) {
 }
 
 func unmarshalTester(t *testing.T, source, expect []byte) {
-	s := getWrapper(source).NextElement()
+	s := getWrapper(source).ReadElement()
 
 	buffer, err := xml.MarshalIndent(s, "", "    ")
 	if err != nil {

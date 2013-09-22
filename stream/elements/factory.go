@@ -26,5 +26,5 @@ func (self Factory) Create(key string) (Element, error) {
 	if constructor, ok := self["*"]; ok {
 		return constructor(), nil
 	}
-	return nil, errors.New("Wrong key " + key)
+	return nil, errors.New("No element constructor defined for " + key)
 }

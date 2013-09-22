@@ -45,7 +45,7 @@ func (sw *Wrapper) ReadStreamOpen() (*StreamElement, error) {
 }
 
 // TODO(artem): refactor
-func (sw *Wrapper) WriteStreamOpen(stream *StreamElement, default_namespace string) error {
+func (self *Wrapper) WriteStreamOpen(stream *StreamElement, default_namespace string) error {
 	data := xml.Header
 
 	data += "<stream:stream xmlns='" + default_namespace + "' xmlns:stream='" + stream.XMLName.Space + "'"
@@ -63,6 +63,9 @@ func (sw *Wrapper) WriteStreamOpen(stream *StreamElement, default_namespace stri
 	}
 	data += ">"
 
-	_, err := io.WriteString(sw.rw, data)
+	_, err := io.WriteString(self.rw, data)
+	if err == nil {
+		self.State["stream_opened"] = true
+	}
 	return err
 }

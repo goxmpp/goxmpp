@@ -23,13 +23,13 @@ func (self *mechanismsElement) CopyIfAvailable(fs features.State) interface{} {
 	return nil
 }
 
-var Mechanisms = new(mechanismsElement)
-
 type MechanismElement struct {
 	XMLName xml.Name `xml:"mechanism"`
 	Name    string   `xml:",chardata"`
 	features.Elements
 }
+
+var Mechanisms = new(mechanismsElement)
 
 type AuthElement struct {
 	XMLName   xml.Name `xml:"auth"`
@@ -38,16 +38,16 @@ type AuthElement struct {
 	elements.UnmarshallableElements
 }
 
-type Mechanism interface {
-	Process(*AuthElement)
+type AuthElementHandler interface {
+	Handle(*AuthElement, features.State, interface{}) bool
 }
 
-func (self *AuthElement) React(state features.State, conn features.SuperInterface) {
-	println("Reacting on Auth, mechanism:", self.Mechanism, ", data:", self.Data)
+func (self *AuthElement) HandleFeature(state features.State, sw interface{}) {
 	for _, m := range Mechanisms.Elements.Elements.Elements {
-		m.(Mechanism).Process(self)
+		if m.(AuthElementHandler).Handle(self, state, sw) {
+			break
+		}
 	}
-	conn.NextElement()
 }
 
 var ElementFactory = elements.NewFactory()

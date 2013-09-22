@@ -13,14 +13,14 @@ type Element interface{}
 // Returns false to stop further processing.
 type ElementParsedCallback func(Element) bool
 
-type ElementsAdder interface {
+type ElementAdder interface {
 	AddElement(Element) bool
 }
 
 // Containers implementing this interface may accept inner elements,
 // parsed by ParseElements.
 type ParsableElementsContainer interface {
-	ElementsAdder
+	ElementAdder
 	ParseElements(*decoder.InnerDecoder) []Element
 }
 
@@ -86,12 +86,13 @@ func UnmarshalSiblingElements(xmldecoder XMLDecoder, factory Factory, callback E
 			var err error
 
 			if obj_element, err = factory.Create(xml_element.Name.Space + " " + xml_element.Name.Local); err != nil {
-				log.Println(err)
+				log.Println("Factory:", err, "(skipping)")
 				continue
 			}
 
 			if err = xmldecoder.DecodeElement(obj_element, &xml_element); err != nil {
-				log.Println(err)
+				// This is fatal. Return.
+				log.Println("Decode:", err, "(skipping)")
 				continue
 			}
 
@@ -106,6 +107,7 @@ func UnmarshalSiblingElements(xmldecoder XMLDecoder, factory Factory, callback E
 	}
 
 	if terr != nil && terr != io.EOF {
+		// This is fatal.
 		log.Println(terr)
 	}
 }

@@ -3,7 +3,6 @@ package features
 import (
 	"encoding/xml"
 	"github.com/dotdoom/goxmpp/stream/elements"
-	"io"
 )
 
 var List = new(FeaturesElement)
@@ -16,20 +15,15 @@ type Entry interface {
 	IsRequiredFor(State) bool
 }
 
-type SuperInterface interface {
-	SetIO(io.ReadWriter)
-	NextElement() elements.Element
-}
-
-type Reactor interface {
-	React(State, SuperInterface)
+type FeatureHandler interface {
+	HandleFeature(State, interface{})
 }
 
 type Elements struct {
 	elements.Elements
 }
 
-func (self *Elements) CopyAvailableFeatures(fs State, dest elements.ElementsAdder) elements.ElementsAdder {
+func (self *Elements) CopyAvailableFeatures(fs State, dest elements.ElementAdder) elements.ElementAdder {
 	for _, feature := range self.Elements.Elements {
 		if feature_entry, ok := feature.(Entry); ok {
 			dest.AddElement(feature_entry.CopyIfAvailable(fs))

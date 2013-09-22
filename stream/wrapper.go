@@ -29,12 +29,13 @@ func NewWrapper(rw io.ReadWriter) *Wrapper {
 		InnerDecoder:   decoder.NewInnerDecoder(),
 		ElementFactory: features.Factory,
 		FeatureSet:     features.List,
+		State:          features.State{},
 	}
 	w.SetIO(rw)
 	return w
 }
 
-func (self *Wrapper) NextElement() elements.Element {
+func (self *Wrapper) ReadElement() elements.Element {
 	var element elements.Element
 
 	elements.UnmarshalSiblingElements(self.StreamDecoder, self.ElementFactory, func(e elements.Element) bool {
@@ -45,9 +46,13 @@ func (self *Wrapper) NextElement() elements.Element {
 	return element
 }
 
+func (self *Wrapper) WriteElement(element elements.Element) {
+	self.StreamEncoder.Encode(element)
+}
+
 func (self *Wrapper) FeaturesLoop() {
-	for self.FeatureSet.IsRequiredFor(self.State) {
+	for self.State["stream_opened"] == true && self.FeatureSet.IsRequiredFor(self.State) {
 		self.StreamEncoder.Encode(self.FeatureSet.CopyIfAvailable(self.State))
-		self.NextElement().(features.Reactor).React(self.State, self)
+		self.ReadElement().(features.FeatureHandler).HandleFeature(self.State, self)
 	}
 }
