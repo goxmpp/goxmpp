@@ -5,7 +5,7 @@ import (
 	"io"
 )
 
-type Stream struct {
+type StreamElement struct {
 	XMLName xml.Name
 	ID      string
 	From    string
@@ -13,7 +13,7 @@ type Stream struct {
 	Version string
 }
 
-func (sw *Wrapper) ReadStreamOpen() (*Stream, error) {
+func (sw *Wrapper) ReadStreamOpen() (*StreamElement, error) {
 	for {
 		t, err := sw.StreamDecoder.Token()
 		if err != nil {
@@ -24,7 +24,7 @@ func (sw *Wrapper) ReadStreamOpen() (*Stream, error) {
 			// Good.
 		case xml.StartElement:
 			if t.Name.Local == "stream" {
-				stream := Stream{}
+				stream := StreamElement{}
 				stream.XMLName = t.Name
 				for _, attr := range t.Attr {
 					switch attr.Name.Local {
@@ -45,7 +45,7 @@ func (sw *Wrapper) ReadStreamOpen() (*Stream, error) {
 }
 
 // TODO(artem): refactor
-func (sw *Wrapper) WriteStreamOpen(stream *Stream, default_namespace string) error {
+func (sw *Wrapper) WriteStreamOpen(stream *StreamElement, default_namespace string) error {
 	data := xml.Header
 
 	data += "<stream:stream xmlns='" + default_namespace + "' xmlns:stream='" + stream.XMLName.Space + "'"

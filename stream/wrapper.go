@@ -13,7 +13,7 @@ type Wrapper struct {
 	StreamEncoder  *xml.Encoder
 	StreamDecoder  *xml.Decoder
 	ElementFactory elements.Factory
-	FeatureSet     *features.Features
+	FeatureSet     *features.FeaturesElement
 	InnerDecoder   *decoder.InnerDecoder
 	State          features.State
 }
@@ -49,6 +49,5 @@ func (self *Wrapper) FeaturesLoop() {
 	for self.FeatureSet.IsRequiredFor(self.State) {
 		self.StreamEncoder.Encode(self.FeatureSet.CopyIfAvailable(self.State))
 		self.NextElement().(features.Reactor).React(self.State, self)
-		break
 	}
 }

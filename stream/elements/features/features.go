@@ -6,7 +6,7 @@ import (
 	"io"
 )
 
-var List = new(Features)
+var List = new(FeaturesElement)
 var Factory = elements.NewFactory()
 
 type State map[string]interface{}
@@ -49,15 +49,15 @@ func (self *Elements) HasFeaturesRequiredFor(fs State) bool {
 	return false
 }
 
-type Features struct {
+type FeaturesElement struct {
 	XMLName xml.Name `xml:"stream:features"`
 	Elements
 }
 
-func (self *Features) IsRequiredFor(fs State) bool {
+func (self *FeaturesElement) IsRequiredFor(fs State) bool {
 	return self.HasFeaturesRequiredFor(fs)
 }
 
-func (self *Features) CopyIfAvailable(fs State) interface{} {
-	return self.CopyAvailableFeatures(fs, new(Features))
+func (self *FeaturesElement) CopyIfAvailable(fs State) interface{} {
+	return self.CopyAvailableFeatures(fs, new(FeaturesElement))
 }

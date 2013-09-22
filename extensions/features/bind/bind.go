@@ -5,22 +5,22 @@ import (
 	"github.com/dotdoom/goxmpp/stream/elements/features"
 )
 
-type bind struct {
+type bindElement struct {
 	XMLName xml.Name `xml:"urn:ietf:params:xml:ns:xmpp-bind bind"`
 	features.Elements
 }
 
-func (self *bind) IsRequiredFor(fs features.State) bool {
+func (self *bindElement) IsRequiredFor(fs features.State) bool {
 	return fs["bound"] == nil
 }
 
-func (self *bind) CopyIfAvailable(fs features.State) interface{} {
+func (self *bindElement) CopyIfAvailable(fs features.State) interface{} {
 	if self.IsRequiredFor(fs) && fs["authenticated"] != nil {
-		return self.CopyAvailableFeatures(fs, new(bind))
+		return self.CopyAvailableFeatures(fs, new(bindElement))
 	}
 	return nil
 }
 
 func init() {
-	features.List.AddElement(new(bind))
+	features.List.AddElement(new(bindElement))
 }
