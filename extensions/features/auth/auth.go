@@ -43,7 +43,7 @@ type AuthElementHandler interface {
 }
 
 func (self *AuthElement) HandleFeature(state features.State, sw interface{}) {
-	for _, m := range Mechanisms.Elements.Elements.Elements {
+	for _, m := range Mechanisms.Elements.Elements {
 		if m.(AuthElementHandler).Handle(self, state, sw) {
 			break
 		}

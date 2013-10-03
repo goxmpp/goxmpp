@@ -2,70 +2,53 @@ package stream
 
 import (
 	"encoding/xml"
+	"github.com/dotdoom/goxmpp/stream/elements"
 	"io"
 )
 
 type StreamElement struct {
-	XMLName xml.Name
-	ID      string
-	From    string
-	To      string
-	Version string
+	XMLName          xml.Name
+	ID               string
+	From             string
+	To               string
+	Version          string
+	DefaultNamespace string
 }
 
-func (sw *Wrapper) ReadStreamOpen() (*StreamElement, error) {
-	for {
-		t, err := sw.StreamDecoder.Token()
-		if err != nil {
-			return nil, err
-		}
-		switch t := t.(type) {
-		case xml.ProcInst:
-			// Good.
-		case xml.StartElement:
-			if t.Name.Local == "stream" {
-				stream := StreamElement{}
-				stream.XMLName = t.Name
-				for _, attr := range t.Attr {
-					switch attr.Name.Local {
-					case "to":
-						stream.To = attr.Value
-					case "from":
-						stream.From = attr.Value
-					case "version":
-						stream.Version = attr.Value
-					}
-				}
-
-				return &stream, nil
-			}
+func (self *StreamElement) Parse(_ elements.XMLDecoder, start *xml.StartElement) error {
+	self.XMLName = start.Name
+	for _, attr := range start.Attr {
+		switch attr.Name.Local {
+		case "to":
+			self.To = attr.Value
+		case "from":
+			self.From = attr.Value
+		case "version":
+			self.Version = attr.Value
 		}
 	}
-	return nil, nil
+	return nil
 }
 
 // TODO(artem): refactor
-func (self *Wrapper) WriteStreamOpen(stream *StreamElement, default_namespace string) error {
+func (self *StreamElement) Compose(_ elements.XMLEncoder, w io.Writer) error {
 	data := xml.Header
 
-	data += "<stream:stream xmlns='" + default_namespace + "' xmlns:stream='" + stream.XMLName.Space + "'"
-	if stream.ID != "" {
-		data += " id='" + stream.ID + "'"
+	data += "<stream:" + self.XMLName.Local + " xmlns='" + self.DefaultNamespace + "' xmlns:stream='" + self.XMLName.Space + "'"
+	if self.ID != "" {
+		data += " id='" + self.ID + "'"
 	}
-	if stream.From != "" {
-		data += " from='" + stream.From + "'"
+	if self.From != "" {
+		data += " from='" + self.From + "'"
 	}
-	if stream.To != "" {
-		data += " to='" + stream.To + "'"
+	if self.To != "" {
+		data += " to='" + self.To + "'"
 	}
-	if stream.Version != "" {
-		data += " version='" + stream.Version + "'"
+	if self.Version != "" {
+		data += " version='" + self.Version + "'"
 	}
 	data += ">"
 
-	_, err := io.WriteString(self.rw, data)
-	if err == nil {
-		self.State["stream_opened"] = true
-	}
+	_, err := io.WriteString(w, data)
 	return err
 }

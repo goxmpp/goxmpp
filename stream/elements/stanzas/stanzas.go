@@ -13,4 +13,4 @@ type Base struct {
 	Lang string `xml:"xml:lang,attr,omitempty"`
 }
 
-var Factory = elements.NewFactory()
+var Factory = new(elements.Factory)

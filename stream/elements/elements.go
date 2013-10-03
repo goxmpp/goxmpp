@@ -7,82 +7,24 @@ import (
 	"log"
 )
 
-type Element interface{}
-
-// Callback function to be called on each sibling element.
-// Returns false to stop further processing.
-type ElementParsedCallback func(Element) bool
-
-type ElementAdder interface {
-	AddElement(Element) bool
-}
-
-// Containers implementing this interface may accept inner elements,
-// parsed by ParseElements.
-type ParsableElementsContainer interface {
-	ElementAdder
-	ParseElements(*decoder.InnerDecoder) []Element
-}
-
-type Elements struct {
-	Elements []Element
-}
-
-func (self *Elements) AddElement(e Element) bool {
-	if e != nil {
-		self.Elements = append(self.Elements, e)
-		return true
-	}
-	return false
-}
-
-type UnmarshallableElements struct {
-	Elements
-	InnerXML       []byte  `xml:",innerxml"`
-	ElementFactory Factory `xml:"-"`
-}
-
-func (self *UnmarshallableElements) ParseElements(decoder *decoder.InnerDecoder) (elements []Element) {
-	if len(self.InnerXML) > 0 {
-		decoder.PutXML(self.InnerXML)
-
-		UnmarshalSiblingElements(decoder, self.ElementFactory, func(element Element) bool {
-			elements = append(elements, element)
-			return true
-		})
-	}
-	// Reset InnerXML to avoid duplicates when marshalling
-	self.InnerXML = nil
-	return
-}
-
-// Recursively parse an element.
-func ParseElement(self Element, decoder *decoder.InnerDecoder) Element {
-	if adder, ok := self.(ParsableElementsContainer); ok {
-		for _, element := range adder.ParseElements(decoder) {
-			adder.AddElement(ParseElement(element, decoder))
-		}
-	}
-	return self
-}
-
+// An interface containing enough methods for parsing/unmarshalling to work.
 type XMLDecoder interface {
 	Token() (xml.Token, error)
 	DecodeElement(interface{}, *xml.StartElement) error
 }
 
 // Run through the linear loop:
-//  - get next sibling tag name from xmldecoder
-//  - call factory to create an appropriate empty element instance
-//  - unmarshal XML element into language object created by factory using DecodeElement
+//  - get next sibling tag name (and xmlns) from xmldecoder.Token()
+//  - call factory to create an empty element instance for that tag name
+//  - use Parse() on the created empty element
 //  - pass parsed object to callback, breaking the loop if it returns false
-func UnmarshalSiblingElements(xmldecoder XMLDecoder, factory Factory, callback ElementParsedCallback) {
+func ParseSiblingElements(xmldecoder XMLDecoder, factory Factory, callback ElementParsedCallback) error {
 	var token xml.Token
-	var terr error
+	var fatal error
 
-	for token, terr = xmldecoder.Token(); terr == nil; token, terr = xmldecoder.Token() {
+	for token, fatal = xmldecoder.Token(); fatal == nil; token, fatal = xmldecoder.Token() {
 		if xml_element, ok := token.(xml.StartElement); ok && xml_element.Name.Local != decoder.TERMINATOR {
-			var obj_element Element
+			var obj_element Parsable
 			var err error
 
 			if obj_element, err = factory.Create(xml_element.Name.Space + " " + xml_element.Name.Local); err != nil {
@@ -90,10 +32,9 @@ func UnmarshalSiblingElements(xmldecoder XMLDecoder, factory Factory, callback E
 				continue
 			}
 
-			if err = xmldecoder.DecodeElement(obj_element, &xml_element); err != nil {
-				// This is fatal. Return.
-				log.Println("Decode:", err, "(skipping)")
-				continue
+			if err = obj_element.Parse(xmldecoder, &xml_element); err != nil {
+				fatal = err
+				break
 			}
 
 			if !callback(obj_element) {
@@ -106,8 +47,93 @@ func UnmarshalSiblingElements(xmldecoder XMLDecoder, factory Factory, callback E
 		}
 	}
 
-	if terr != nil && terr != io.EOF {
-		// This is fatal.
-		log.Println(terr)
+	if fatal == io.EOF {
+		return nil
 	}
+	return fatal
+}
+
+// Callback function to be called on each sibling element unmarshalled.
+// This function is expected to continue parsing (not necessarily unmarshalling).
+// Returns false to stop further processing.
+type ElementParsedCallback func(Parsable) bool
+
+// structs implementing this interface can parse themselves.
+// They are typically registered within a factory.
+type Parsable interface {
+	Parse(XMLDecoder, *xml.StartElement) error
+}
+
+// Parsable implementation using unmarshalling (xml.DecodeElement)
+type Unmarshallable struct {
+}
+
+func (self *Unmarshallable) Parse(decoder XMLDecoder, start *xml.StartElement) error {
+	return decoder.DecodeElement(self, start)
+}
+
+// structs implementing this interface can parse inner elements.
+type ParsableElements interface {
+	ParseElements(*decoder.InnerDecoder) error
+}
+
+// ParsableElements implementation based on parsing contents of a
+// previously unmarshalled field tagged as 'innerxml'. Elements are stored in a slice.
+type ElementsFromInnerXML struct {
+	Elements       []Parsable
+	InnerXML       []byte  `xml:",innerxml"`
+	ElementFactory Factory `xml:"-"`
+}
+
+// Unmarshall all elements in InnerXML, then call ParseElements on each individually.
+// Can't go for immediate recursion because it will replace the XML stored in decoder.
+func (self *ElementsFromInnerXML) ParseElements(decoder *decoder.InnerDecoder) error {
+	var fatal error
+
+	if len(self.InnerXML) > 0 {
+		decoder.PutXML(self.InnerXML)
+
+		fatal = ParseSiblingElements(decoder, self.ElementFactory, func(element Parsable) bool {
+			self.Elements = append(self.Elements, element)
+			return true
+		})
+
+		decoder.PutXML(nil)
+
+		if fatal != nil {
+			return fatal
+		}
+	}
+
+	// Reset InnerXML to avoid duplicates when marshalling
+	self.InnerXML = nil
+
+	for _, element := range self.Elements {
+		if element, ok := element.(ParsableElements); ok {
+			if fatal = element.ParseElements(decoder); fatal != nil {
+				return fatal
+			}
+		}
+	}
+
+	return nil
+}
+
+// Simple encoder interface
+type XMLEncoder interface {
+	Encode(interface{}) error
+}
+
+// structs implementing this interface can compose themselves into
+// xml.Encoder or io.Writer
+type Composable interface {
+	Compose(XMLEncoder, io.Writer) error
+}
+
+// Composable implementation using marshalling.
+type Marshallable struct {
+}
+
+func (self *Marshallable) Compose(encoder XMLEncoder, _ io.Writer) error {
+	return encoder.Encode(self)
 }

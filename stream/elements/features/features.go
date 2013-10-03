@@ -5,53 +5,53 @@ import (
 	"github.com/dotdoom/goxmpp/stream/elements"
 )
 
-var List = new(FeaturesElement)
-var Factory = elements.NewFactory()
-
-type State map[string]interface{}
-
-type Entry interface {
-	CopyIfAvailable(State) interface{}
-	IsRequiredFor(State) bool
-}
-
-type FeatureHandler interface {
-	HandleFeature(State, interface{})
-}
-
+// Helper methods for feature element containing sub-elements as a slice.
 type Elements struct {
-	elements.Elements
+	Elements []interface{}
 }
 
-func (self *Elements) CopyAvailableFeatures(fs State, dest elements.ElementAdder) elements.ElementAdder {
-	for _, feature := range self.Elements.Elements {
-		if feature_entry, ok := feature.(Entry); ok {
-			dest.AddElement(feature_entry.CopyIfAvailable(fs))
+func (self *Elements) AddElement(element interface{}) {
+	if element != nil {
+		self.Elements = append(self.Elements, element)
+	}
+}
+
+func (self *Elements) CopyAvailableFeatures(fs interface{}, dest *Elements) {
+	for _, feature := range self.Elements {
+		if feature_element, ok := feature.(interface {
+			CopyIfAvailable(interface{}) interface{}
+		}); ok {
+			dest.AddElement(feature_element.CopyIfAvailable(fs))
 		} else {
 			dest.AddElement(feature)
 		}
 	}
-	return dest
 }
 
-func (self *Elements) HasFeaturesRequiredFor(fs State) bool {
-	for _, feature := range self.Elements.Elements {
-		if feature.(Entry).IsRequiredFor(fs) {
+func (self *Elements) HasFeaturesRequiredFor(fs interface{}) bool {
+	for _, feature := range self.Elements {
+		if feature_element, ok := feature.(interface {
+			IsRequiredFor(interface{}) bool
+		}); ok && feature_element.IsRequiredFor(fs) {
 			return true
 		}
 	}
 	return false
 }
 
+// stream:features element
 type FeaturesElement struct {
 	XMLName xml.Name `xml:"stream:features"`
 	Elements
+	elements.Marshallable
 }
 
-func (self *FeaturesElement) IsRequiredFor(fs State) bool {
+func (self *FeaturesElement) IsRequiredFor(fs interface{}) bool {
 	return self.HasFeaturesRequiredFor(fs)
 }
 
-func (self *FeaturesElement) CopyIfAvailable(fs State) interface{} {
-	return self.CopyAvailableFeatures(fs, new(FeaturesElement))
+func (self *FeaturesElement) CopyIfAvailable(fs interface{}) elements.Composable {
+	e := new(FeaturesElement)
+	self.CopyAvailableFeatures(fs, &e.Elements)
+	return e
 }

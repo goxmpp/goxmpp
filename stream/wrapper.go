@@ -8,51 +8,54 @@ import (
 	"io"
 )
 
-type Wrapper struct {
+type Connection struct {
 	rw             io.ReadWriter
-	StreamEncoder  *xml.Encoder
-	StreamDecoder  *xml.Decoder
+	streamEncoder  *xml.Encoder
+	streamDecoder  *xml.Decoder
 	ElementFactory elements.Factory
-	FeatureSet     *features.FeaturesElement
-	InnerDecoder   *decoder.InnerDecoder
-	State          features.State
+	InnerDecoder   decoder.InnerDecoder
 }
 
-func (self *Wrapper) SetIO(rw io.ReadWriter) {
+func (self *Connection) SetIO(rw io.ReadWriter) io.ReadWriter {
+	previous_rw := self.rw
 	self.rw = rw
-	self.StreamEncoder = xml.NewEncoder(rw)
-	self.StreamDecoder = xml.NewDecoder(rw)
+	self.streamEncoder = xml.NewEncoder(rw)
+	self.streamDecoder = xml.NewDecoder(rw)
+	return previous_rw
 }
 
-func NewWrapper(rw io.ReadWriter) *Wrapper {
-	w := &Wrapper{
-		InnerDecoder:   decoder.NewInnerDecoder(),
-		ElementFactory: features.Factory,
-		FeatureSet:     features.List,
-		State:          features.State{},
-	}
-	w.SetIO(rw)
-	return w
-}
-
-func (self *Wrapper) ReadElement() elements.Element {
-	var element elements.Element
-
-	elements.UnmarshalSiblingElements(self.StreamDecoder, self.ElementFactory, func(e elements.Element) bool {
-		element = elements.ParseElement(e, self.InnerDecoder)
+func (self *Connection) ReadElement() (element elements.Parsable, fatal error) {
+	elements.ParseSiblingElements(self.streamDecoder, self.ElementFactory, func(e elements.Parsable) bool {
+		element = e
+		if e, ok := e.(elements.ParsableElements); ok {
+			fatal = e.ParseElements(&self.InnerDecoder)
+		}
 		return false
 	})
 
-	return element
+	return element, fatal
 }
 
-func (self *Wrapper) WriteElement(element elements.Element) {
-	self.StreamEncoder.Encode(element)
+func (self *Connection) WriteElement(element elements.Composable) error {
+	return element.Compose(self.streamEncoder, self.rw)
 }
 
-func (self *Wrapper) FeaturesLoop() {
-	for self.State["stream_opened"] == true && self.FeatureSet.IsRequiredFor(self.State) {
-		self.StreamEncoder.Encode(self.FeatureSet.CopyIfAvailable(self.State))
-		self.ReadElement().(features.FeatureHandler).HandleFeature(self.State, self)
+func (self *Connection) WritePrompt(string) error {
+	return nil
+}
+
+func (self *Connection) FeaturesLoop(fe *features.FeaturesElement, state interface{}) {
+	for state.(interface {
+		Opened() bool
+	}).Opened() && fe.IsRequiredFor(state) {
+		self.WriteElement(fe.CopyIfAvailable(state))
+		e, _ := self.ReadElement()
+		if feature_handler, ok := e.(interface {
+			HandleFeature(*Connection, interface{})
+		}); ok {
+			feature_handler.HandleFeature(self, state)
+		} else {
+			self.WritePrompt("Expecting required feature usage")
+		}
 	}
 }

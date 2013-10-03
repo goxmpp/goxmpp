@@ -10,17 +10,17 @@ type bindElement struct {
 	features.Elements
 }
 
-func (self *bindElement) IsRequiredFor(fs features.State) bool {
-	return fs["bound"] == nil
+func (self *bindElement) IsRequiredFor(state interface{}) bool {
+	return !state.(interface {
+		Bound() bool
+	}).Bound()
 }
 
-func (self *bindElement) CopyIfAvailable(fs features.State) interface{} {
-	if self.IsRequiredFor(fs) && fs["authenticated"] != nil {
-		return self.CopyAvailableFeatures(fs, new(bindElement))
+func (self *bindElement) CopyIfAvailable(state interface{}) interface{} {
+	if self.IsRequiredFor(state) && state.(interface {
+		Authenticated() bool
+	}).Authenticated() {
+		return self
 	}
 	return nil
-}
-
-func init() {
-	features.List.AddElement(new(bindElement))
 }
