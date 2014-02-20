@@ -7,26 +7,50 @@ import (
 	"github.com/dotdoom/goxmpp/stream/elements/features"
 )
 
+type AuthFeature interface {
+	UserName() string
+	SetUserName(username string)
+	features.StringElementMapper /*
+		AddElement
+	*/
+}
+
 type mechanismsElement struct {
-	XMLName xml.Name `xml:"urn:ietf:params:xml:ns:xmpp-sasl mechanisms"`
-	features.Elements
+	XMLName  xml.Name `xml:"urn:ietf:params:xml:ns:xmpp-sasl mechanisms"`
+	username string   `xml:"-"`
+	features.StringElements
 }
 
-func (self *mechanismsElement) IsRequiredFor(fs features.State) bool {
-	return fs["authenticated"] == nil
+func (self *mechanismsElement) UserName() string {
+	return self.username
 }
 
-func (self *mechanismsElement) CopyIfAvailable(fs features.State) interface{} {
-	if self.IsRequiredFor(fs) {
-		return self.CopyAvailableFeatures(fs, new(mechanismsElement))
+func (self *mechanismsElement) SetUserName(username string) {
+	self.username = username
+}
+
+func (self *mechanismsElement) IsRequired() bool {
+	return self.username == ""
+}
+
+func (self *mechanismsElement) IsAvailable() bool {
+	return self.IsRequired()
+}
+
+func (self *mechanismsElement) AddMechanism(name string, mechanism interface{}) {
+	if self.mechanisms == nil {
+		self.mechanisms = make(map[string]interface{})
 	}
-	return nil
+	self.mechanisms[name] = mechanism
+}
+
+func (self *mechanismsElement) FindMechanism(name string) interface{} {
+	return self.mechanisms[name]
 }
 
 type MechanismElement struct {
 	XMLName xml.Name `xml:"mechanism"`
 	Name    string   `xml:",chardata"`
-	features.Elements
 }
 
 var Mechanisms = new(mechanismsElement)
@@ -39,7 +63,7 @@ type AuthElement struct {
 }
 
 type AuthElementHandler interface {
-	Handle(*AuthElement, features.State, interface{}) bool
+	Handle(*AuthElement, features.List) bool
 }
 
 func (self *AuthElement) HandleFeature(state features.State, sw interface{}) {
