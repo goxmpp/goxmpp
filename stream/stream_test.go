@@ -3,10 +3,9 @@ package stream_test
 import "encoding/xml"
 import _ "github.com/dotdoom/goxmpp"
 import "github.com/dotdoom/goxmpp/stream"
-import "github.com/dotdoom/goxmpp/stream/elements/stanzas"
-import "github.com/dotdoom/goxmpp/stream/decoder"
 import "bytes"
 import "testing"
+import "log"
 
 var iqSource = `<iq to="test@conference.jabber.ru" id="ab7ca" type="set">
 sdfsdf
@@ -28,12 +27,8 @@ var iqExpect = `<iq to="test@conference.jabber.ru" type="set" id="ab7ca">
     </query>
 </iq>`
 
-func getWrapper(source []byte) *stream.Wrapper {
-	return &stream.Wrapper{
-		StreamDecoder:  xml.NewDecoder(bytes.NewReader([]byte(source))),
-		InnerDecoder:   decoder.NewInnerDecoder(),
-		ElementFactory: stanzas.Factory,
-	}
+func getWrapper(source []byte) *stream.Connection {
+	return stream.NewConnection(bytes.NewBuffer(source))
 }
 
 func is(got, expect []byte) bool {
@@ -60,8 +55,12 @@ func logEpectations(t *testing.T, got, expect, source []byte) {
 }
 
 func unmarshalTester(t *testing.T, source, expect []byte) {
-	s := getWrapper(source).ReadElement()
+	s, err := getWrapper(source).ReadElement()
+	if err != nil {
+		t.Fatal(err)
+	}
 
+	log.Printf("%#v", s)
 	buffer, err := xml.MarshalIndent(s, "", "    ")
 	if err != nil {
 		t.Fatal(err)

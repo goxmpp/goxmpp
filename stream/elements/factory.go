@@ -1,20 +1,32 @@
 package elements
 
 import "errors"
+import "encoding/xml"
 
 // Create an (empty) Parsable to parse XML into
-type Constructor func() Parsable
+type Constructor func() Element
 
 // Maintain a mapping between tag names (and namespaces) and Constructors
-type Factory map[string]Constructor
+type ElementFactory map[string]Constructor
 
-func (self Factory) AddConstructor(key string, constructor Constructor) {
+func NewFactory() ElementFactory {
+	return ElementFactory(make(map[string]Constructor))
+}
+
+func (self ElementFactory) AddConstructor(key string, constructor Constructor) {
 	self[key] = constructor
 }
 
 // Call a constructor for specified key or "*", if defined. Otherwise return an error
-func (self Factory) Create(key string) (Parsable, error) {
-	if constructor, ok := self[key]; ok {
+func (self ElementFactory) Get(element xml.StartElement) (interface{}, error) {
+	full_key := element.Name.Space + " " + element.Name.Local
+	name_key := element.Name.Local
+
+	if constructor, ok := self[full_key]; ok {
+		return constructor(), nil
+	}
+
+	if constructor, ok := self[name_key]; ok {
 		return constructor(), nil
 	}
 
@@ -22,5 +34,5 @@ func (self Factory) Create(key string) (Parsable, error) {
 	if constructor, ok := self["*"]; ok {
 		return constructor(), nil
 	}
-	return nil, errors.New("No element constructor defined for " + key)
+	return nil, errors.New("No element constructor defined for " + full_key)
 }

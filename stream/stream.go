@@ -6,16 +6,23 @@ import (
 	"io"
 )
 
-type StreamElement struct {
+type Stream struct {
 	XMLName          xml.Name
-	ID               string
-	From             string
-	To               string
-	Version          string
+	ID               string `xml:"id,attr"`
+	From             string `xml:"from,attr"`
+	To               string `xml:"to,attr"`
+	Version          string `xml:"version,attr"`
 	DefaultNamespace string
+	elements.ElementFactory
 }
 
-func (self *StreamElement) Parse(_ elements.XMLDecoder, start *xml.StartElement) error {
+var Factory = elements.NewFactory()
+
+func NewStream() *Stream {
+	return &Stream{ElementFactory: Factory}
+}
+
+func (self *Stream) Parse(_ *xml.Decoder, start *xml.StartElement) error {
 	self.XMLName = start.Name
 	for _, attr := range start.Attr {
 		switch attr.Name.Local {
@@ -31,7 +38,7 @@ func (self *StreamElement) Parse(_ elements.XMLDecoder, start *xml.StartElement)
 }
 
 // TODO(artem): refactor
-func (self *StreamElement) Compose(_ elements.XMLEncoder, w io.Writer) error {
+func (self *Stream) Compose(_ *xml.Encoder, w io.Writer) error {
 	data := xml.Header
 
 	data += "<stream:" + self.XMLName.Local + " xmlns='" + self.DefaultNamespace + "' xmlns:stream='" + self.XMLName.Space + "'"

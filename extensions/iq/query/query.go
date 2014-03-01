@@ -8,10 +8,10 @@ import (
 
 func init() {
 	iq.ElementFactory.AddConstructor("http://jabber.org/protocol/muc#admin query", func() elements.Element {
-		return &MucQuery{UnmarshallableElements: elements.UnmarshallableElements{ElementFactory: ElementFactory}}
+		return &MucQuery{InnerElements: elements.InnerElements{ElementFactory: ElementFactory}}
 	})
 	iq.ElementFactory.AddConstructor("http://jabber.org/protocol/disco#info query", func() elements.Element {
-		return &DiscoQuery{UnmarshallableElements: elements.UnmarshallableElements{ElementFactory: ElementFactory}}
+		return &DiscoQuery{InnerElements: elements.InnerElements{ElementFactory: ElementFactory}}
 	})
 }
 
@@ -19,10 +19,10 @@ var ElementFactory = elements.NewFactory()
 
 type MucQuery struct {
 	XMLName xml.Name `xml:"http://jabber.org/protocol/muc#admin query"`
-	elements.UnmarshallableElements
+	elements.InnerElements
 }
 
 type DiscoQuery struct {
 	XMLName xml.Name `xml:"http://jabber.org/protocol/disco#info query"`
-	elements.UnmarshallableElements
+	elements.InnerElements
 }

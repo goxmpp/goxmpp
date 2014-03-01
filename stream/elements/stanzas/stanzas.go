@@ -1,8 +1,7 @@
 package stanzas
 
 import (
-	_ "encoding/xml"
-	"github.com/dotdoom/goxmpp/stream/elements"
+	"encoding/xml"
 )
 
 type Base struct {
@@ -13,4 +12,19 @@ type Base struct {
 	Lang string `xml:"xml:lang,attr,omitempty"`
 }
 
-var Factory = new(elements.Factory)
+func (b *Base) SetFromStartElement(start xml.StartElement) {
+	for _, attr := range start.Attr {
+		switch attr.Name.Local {
+		case "from":
+			b.From = attr.Value
+		case "to":
+			b.To = attr.Value
+		case "type":
+			b.Type = attr.Value
+		case "id":
+			b.ID = attr.Value
+		case "lang":
+			b.Lang = attr.Value
+		}
+	}
+}

@@ -2,42 +2,45 @@ package stream
 
 import (
 	"encoding/xml"
-	"github.com/dotdoom/goxmpp/stream/decoder"
 	"github.com/dotdoom/goxmpp/stream/elements"
 	"github.com/dotdoom/goxmpp/stream/elements/features"
 	"io"
 )
 
 type Connection struct {
-	rw             io.ReadWriter
-	streamEncoder  *xml.Encoder
-	streamDecoder  *xml.Decoder
-	ElementFactory elements.Factory
-	InnerDecoder   decoder.InnerDecoder
+	rw            io.ReadWriter
+	streamEncoder *xml.Encoder
+	streamDecoder *xml.Decoder
+	stream        *Stream
 }
 
-func (self *Connection) SetIO(rw io.ReadWriter) io.ReadWriter {
-	previous_rw := self.rw
-	self.rw = rw
-	self.streamEncoder = xml.NewEncoder(rw)
-	self.streamDecoder = xml.NewDecoder(rw)
-	return previous_rw
+func NewConnection(rw io.ReadWriter) *Connection {
+	self := &Connection{
+		rw:            rw,
+		streamEncoder: xml.NewEncoder(rw),
+		streamDecoder: xml.NewDecoder(rw),
+		stream:        NewStream(),
+	}
+	return self
 }
 
-func (self *Connection) ReadElement() (element elements.Parsable, fatal error) {
-	elements.ParseSiblingElements(self.streamDecoder, self.ElementFactory, func(e elements.Parsable) bool {
-		element = e
-		if e, ok := e.(elements.ParsableElements); ok {
-			fatal = e.ParseElements(&self.InnerDecoder)
+func (self *Connection) ReadElement() (interface{}, error) {
+	var element interface{}
+	var err error
+	for token, err := self.streamDecoder.Token(); err == nil; token, err = self.streamDecoder.Token() {
+		if start, ok := token.(xml.StartElement); ok {
+			element, err = self.stream.DecodeElemenet(self.streamDecoder, &start)
+			if err != nil {
+				return nil, err
+			}
 		}
-		return false
-	})
+	}
 
-	return element, fatal
+	return element, err
 }
 
-func (self *Connection) WriteElement(element elements.Composable) error {
-	return element.Compose(self.streamEncoder, self.rw)
+func (self *Connection) WriteElement(element elements.Element) error {
+	return self.streamEncoder.Encode(element)
 }
 
 func (self *Connection) WritePrompt(string) error {

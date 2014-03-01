@@ -7,7 +7,7 @@ import (
 )
 
 func init() {
-	query.ElementFactory.AddConstructor(" item", func() elements.Element {
+	query.ElementFactory.AddConstructor("item", func() elements.Element {
 		return &Item{}
 	})
 }

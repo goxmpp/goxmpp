@@ -17,5 +17,5 @@ type BasicMethod struct {
 
 type Method struct {
 	BasicMethod
-	elements.Elements
+	elements.InnerElements
 }
