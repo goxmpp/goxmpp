@@ -3,6 +3,7 @@ package stream
 import (
 	"encoding/xml"
 	"github.com/dotdoom/goxmpp/stream/elements"
+	"github.com/dotdoom/goxmpp/stream/elements/features"
 	"io"
 )
 
@@ -13,13 +14,17 @@ type Stream struct {
 	To               string `xml:"to,attr"`
 	Version          string `xml:"version,attr"`
 	DefaultNamespace string
+	Features         *features.FeaturesElement `xml:"features"`
 	elements.ElementFactory
 }
 
 var Factory = elements.NewFactory()
 
 func NewStream() *Stream {
-	return &Stream{ElementFactory: Factory}
+	return &Stream{
+		ElementFactory: Factory,
+		Features:       features.NewFeaturesElement(),
+	}
 }
 
 func (self *Stream) Parse(_ *xml.Decoder, start *xml.StartElement) error {

@@ -12,7 +12,7 @@ const (
 )
 
 func init() {
-	features.Factory.AddConstructor(STREAM_NS+" "+STREAM_NODE, func() elements.Element {
+	features.ElementFactory.AddConstructor(STREAM_NS+" "+STREAM_NODE, func() elements.Element {
 		return &CompressionHandler{InnerElements: elements.InnerElements{ElementFactory: ElementFactory}}
 	})
 }

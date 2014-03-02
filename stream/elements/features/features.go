@@ -5,7 +5,20 @@ import (
 	"github.com/dotdoom/goxmpp/stream/elements"
 )
 
-var Factory = elements.NewFactory()
+var ElementFactory = elements.NewFactory()
+
+// stream:features element
+type FeaturesElement struct {
+	XMLName xml.Name `xml:"stream:features"`
+	Elements
+	elements.InnerElements
+}
+
+func NewFeaturesElement() *FeaturesElement {
+	return &FeaturesElement{
+		InnerElements: elements.InnerElements{ElementFactory: ElementFactory},
+	}
+}
 
 // Helper methods for feature element containing sub-elements as a slice.
 type Elements struct {
@@ -39,13 +52,6 @@ func (self *Elements) HasFeaturesRequiredFor(fs interface{}) bool {
 		}
 	}
 	return false
-}
-
-// stream:features element
-type FeaturesElement struct {
-	XMLName xml.Name `xml:"stream:features"`
-	Elements
-	elements.InnerElements
 }
 
 func (self *FeaturesElement) IsRequiredFor(fs interface{}) bool {
