@@ -32,5 +32,5 @@ func (iq *IQ) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 
 	iq.SetFromStartElement(start)
 
-	return iq.HandlerInnerElements(d, start.Name.Local)
+	return iq.HandlerInnerElements(d, start.End())
 }

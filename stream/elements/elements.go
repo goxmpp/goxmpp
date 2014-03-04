@@ -17,8 +17,8 @@ type InnerElements struct {
 
 func NewInnerElements(factory ElementFactory) *InnerElements {
 	return &InnerElements{
-		Elements: make([]interface{}, 0),
-		RawXML: make([]*InnerXML, 0),
+		Elements:       make([]interface{}, 0),
+		RawXML:         make([]*InnerXML, 0),
 		ElementFactory: factory,
 	}
 }
@@ -31,13 +31,13 @@ func (c *InnerElements) AddElement(e Element) {
 	c.Elements = append(c.Elements, e)
 }
 
-func (c *InnerElements) HandlerInnerElements(d *xml.Decoder, finalName string) error {
+func (c *InnerElements) HandlerInnerElements(d *xml.Decoder, final xml.EndElement) error {
 	var err error
 	for token, err := d.Token(); err == nil; token, err = d.Token() {
 		// TODO: Add logic to handler inner elements with same name as our start element
 		switch element := token.(type) {
 		case xml.EndElement:
-			if element.Name.Local == finalName {
+			if element.Name.Local == final.Name.Local {
 				break
 			}
 		case xml.StartElement:
@@ -70,5 +70,5 @@ func (factory ElementFactory) DecodeElemenet(d *xml.Decoder, element *xml.StartE
 }
 
 func (ie *InnerElements) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
-	return ie.HandlerInnerElements(d, start.Name.Local)
+	return ie.HandlerInnerElements(d, start.End())
 }

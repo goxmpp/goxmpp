@@ -37,5 +37,5 @@ func (msg *Message) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 
 	msg.SetFromStartElement(start)
 
-	return msg.HandlerInnerElements(d, start.Name.Local)
+	return msg.HandlerInnerElements(d, start.End())
 }
