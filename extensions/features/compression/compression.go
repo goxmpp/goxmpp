@@ -2,6 +2,7 @@ package compression
 
 import (
 	"encoding/xml"
+
 	"github.com/dotdoom/goxmpp/stream/elements"
 	"github.com/dotdoom/goxmpp/stream/elements/features"
 )
@@ -13,11 +14,15 @@ const (
 
 func init() {
 	features.ElementFactory.AddConstructor(STREAM_NS+" "+STREAM_NODE, func() elements.Element {
-		return &CompressionHandler{InnerElements: elements.InnerElements{ElementFactory: ElementFactory}}
+		return NewCompressionHandler()
 	})
 }
 
 var ElementFactory = elements.NewFactory()
+
+func NewCompressionHandler() *CompressionHandler {
+	return &CompressionHandler{InnerElements: elements.NewInnerElements(ElementFactory)}
+}
 
 type BaseCompression struct {
 	XMLName xml.Name `xml:"urn:ietf:params:xml:ns:xmpp-sasl compression"`
@@ -26,11 +31,11 @@ type BaseCompression struct {
 // This struct is used for marshaling
 type CompressionFeature struct {
 	BaseCompression
-	elements.InnerElements
+	*elements.InnerElements
 }
 
 // This struct is used for unmarshaling and stream handling
 type CompressionHandler struct {
 	BaseCompression
-	elements.InnerElements
+	*elements.InnerElements
 }

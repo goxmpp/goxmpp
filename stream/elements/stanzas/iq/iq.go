@@ -11,8 +11,12 @@ const (
 
 func init() {
 	stream.Factory.AddConstructor(" "+STREAM_NODE, func() elements.Element {
-		return &IQ{InnerElements: elements.InnerElements{ElementFactory: ElementFactory}}
+		return NewIQ()
 	})
+}
+
+func NewIQ() *IQ {
+	return &IQ{InnerElements: elements.NewInnerElements(ElementFactory)}
 }
 
 var ElementFactory = elements.NewFactory()
@@ -20,7 +24,7 @@ var ElementFactory = elements.NewFactory()
 type IQ struct {
 	XMLName xml.Name `xml:"iq"`
 	stanzas.Base
-	elements.InnerElements
+	*elements.InnerElements
 }
 
 func (iq *IQ) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {

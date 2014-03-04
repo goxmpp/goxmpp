@@ -11,13 +11,13 @@ var ElementFactory = elements.NewFactory()
 // stream:features element
 type FeaturesElement struct {
 	XMLName xml.Name `xml:"stream:features"`
-	Elements
-	elements.InnerElements
+	Elements // TODO: This need to be refactored because it hides InnerElements.Elements field
+	*elements.InnerElements
 }
 
 func NewFeaturesElement() *FeaturesElement {
 	return &FeaturesElement{
-		InnerElements: elements.InnerElements{ElementFactory: ElementFactory},
+		InnerElements: elements.NewInnerElements(ElementFactory),
 	}
 }
 

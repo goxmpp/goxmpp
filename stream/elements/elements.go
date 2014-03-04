@@ -15,6 +15,14 @@ type InnerElements struct {
 	RawXML         []*InnerXML
 }
 
+func NewInnerElements(factory ElementFactory) *InnerElements {
+	return &InnerElements{
+		Elements: make([]interface{}, 0),
+		RawXML: make([]*InnerXML, 0),
+		ElementFactory: factory,
+	}
+}
+
 type InnerElementAppender interface {
 	AddElement(Element)
 }

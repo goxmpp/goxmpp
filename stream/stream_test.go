@@ -80,20 +80,22 @@ func TestIQUnmarshal(t *testing.T) {
 }
 
 var messageSource = `<message>
-    <body>hi!</body>
+    <body>hi!<some inner="xml">test</some></body>
     <html xmlns="http://jabber.org/protocol/xhtml-im">
         <body xmlns="http://www.w3.org/1999/xhtml">
             <p style='font-weight:bold'>hi!</p>
         </body>
+        <some-unknown-xml><with inner="xml">and with data</with></some-unknown-xml>
     </html>
 </message>`
 
 var messageExpect = `<message>
-    <body>hi!</body>
+    <body>hi!<some inner="xml">test</some></body>
     <html xmlns="http://jabber.org/protocol/xhtml-im">
         <body xmlns="http://www.w3.org/1999/xhtml">
             <p style='font-weight:bold'>hi!</p>
         </body>
+        <some-unknown-xml><with inner="xml">and with data</with></some-unknown-xml>
     </html>
 </message>`
 
