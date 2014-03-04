@@ -1,14 +1,18 @@
 package elements
 
-import (
-	"encoding/xml"
-)
+import "encoding/xml"
 
 type Element interface{}
+
+type InnerXML struct {
+	XMLName xml.Name
+	XML     string `xml:",innerxml"`
+}
 
 type InnerElements struct {
 	Elements       []interface{}
 	ElementFactory `xml:"-"`
+	RawXML         []*InnerXML
 }
 
 type InnerElementAppender interface {
@@ -33,7 +37,12 @@ func (c *InnerElements) HandlerInnerElements(d *xml.Decoder, finalName string) e
 			if err != nil {
 				return err
 			}
-			c.AddElement(elementObject)
+
+			if innerXML, ok := elementObject.(*InnerXML); ok {
+				c.RawXML = append(c.RawXML, innerXML)
+			} else {
+				c.AddElement(elementObject)
+			}
 		}
 	}
 

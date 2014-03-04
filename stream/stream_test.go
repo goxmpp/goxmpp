@@ -16,6 +16,7 @@ sdfsdf
         <item affiliation="outcast" jid="test2@example.net">test1</item>
         sfsdf
     </query>
+    <unknown>test</unknown>
     sdfsdf
 </iq>
 sdfdf`
@@ -25,6 +26,7 @@ var iqExpect = `<iq to="test@conference.jabber.ru" type="set" id="ab7ca">
         <item affiliation="outcast" jid="test1@example.net">test</item>
         <item affiliation="outcast" jid="test2@example.net">test1</item>
     </query>
+    <unknown>test</unknown>
 </iq>`
 
 func getWrapper(source []byte) *stream.Connection {

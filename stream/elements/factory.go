@@ -1,6 +1,5 @@
 package elements
 
-import "errors"
 import "encoding/xml"
 
 // Create an (empty) Parsable to parse XML into
@@ -34,5 +33,5 @@ func (self ElementFactory) Get(element xml.StartElement) (interface{}, error) {
 	if constructor, ok := self["*"]; ok {
 		return constructor(), nil
 	}
-	return nil, errors.New("No element constructor defined for " + full_key)
+	return &InnerXML{}, nil
 }
