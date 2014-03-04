@@ -80,7 +80,7 @@ var ElementFactory = elements.NewFactory()
 
 func init() {
 	//features.List.AddElement(Mechanisms)
-	features.Factory.AddConstructor("urn:ietf:params:xml:ns:xmpp-sasl auth", func() elements.Element {
+	features.ElementFactory.AddConstructor("urn:ietf:params:xml:ns:xmpp-sasl auth", func() elements.Element {
 		return &AuthElement{InnerElements: elements.InnerElements{ElementFactory: ElementFactory}}
 	})
 }

@@ -2,6 +2,7 @@ package features
 
 import (
 	"encoding/xml"
+
 	"github.com/dotdoom/goxmpp/stream/elements"
 )
 
