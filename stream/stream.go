@@ -18,7 +18,7 @@ type Stream struct {
 	elements.ElementFactory
 }
 
-var Factory = elements.NewFactory()
+var Factory = elements.NewElementFactory()
 
 func NewStream() *Stream {
 	return &Stream{

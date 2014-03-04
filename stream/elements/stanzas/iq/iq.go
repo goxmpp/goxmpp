@@ -19,7 +19,7 @@ func NewIQElement() *IQElement {
 	return &IQElement{InnerElements: elements.NewInnerElements(ElementFactory)}
 }
 
-var ElementFactory = elements.NewFactory()
+var ElementFactory = elements.NewElementFactory()
 
 type IQElement struct {
 	XMLName xml.Name `xml:"iq"`

@@ -14,7 +14,7 @@ type BasicXML struct {
 }
 
 func NewBasicXML() *BasicXML {
-	return &BasicXML{InnerElements: elements.NewInnerElements(elements.NewFactory())}
+	return &BasicXML{InnerElements: elements.NewInnerElements(elements.NewElementFactory())}
 }
 
 func (bxml *BasicXML) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {

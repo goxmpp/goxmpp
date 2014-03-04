@@ -81,7 +81,7 @@ func NewAuthElement() *AuthElement {
 	return &AuthElement{InnerElements: elements.NewInnerElements(ElementFactory)}
 }
 
-var ElementFactory = elements.NewFactory()
+var ElementFactory = elements.NewElementFactory()
 
 func init() {
 	//features.List.AddElement(Mechanisms)

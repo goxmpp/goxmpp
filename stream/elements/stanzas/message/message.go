@@ -19,7 +19,7 @@ func NewMessageElement() *MessageElement {
 	return &MessageElement{InnerElements: elements.NewInnerElements(ElementFactory)}
 }
 
-var ElementFactory = elements.NewFactory()
+var ElementFactory = elements.NewElementFactory()
 
 type Body struct {
 	XMLName xml.Name `xml:"body"`

@@ -16,7 +16,7 @@ func init() {
 	})
 }
 
-var ElementFactory = elements.NewFactory()
+var ElementFactory = elements.NewElementFactory()
 
 type MucQuery struct {
 	XMLName xml.Name `xml:"http://jabber.org/protocol/muc#admin query"`
