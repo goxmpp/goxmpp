@@ -75,7 +75,7 @@ func unmarshalTester(t *testing.T, source, expect []byte) {
 	}
 }
 
-func TestIQUnmarshal(t *testing.T) {
+func TestIQElementUnmarshal(t *testing.T) {
 	unmarshalTester(t, []byte(iqSource), []byte(iqExpect))
 }
 
@@ -99,6 +99,6 @@ var messageExpect = `<message>
     </html>
 </message>`
 
-func TestMessageUnmarshal(t *testing.T) {
+func TestMessageElementUnmarshal(t *testing.T) {
 	unmarshalTester(t, []byte(messageSource), []byte(messageExpect))
 }

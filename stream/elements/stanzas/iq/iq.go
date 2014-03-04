@@ -11,23 +11,23 @@ const (
 
 func init() {
 	stream.Factory.AddConstructor(" "+STREAM_NODE, func() elements.Element {
-		return NewIQ()
+		return NewIQElement()
 	})
 }
 
-func NewIQ() *IQ {
-	return &IQ{InnerElements: elements.NewInnerElements(ElementFactory)}
+func NewIQElement() *IQElement {
+	return &IQElement{InnerElements: elements.NewInnerElements(ElementFactory)}
 }
 
 var ElementFactory = elements.NewFactory()
 
-type IQ struct {
+type IQElement struct {
 	XMLName xml.Name `xml:"iq"`
 	stanzas.Base
 	*elements.InnerElements
 }
 
-func (iq *IQ) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+func (iq *IQElement) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 	iq.XMLName = start.Name
 
 	iq.SetFromStartElement(start)
