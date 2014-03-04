@@ -78,14 +78,14 @@ type AuthElement struct {
 //}
 
 func NewAuthElement() *AuthElement {
-	return &AuthElement{InnerElements: elements.NewInnerElements(ElementFactory)}
+	return &AuthElement{InnerElements: elements.NewInnerElements(Factory)}
 }
 
-var ElementFactory = elements.NewElementFactory()
+var Factory = elements.NewElementFactory()
 
 func init() {
 	//features.List.AddElement(Mechanisms)
-	features.ElementFactory.AddConstructor("urn:ietf:params:xml:ns:xmpp-sasl auth", func() elements.Element {
+	features.Factory.AddConstructor("urn:ietf:params:xml:ns:xmpp-sasl auth", func() elements.Element {
 		return NewAuthElement()
 	})
 }
