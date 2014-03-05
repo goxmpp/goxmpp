@@ -36,12 +36,12 @@ func (self *Container) HasFeaturesRequiredFor(fs *State) bool {
 	return false
 }
 
-func (self *FeaturesElement) IsRequiredFor(fs *State) bool {
+func (self *Container) IsRequiredFor(fs *State) bool {
 	return self.HasFeaturesRequiredFor(fs)
 }
 
-func (self *FeaturesElement) CopyIfAvailable(fs *State) interface{} {
-	e := NewContainer(nil)
+func (self *Container) CopyIfAvailable(fs *State) elements.Element {
+	e := NewContainer(self.ElementFactory)
 	self.CopyAvailableFeatures(fs, e)
 	return e
 }

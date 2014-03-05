@@ -8,7 +8,6 @@ import (
 
 var Factory = elements.NewElementFactory()
 
-// stream:features element
 type FeaturesElement struct {
 	XMLName xml.Name `xml:"stream:features"`
 	*Container
@@ -16,6 +15,6 @@ type FeaturesElement struct {
 
 func NewFeaturesElement() *FeaturesElement {
 	return &FeaturesElement{
-		Container: NewContainer(Factory),
+		Container: NewContainer(nil),
 	}
 }
