@@ -2,9 +2,10 @@ package stream
 
 import (
 	"encoding/xml"
+	"io"
+
 	"github.com/dotdoom/goxmpp/stream/elements"
 	"github.com/dotdoom/goxmpp/stream/elements/features"
-	"io"
 )
 
 type Connection struct {
@@ -12,6 +13,10 @@ type Connection struct {
 	streamEncoder *xml.Encoder
 	streamDecoder *xml.Decoder
 	stream        *Stream
+}
+
+type State struct {
+	Opened bool
 }
 
 func NewConnection(rw io.ReadWriter) *Connection {
@@ -47,10 +52,10 @@ func (self *Connection) WritePrompt(string) error {
 	return nil
 }
 
-func (self *Connection) FeaturesLoop(fe *features.FeaturesElement, state interface{}) {
-	for state.(interface {
-		Opened() bool
-	}).Opened() && fe.IsRequiredFor(state) {
+func (self *Connection) FeaturesLoop(fe *features.FeaturesElement, state *features.State) {
+	var connection_state *State
+	state.Get(&connection_state)
+	for connection_state.Opened && fe.IsRequiredFor(state) {
 		self.WriteElement(fe.CopyIfAvailable(state))
 		e, _ := self.ReadElement()
 		if feature_handler, ok := e.(interface {

@@ -2,15 +2,16 @@ package stream
 
 import (
 	"encoding/xml"
+	"io"
+
 	"github.com/dotdoom/goxmpp/stream/elements"
 	"github.com/dotdoom/goxmpp/stream/elements/features"
-	"io"
 )
 
 type Stream struct {
 	XMLName          xml.Name
 	ID               string `xml:"id,attr"`
-	From             string `xml:"from,attr"`
+	From             string `xml:"from,attr"` // This will hold user JID after auth.
 	To               string `xml:"to,attr"`
 	Version          string `xml:"version,attr"`
 	DefaultNamespace string

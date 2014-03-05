@@ -8,18 +8,6 @@ import (
 	"github.com/dotdoom/goxmpp/stream/elements/features"
 )
 
-type State struct {
-	userName string
-}
-
-func (self *State) UserName() string {
-	return self.userName
-}
-
-func (self *State) SetUserName(value string) {
-	self.userName = value
-}
-
 type mechanismsElement struct {
 	XMLName    xml.Name `xml:"urn:ietf:params:xml:ns:xmpp-sasl mechanisms"`
 	username   string   `xml:"-"`

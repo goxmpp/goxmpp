@@ -10,21 +10,17 @@ type InnerXML struct {
 }
 
 type InnerElements struct {
-	Elements       []interface{}
+	Elements       []Element
 	ElementFactory `xml:"-"`
 	RawXML         []*InnerXML
 }
 
 func NewInnerElements(factory ElementFactory) *InnerElements {
 	return &InnerElements{
-		Elements:       make([]interface{}, 0),
+		Elements:       make([]Element, 0),
 		RawXML:         make([]*InnerXML, 0),
 		ElementFactory: factory,
 	}
-}
-
-type InnerElementAppender interface {
-	AddElement(Element)
 }
 
 func (c *InnerElements) AddElement(e Element) {
