@@ -8,30 +8,16 @@ import (
 	"github.com/dotdoom/goxmpp/stream/elements/features"
 )
 
-type AuthStateReadable interface {
-	UserName() string
-	SetUserName(username string)
-}
-
-type AuthState struct {
+type State struct {
 	userName string
 }
 
-func (self *AuthState) UserName() string {
+func (self *State) UserName() string {
 	return self.userName
 }
 
-func (self *AuthState) SetUserName(value string) {
+func (self *State) SetUserName(value string) {
 	self.userName = value
-}
-
-func GetState(state *features.State) AuthStateReadable {
-	for e := state.States.Front(); e != nil; e = e.Next() {
-		if asr, ok := e.Value.(AuthStateReadable); ok {
-			return asr
-		}
-	}
-	return nil
 }
 
 type mechanismsElement struct {
