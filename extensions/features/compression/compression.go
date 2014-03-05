@@ -13,12 +13,12 @@ const (
 )
 
 func init() {
-	features.ElementFactory.AddConstructor(STREAM_NS+" "+STREAM_NODE, func() elements.Element {
+	features.Factory.AddConstructor(STREAM_NS+" "+STREAM_NODE, func() elements.Element {
 		return NewCompressionHandler()
 	})
 }
 
-var ElementFactory = elements.NewFactory()
+var ElementFactory = elements.NewElementFactory()
 
 func NewCompressionHandler() *CompressionHandler {
 	return &CompressionHandler{InnerElements: elements.NewInnerElements(ElementFactory)}

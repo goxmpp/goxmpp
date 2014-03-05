@@ -6,18 +6,18 @@ import (
 	"github.com/dotdoom/goxmpp/stream/elements"
 )
 
-var ElementFactory = elements.NewFactory()
+var Factory = elements.NewElementFactory()
 
 // stream:features element
 type FeaturesElement struct {
-	XMLName xml.Name `xml:"stream:features"`
-	Elements // TODO: This need to be refactored because it hides InnerElements.Elements field
+	XMLName  xml.Name `xml:"stream:features"`
+	Elements          // TODO: This need to be refactored because it hides InnerElements.Elements field
 	*elements.InnerElements
 }
 
 func NewFeaturesElement() *FeaturesElement {
 	return &FeaturesElement{
-		InnerElements: elements.NewInnerElements(ElementFactory),
+		InnerElements: elements.NewInnerElements(Factory),
 	}
 }
 

@@ -8,7 +8,7 @@ type Constructor func() Element
 // Maintain a mapping between tag names (and namespaces) and Constructors
 type ElementFactory map[string]Constructor
 
-func NewFactory() ElementFactory {
+func NewElementFactory() ElementFactory {
 	return ElementFactory(make(map[string]Constructor))
 }
 
