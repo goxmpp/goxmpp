@@ -15,6 +15,7 @@ type Stream struct {
 	Version          string `xml:"version,attr"`
 	DefaultNamespace string
 	Features         *features.FeaturesElement `xml:"features"`
+	FeaturesState    features.State
 	elements.ElementFactory
 }
 

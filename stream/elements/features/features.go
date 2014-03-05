@@ -1,21 +1,12 @@
 package features
 
 import (
-	"container/list"
 	"encoding/xml"
 
 	"github.com/dotdoom/goxmpp/stream/elements"
 )
 
 var Factory = elements.NewElementFactory()
-
-type FeaturesState struct {
-	states *list.List
-}
-
-func NewFeaturesState() *FeaturesState {
-	return &FeaturesState{states: &list.List{}}
-}
 
 // stream:features element
 type FeaturesElement struct {
