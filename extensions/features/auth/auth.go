@@ -8,39 +8,6 @@ import (
 	"github.com/dotdoom/goxmpp/stream/elements/features"
 )
 
-type mechanismsElement struct {
-	XMLName    xml.Name `xml:"urn:ietf:params:xml:ns:xmpp-sasl mechanisms"`
-	username   string   `xml:"-"`
-	mechanisms map[string]interface{}
-	//features.StringElements
-}
-
-func (self *mechanismsElement) IsRequired() bool {
-	return self.username == ""
-}
-
-func (self *mechanismsElement) IsAvailable() bool {
-	return self.IsRequired()
-}
-
-//func (self *mechanismsElement) AddMechanism(name string, mechanism interface{}) {
-//	if self.mechanisms == nil {
-//		self.mechanisms = make(map[string]interface{})
-//	}
-//	self.mechanisms[name] = mechanism
-//}
-//
-//func (self *mechanismsElement) FindMechanism(name string) interface{} {
-//	return self.mechanisms[name]
-//}
-//
-//type MechanismElement struct {
-//	XMLName xml.Name `xml:"mechanism"`
-//	Name    string   `xml:",chardata"`
-//}
-//
-//var Mechanisms = new(mechanismsElement)
-
 type AuthElement struct {
 	XMLName   xml.Name `xml:"auth"`
 	Mechanism string   `xml:"mechanism,attr"`
@@ -68,8 +35,8 @@ func NewAuthElement() *AuthElement {
 var Factory = elements.NewElementFactory()
 
 func init() {
-	//features.List.AddElement(Mechanisms)
 	features.Factory.AddConstructor("urn:ietf:params:xml:ns:xmpp-sasl auth", func() elements.Element {
 		return NewAuthElement()
 	})
+	features.Features.AddElement(Features)
 }

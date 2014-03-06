@@ -10,6 +10,9 @@ var Features = NewContainer()
 
 type AccessControllable interface {
 	CopyIfAvailable(*State) elements.Element
+}
+
+type AccessController interface {
 	IsRequiredFor(*State) bool
 }
 
@@ -35,7 +38,7 @@ func (self *Container) CopyAvailableFeatures(fs *State, dest *Container) {
 
 func (self *Container) HasFeaturesRequiredFor(fs *State) bool {
 	for _, feature := range self.Elements {
-		if feature_element, ok := feature.(AccessControllable); ok && feature_element.IsRequiredFor(fs) {
+		if feature_element, ok := feature.(AccessController); ok && feature_element.IsRequiredFor(fs) {
 			return true
 		}
 	}

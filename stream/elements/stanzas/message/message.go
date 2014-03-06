@@ -6,11 +6,11 @@ import "github.com/dotdoom/goxmpp/stream/elements"
 import "github.com/dotdoom/goxmpp/stream/elements/stanzas"
 
 func init() {
-	stream.Factory.AddConstructor("message", func() elements.Element {
+	stream.Factory.AddConstructor(" message", func() elements.Element {
 		return NewMessageElement()
 	})
 
-	ElementFactory.AddConstructor("body", func() elements.Element {
+	ElementFactory.AddConstructor(" body", func() elements.Element {
 		return &Body{}
 	})
 }

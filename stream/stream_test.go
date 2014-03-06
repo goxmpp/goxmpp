@@ -48,10 +48,10 @@ func is(got, expect []byte) bool {
 }
 
 func logEpectations(t *testing.T, got, expect, source []byte) {
-	t.Log("Result (bytes):", got)
+	t.Log("Result (bytes)  :", got)
 	t.Log("Expected (bytes):", expect)
-	t.Log("Source:", string(source))
-	t.Log("Result:", string(got))
+	t.Log("Source  :", string(source))
+	t.Log("Result  :", string(got))
 	t.Log("Expected:", string(expect))
 }
 

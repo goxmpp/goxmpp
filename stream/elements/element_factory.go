@@ -17,15 +17,8 @@ func (self ElementFactory) AddConstructor(key string, constructor Constructor) {
 }
 
 // Call a constructor for specified key or "*", if defined. Otherwise return an error
-func (self ElementFactory) Get(element xml.StartElement) (interface{}, error) {
-	full_key := element.Name.Space + " " + element.Name.Local
-	name_key := element.Name.Local
-
-	if constructor, ok := self[full_key]; ok {
-		return constructor(), nil
-	}
-
-	if constructor, ok := self[name_key]; ok {
+func (self ElementFactory) Get(name string) (Element, error) {
+	if constructor, ok := self[name]; ok {
 		return constructor(), nil
 	}
 
@@ -33,11 +26,12 @@ func (self ElementFactory) Get(element xml.StartElement) (interface{}, error) {
 	if constructor, ok := self["*"]; ok {
 		return constructor(), nil
 	}
+
 	return &InnerXML{}, nil
 }
 
 func (self ElementFactory) DecodeElement(d *xml.Decoder, element *xml.StartElement) (interface{}, error) {
-	elementObject, err := self.Get(*element)
+	elementObject, err := self.Get(element.Name.Space + " " + element.Name.Local)
 	if err != nil {
 		return nil, err
 	}
