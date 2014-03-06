@@ -15,6 +15,6 @@ type FeaturesElement struct {
 
 func NewFeaturesElement() *FeaturesElement {
 	return &FeaturesElement{
-		Container: NewContainer(nil),
+		Container: NewContainer(),
 	}
 }

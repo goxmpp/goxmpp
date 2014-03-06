@@ -35,3 +35,15 @@ func (self ElementFactory) Get(element xml.StartElement) (interface{}, error) {
 	}
 	return &InnerXML{}, nil
 }
+
+func (self ElementFactory) DecodeElement(d *xml.Decoder, element *xml.StartElement) (interface{}, error) {
+	elementObject, err := self.Get(*element)
+	if err != nil {
+		return nil, err
+	}
+	if err := d.DecodeElement(elementObject, element); err != nil {
+		return nil, err
+	}
+
+	return elementObject, nil
+}

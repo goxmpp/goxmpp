@@ -1,8 +1,11 @@
 package stream_test
 
 import "encoding/xml"
-import _ "github.com/dotdoom/goxmpp"
-import "github.com/dotdoom/goxmpp/stream"
+import (
+	_ "github.com/dotdoom/goxmpp"
+	"github.com/dotdoom/goxmpp/stream"
+)
+
 import "bytes"
 import "testing"
 import "log"
@@ -29,10 +32,6 @@ var iqExpect = `<iq to="test@conference.jabber.ru" type="set" id="ab7ca">
     <unknown>test</unknown>
 </iq>`
 
-func getWrapper(source []byte) *stream.Connection {
-	return stream.NewConnection(bytes.NewBuffer(source))
-}
-
 func is(got, expect []byte) bool {
 	got = bytes.TrimSpace(got)
 	if len(got) != len(expect) {
@@ -57,7 +56,7 @@ func logEpectations(t *testing.T, got, expect, source []byte) {
 }
 
 func unmarshalTester(t *testing.T, source, expect []byte) {
-	s, err := getWrapper(source).ReadElement()
+	s, err := stream.NewStream(bytes.NewBuffer(source)).ReadElement()
 	if err != nil {
 		t.Fatal(err)
 	}

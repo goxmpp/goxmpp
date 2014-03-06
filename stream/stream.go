@@ -2,6 +2,7 @@ package stream
 
 import (
 	"encoding/xml"
+	"errors"
 	"io"
 
 	"github.com/dotdoom/goxmpp/stream/elements"
@@ -11,20 +12,24 @@ import (
 type Stream struct {
 	XMLName          xml.Name
 	ID               string `xml:"id,attr"`
-	From             string `xml:"from,attr"` // This will hold user JID after auth.
+	From             string `xml:"from,attr"` // This holds user JID after auth.
 	To               string `xml:"to,attr"`
 	Version          string `xml:"version,attr"`
-	DefaultNamespace string
-	FeaturesState    features.State
+	DefaultNamespace string `xml:"-"`
+	Opened           bool   `xml:"-"`
+	Features         features.State
+	Connection
 	elements.ElementFactory
 }
 
 var Factory = elements.NewElementFactory()
 
-func NewStream() *Stream {
-	return &Stream{
+func NewStream(rw io.ReadWriter) *Stream {
+	st := &Stream{
 		ElementFactory: Factory,
 	}
+	st.SetRW(rw)
+	return st
 }
 
 func (self *Stream) Parse(_ *xml.Decoder, start *xml.StartElement) error {
@@ -63,4 +68,36 @@ func (self *Stream) Compose(_ *xml.Encoder, w io.Writer) error {
 
 	_, err := io.WriteString(w, data)
 	return err
+}
+
+func (self *Stream) WriteElement(element elements.Element) error {
+	return self.streamEncoder.Encode(element)
+}
+
+func (self *Stream) ReadElement() (elements.Element, error) {
+	var element elements.Element
+	var err error
+	for token, err := self.streamDecoder.Token(); err == nil; token, err = self.streamDecoder.Token() {
+		if start, ok := token.(xml.StartElement); ok {
+			element, err = Factory.DecodeElement(self.streamDecoder, &start)
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	return element, err
+}
+
+func (self *Stream) FeaturesLoop() error {
+	for self.Opened && features.Features.IsRequiredFor(&self.Features) {
+		self.WriteElement(features.Features.CopyIfAvailable(&self.Features))
+		e, _ := self.ReadElement()
+		if feature_handler, ok := e.(features.Handler); ok {
+			feature_handler.Handle(&self.Features)
+		} else {
+			return errors.New("Non-handler element received.")
+		}
+	}
+	return nil
 }

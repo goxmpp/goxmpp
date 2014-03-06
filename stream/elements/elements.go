@@ -37,7 +37,7 @@ func (c *InnerElements) HandlerInnerElements(d *xml.Decoder, final xml.EndElemen
 				break
 			}
 		case xml.StartElement:
-			elementObject, err := c.DecodeElemenet(d, &element)
+			elementObject, err := c.DecodeElement(d, &element)
 			if err != nil {
 				return err
 			}
@@ -51,18 +51,6 @@ func (c *InnerElements) HandlerInnerElements(d *xml.Decoder, final xml.EndElemen
 	}
 
 	return err
-}
-
-func (factory ElementFactory) DecodeElemenet(d *xml.Decoder, element *xml.StartElement) (interface{}, error) {
-	elementObject, err := factory.Get(*element)
-	if err != nil {
-		return nil, err
-	}
-	if err := d.DecodeElement(elementObject, element); err != nil {
-		return nil, err
-	}
-
-	return elementObject, nil
 }
 
 func (ie *InnerElements) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
