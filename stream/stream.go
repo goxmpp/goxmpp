@@ -15,7 +15,6 @@ type Stream struct {
 	To               string `xml:"to,attr"`
 	Version          string `xml:"version,attr"`
 	DefaultNamespace string
-	Features         *features.FeaturesElement `xml:"features"`
 	FeaturesState    features.State
 	elements.ElementFactory
 }
@@ -25,7 +24,6 @@ var Factory = elements.NewElementFactory()
 func NewStream() *Stream {
 	return &Stream{
 		ElementFactory: Factory,
-		Features:       features.NewFeaturesElement(),
 	}
 }
 
