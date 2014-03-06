@@ -1,6 +1,5 @@
-package mechanism
+package mechanisms
 
-import (
 //	"bytes"
 //	"encoding/base64"
 //	"encoding/xml"
@@ -8,7 +7,6 @@ import (
 //	"github.com/dotdoom/goxmpp/stream/elements"
 //	"github.com/dotdoom/goxmpp/stream/elements/features"
 //	"log"
-)
 
 //
 //type PlainElement struct {

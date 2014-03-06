@@ -3,6 +3,7 @@ package features
 import (
 	"container/list"
 	"errors"
+	"fmt"
 	"reflect"
 )
 
@@ -19,17 +20,9 @@ func NewState() *State {
 	return &State{states: &list.List{}}
 }
 
-func getType(val interface{}) reflect.Type {
-	vo := reflect.TypeOf(val)
-	if vo.Kind() == reflect.Ptr {
-		vo = vo.Elem()
-	}
-	return vo
-}
-
 func (self *State) Push(states ...interface{}) {
 	for _, state := range states {
-		self.states.PushBack(reflectedState{State: state, Type: getType(state)})
+		self.states.PushBack(reflectedState{State: state, Type: reflect.TypeOf(state)})
 	}
 }
 
@@ -37,9 +30,8 @@ func (self *State) Get(res interface{}) error {
 	// Type of pointer to pointer to value
 	typ := reflect.TypeOf(res).Elem()
 	if typ.Kind() != reflect.Ptr {
-		return errors.New("Should receive a pointer to pointer.")
+		return fmt.Errorf("Pointer expected, got %v", typ.Kind())
 	}
-	typ = typ.Elem()
 
 	// Pointer to pointer to value
 	v := reflect.ValueOf(res).Elem()

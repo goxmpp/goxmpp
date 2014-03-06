@@ -6,14 +6,20 @@ type Container struct {
 	*elements.InnerElements
 }
 
+var Features = NewContainer()
+
 type AccessControllable interface {
 	CopyIfAvailable(*State) elements.Element
 	IsRequiredFor(*State) bool
 }
 
-func NewContainer(factory elements.ElementFactory) *Container {
+type Handler interface {
+	Handle(*State) bool
+}
+
+func NewContainer() *Container {
 	return &Container{
-		InnerElements: elements.NewInnerElements(factory),
+		InnerElements: elements.NewInnerElements(nil),
 	}
 }
 
@@ -41,7 +47,7 @@ func (self *Container) IsRequiredFor(fs *State) bool {
 }
 
 func (self *Container) CopyIfAvailable(fs *State) elements.Element {
-	e := NewContainer(self.ElementFactory)
+	e := NewContainer()
 	self.CopyAvailableFeatures(fs, e)
 	return e
 }
