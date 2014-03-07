@@ -1,7 +1,7 @@
 package iq
 
 import "encoding/xml"
-import "github.com/dotdoom/goxmpp/stream"
+
 import "github.com/dotdoom/goxmpp/stream/elements"
 import "github.com/dotdoom/goxmpp/stream/elements/stanzas"
 
@@ -10,7 +10,7 @@ const (
 )
 
 func init() {
-	stream.Factory.AddConstructor(" "+STREAM_NODE, func() elements.Element {
+	stanzas.Factory.AddConstructor(" "+STREAM_NODE, func() elements.Element {
 		return NewIQElement()
 	})
 }

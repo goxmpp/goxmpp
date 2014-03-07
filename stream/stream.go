@@ -3,6 +3,7 @@ package stream
 import (
 	"encoding/xml"
 	"io"
+	"log"
 
 	"github.com/dotdoom/goxmpp/stream/elements"
 )
@@ -20,12 +21,8 @@ type Stream struct {
 	elements.ElementFactory
 }
 
-var Factory = elements.NewElementFactory()
-
 func NewStream(rw io.ReadWriter) *Stream {
-	st := &Stream{
-		ElementFactory: Factory,
-	}
+	st := &Stream{}
 	st.SetRW(rw)
 	return st
 }
@@ -52,6 +49,7 @@ func (self *Stream) ReadOpen() error {
 						self.Version = attr.Value
 					}
 				}
+				log.Printf("got <stream> from: %v, to: %v, version: %v\n", self.From, self.To, self.Version)
 				return nil
 			}
 		}
@@ -60,6 +58,8 @@ func (self *Stream) ReadOpen() error {
 
 // TODO(artem): refactor
 func (self *Stream) WriteOpen() error {
+	log.Println("send <stream>")
+
 	data := xml.Header
 
 	data += "<stream:" + self.XMLName.Local + " xmlns='" + self.DefaultNamespace + "' xmlns:stream='" + self.XMLName.Space + "'"
@@ -78,6 +78,9 @@ func (self *Stream) WriteOpen() error {
 	data += ">"
 
 	_, err := io.WriteString(self.rw, data)
+	if err == nil {
+		self.Opened = true
+	}
 	return err
 }
 
@@ -86,16 +89,14 @@ func (self *Stream) WriteElement(element elements.Element) error {
 }
 
 func (self *Stream) ReadElement() (elements.Element, error) {
-	var element elements.Element
 	var err error
+
 	for token, err := self.streamDecoder.Token(); err == nil; token, err = self.streamDecoder.Token() {
 		if start, ok := token.(xml.StartElement); ok {
-			element, err = Factory.DecodeElement(self.streamDecoder, &start)
-			if err != nil {
-				return nil, err
-			}
+			log.Printf("got element: %v (ns %v)\n", start.Name.Local, start.Name.Space)
+			return self.DecodeElement(self.streamDecoder, &start)
 		}
 	}
 
-	return element, err
+	return nil, err
 }

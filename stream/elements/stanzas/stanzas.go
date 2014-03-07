@@ -2,6 +2,8 @@ package stanzas
 
 import (
 	"encoding/xml"
+
+	"github.com/dotdoom/goxmpp/stream/elements"
 )
 
 type Base struct {
@@ -28,3 +30,5 @@ func (b *Base) SetFromStartElement(start xml.StartElement) {
 		}
 	}
 }
+
+var Factory = elements.NewElementFactory()

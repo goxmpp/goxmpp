@@ -1,12 +1,12 @@
 package message
 
 import "encoding/xml"
-import "github.com/dotdoom/goxmpp/stream"
+
 import "github.com/dotdoom/goxmpp/stream/elements"
 import "github.com/dotdoom/goxmpp/stream/elements/stanzas"
 
 func init() {
-	stream.Factory.AddConstructor(" message", func() elements.Element {
+	stanzas.Factory.AddConstructor(" message", func() elements.Element {
 		return NewMessageElement()
 	})
 
