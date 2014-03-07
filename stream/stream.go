@@ -31,18 +31,31 @@ func NewStream(rw io.ReadWriter) *Stream {
 }
 
 func (self *Stream) ReadOpen() error {
-	/*self.XMLName = start.Name
-	for _, attr := range start.Attr {
-		switch attr.Name.Local {
-		case "to":
-			self.To = attr.Value
-		case "from":
-			self.From = attr.Value
-		case "version":
-			self.Version = attr.Value
+	for {
+		t, err := self.streamDecoder.Token()
+		if err != nil {
+			return err
 		}
-	}*/
-	return nil
+		switch t := t.(type) {
+		case xml.ProcInst:
+			// Good.
+		case xml.StartElement:
+			if t.Name.Local == "stream" {
+				self.XMLName = t.Name
+				for _, attr := range t.Attr {
+					switch attr.Name.Local {
+					case "to":
+						self.To = attr.Value
+					case "from":
+						self.From = attr.Value
+					case "version":
+						self.Version = attr.Value
+					}
+				}
+				return nil
+			}
+		}
+	}
 }
 
 // TODO(artem): refactor

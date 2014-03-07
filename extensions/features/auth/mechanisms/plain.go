@@ -33,8 +33,8 @@ import "github.com/dotdoom/goxmpp/extensions/features/auth"
 //
 
 type PlainState struct {
-	Callback   func(string, string) bool
-	RequireTLS bool
+	Callback          func(string, string) bool
+	RequireEncryption bool
 }
 
 func init() {
