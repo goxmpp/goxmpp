@@ -1,6 +1,11 @@
 package mechanisms
 
-import "github.com/dotdoom/goxmpp/extensions/features/auth"
+import (
+	"log"
+
+	"github.com/dotdoom/goxmpp/extensions/features/auth"
+	"github.com/dotdoom/goxmpp/stream"
+)
 
 //
 //type PlainElement struct {
@@ -39,4 +44,8 @@ type PlainState struct {
 
 func init() {
 	auth.Features.AddElement(&auth.MechanismElement{Name: "PLAIN"})
+	auth.Mechanisms["PLAIN"] = func(e *auth.AuthElement, stream *stream.Stream) error {
+		log.Println("PLAIN handler")
+		return nil
+	}
 }

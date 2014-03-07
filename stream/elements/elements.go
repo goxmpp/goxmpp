@@ -27,7 +27,7 @@ func (c *InnerElements) AddElement(e Element) {
 	c.Elements = append(c.Elements, e)
 }
 
-func (c *InnerElements) HandlerInnerElements(d *xml.Decoder, final xml.EndElement) error {
+func (c *InnerElements) HandleInnerElements(d *xml.Decoder, final xml.EndElement) error {
 	var err error
 	for token, err := d.Token(); err == nil; token, err = d.Token() {
 		// TODO: Add logic to handler inner elements with same name as our start element
@@ -54,5 +54,5 @@ func (c *InnerElements) HandlerInnerElements(d *xml.Decoder, final xml.EndElemen
 }
 
 func (ie *InnerElements) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
-	return ie.HandlerInnerElements(d, start.End())
+	return ie.HandleInnerElements(d, start.End())
 }
