@@ -3,6 +3,7 @@ package auth
 import (
 	"encoding/xml"
 
+	"github.com/dotdoom/goxmpp/stream"
 	"github.com/dotdoom/goxmpp/stream/elements"
 	"github.com/dotdoom/goxmpp/stream/elements/features"
 )
@@ -19,16 +20,16 @@ func newMechanismsElement() *mechanismsElement {
 	}
 }
 
-func (self *mechanismsElement) IsRequiredFor(fs *features.State) bool {
+func (self *mechanismsElement) IsRequiredFor(stream *stream.Stream) bool {
 	var state *State
-	err := fs.Get(&state)
+	err := stream.State.Get(&state)
 	return err != nil || state.UserName == ""
 }
 
-func (self *mechanismsElement) CopyIfAvailable(fs *features.State) elements.Element {
-	if self.IsRequiredFor(fs) {
+func (self *mechanismsElement) CopyIfAvailable(stream *stream.Stream) elements.Element {
+	if self.IsRequiredFor(stream) {
 		x := newMechanismsElement()
-		Features.CopyAvailableFeatures(fs, x.Container)
+		Features.CopyAvailableFeatures(stream, x.Container)
 		return x
 	}
 	return nil

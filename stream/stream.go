@@ -2,11 +2,9 @@ package stream
 
 import (
 	"encoding/xml"
-	"errors"
 	"io"
 
 	"github.com/dotdoom/goxmpp/stream/elements"
-	"github.com/dotdoom/goxmpp/stream/elements/features"
 )
 
 type Stream struct {
@@ -17,7 +15,7 @@ type Stream struct {
 	Version          string `xml:"version,attr"`
 	DefaultNamespace string `xml:"-"`
 	Opened           bool   `xml:"-"`
-	Features         features.State
+	State            State
 	Connection
 	elements.ElementFactory
 }
@@ -32,8 +30,8 @@ func NewStream(rw io.ReadWriter) *Stream {
 	return st
 }
 
-func (self *Stream) Parse(_ *xml.Decoder, start *xml.StartElement) error {
-	self.XMLName = start.Name
+func (self *Stream) ReadOpen() error {
+	/*self.XMLName = start.Name
 	for _, attr := range start.Attr {
 		switch attr.Name.Local {
 		case "to":
@@ -43,12 +41,12 @@ func (self *Stream) Parse(_ *xml.Decoder, start *xml.StartElement) error {
 		case "version":
 			self.Version = attr.Value
 		}
-	}
+	}*/
 	return nil
 }
 
 // TODO(artem): refactor
-func (self *Stream) Compose(_ *xml.Encoder, w io.Writer) error {
+func (self *Stream) WriteOpen() error {
 	data := xml.Header
 
 	data += "<stream:" + self.XMLName.Local + " xmlns='" + self.DefaultNamespace + "' xmlns:stream='" + self.XMLName.Space + "'"
@@ -66,7 +64,7 @@ func (self *Stream) Compose(_ *xml.Encoder, w io.Writer) error {
 	}
 	data += ">"
 
-	_, err := io.WriteString(w, data)
+	_, err := io.WriteString(self.rw, data)
 	return err
 }
 
@@ -87,17 +85,4 @@ func (self *Stream) ReadElement() (elements.Element, error) {
 	}
 
 	return element, err
-}
-
-func (self *Stream) FeaturesLoop() error {
-	for self.Opened && features.Features.IsRequiredFor(&self.Features) {
-		self.WriteElement(features.Features.CopyIfAvailable(&self.Features))
-		e, _ := self.ReadElement()
-		if feature_handler, ok := e.(features.Handler); ok {
-			feature_handler.Handle(&self.Features)
-		} else {
-			return errors.New("Non-handler element received.")
-		}
-	}
-	return nil
 }

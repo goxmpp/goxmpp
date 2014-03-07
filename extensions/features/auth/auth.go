@@ -3,7 +3,7 @@ package auth
 import (
 	"encoding/xml"
 
-	_ "github.com/dotdoom/goxmpp/stream"
+	"github.com/dotdoom/goxmpp/stream"
 	"github.com/dotdoom/goxmpp/stream/elements"
 	"github.com/dotdoom/goxmpp/stream/elements/features"
 )
@@ -11,7 +11,6 @@ import (
 type AuthElement struct {
 	XMLName   xml.Name `xml:"auth"`
 	Mechanism string   `xml:"mechanism,attr"`
-	Data      string   `xml:",chardata"`
 	*elements.InnerElements
 }
 
@@ -32,11 +31,18 @@ func NewAuthElement() *AuthElement {
 	return &AuthElement{InnerElements: elements.NewInnerElements(Factory)}
 }
 
+func (self *AuthElement) Handle(stream *stream.Stream) {
+	if handler := Mechanisms[self.Mechanism]; handler != nil {
+	}
+}
+
 var Factory = elements.NewElementFactory()
+
+var Mechanisms map[string]features.Handler
 
 func init() {
 	features.Factory.AddConstructor("urn:ietf:params:xml:ns:xmpp-sasl auth", func() elements.Element {
 		return NewAuthElement()
 	})
-	features.Features.AddElement(Features)
+	features.Tree.AddElement(Features)
 }
