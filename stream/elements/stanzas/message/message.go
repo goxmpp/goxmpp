@@ -1,16 +1,16 @@
 package message
 
 import "encoding/xml"
-import "github.com/dotdoom/goxmpp/stream"
+
 import "github.com/dotdoom/goxmpp/stream/elements"
 import "github.com/dotdoom/goxmpp/stream/elements/stanzas"
 
 func init() {
-	stream.Factory.AddConstructor("message", func() elements.Element {
+	stanzas.Factory.AddConstructor(" message", func() elements.Element {
 		return NewMessageElement()
 	})
 
-	ElementFactory.AddConstructor("body", func() elements.Element {
+	ElementFactory.AddConstructor(" body", func() elements.Element {
 		return &Body{}
 	})
 }
@@ -37,5 +37,5 @@ func (msg *MessageElement) UnmarshalXML(d *xml.Decoder, start xml.StartElement) 
 
 	msg.SetFromStartElement(start)
 
-	return msg.HandlerInnerElements(d, start.End())
+	return msg.HandleInnerElements(d, start.End())
 }

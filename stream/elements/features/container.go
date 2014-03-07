@@ -1,20 +1,20 @@
 package features
 
-import "github.com/dotdoom/goxmpp/stream/elements"
+import (
+	"github.com/dotdoom/goxmpp/stream"
+	"github.com/dotdoom/goxmpp/stream/elements"
+)
 
 type Container struct {
 	*elements.InnerElements
 }
 
-var Features = NewContainer()
-
 type AccessControllable interface {
-	CopyIfAvailable(*State) elements.Element
-	IsRequiredFor(*State) bool
+	CopyIfAvailable(*stream.Stream) elements.Element
 }
 
-type Handler interface {
-	Handle(*State) bool
+type AccessController interface {
+	IsRequiredFor(*stream.Stream) bool
 }
 
 func NewContainer() *Container {
@@ -23,31 +23,25 @@ func NewContainer() *Container {
 	}
 }
 
-func (self *Container) CopyAvailableFeatures(fs *State, dest *Container) {
+func (self *Container) CopyAvailableFeatures(stream *stream.Stream, dest *Container) {
 	for _, feature := range self.Elements {
 		if feature_element, ok := feature.(AccessControllable); ok {
-			dest.AddElement(feature_element.CopyIfAvailable(fs))
+			dest.AddElement(feature_element.CopyIfAvailable(stream))
 		} else {
 			dest.AddElement(feature)
 		}
 	}
 }
 
-func (self *Container) HasFeaturesRequiredFor(fs *State) bool {
+func (self *Container) HasFeaturesRequiredFor(stream *stream.Stream) bool {
 	for _, feature := range self.Elements {
-		if feature_element, ok := feature.(AccessControllable); ok && feature_element.IsRequiredFor(fs) {
+		if feature_element, ok := feature.(AccessController); ok && feature_element.IsRequiredFor(stream) {
 			return true
 		}
 	}
 	return false
 }
 
-func (self *Container) IsRequiredFor(fs *State) bool {
-	return self.HasFeaturesRequiredFor(fs)
-}
-
-func (self *Container) CopyIfAvailable(fs *State) elements.Element {
-	e := NewContainer()
-	self.CopyAvailableFeatures(fs, e)
-	return e
+func (self *Container) IsRequiredFor(stream *stream.Stream) bool {
+	return self.HasFeaturesRequiredFor(stream)
 }

@@ -2,11 +2,10 @@ package stream
 
 import (
 	"encoding/xml"
-	"errors"
 	"io"
+	"log"
 
 	"github.com/dotdoom/goxmpp/stream/elements"
-	"github.com/dotdoom/goxmpp/stream/elements/features"
 )
 
 type Stream struct {
@@ -17,38 +16,50 @@ type Stream struct {
 	Version          string `xml:"version,attr"`
 	DefaultNamespace string `xml:"-"`
 	Opened           bool   `xml:"-"`
-	Features         features.State
+	State            State
 	Connection
 	elements.ElementFactory
 }
 
-var Factory = elements.NewElementFactory()
-
 func NewStream(rw io.ReadWriter) *Stream {
-	st := &Stream{
-		ElementFactory: Factory,
-	}
+	st := &Stream{}
 	st.SetRW(rw)
 	return st
 }
 
-func (self *Stream) Parse(_ *xml.Decoder, start *xml.StartElement) error {
-	self.XMLName = start.Name
-	for _, attr := range start.Attr {
-		switch attr.Name.Local {
-		case "to":
-			self.To = attr.Value
-		case "from":
-			self.From = attr.Value
-		case "version":
-			self.Version = attr.Value
+func (self *Stream) ReadOpen() error {
+	for {
+		t, err := self.streamDecoder.Token()
+		if err != nil {
+			return err
+		}
+		switch t := t.(type) {
+		case xml.ProcInst:
+			// Good.
+		case xml.StartElement:
+			if t.Name.Local == "stream" {
+				self.XMLName = t.Name
+				for _, attr := range t.Attr {
+					switch attr.Name.Local {
+					case "to":
+						self.To = attr.Value
+					case "from":
+						self.From = attr.Value
+					case "version":
+						self.Version = attr.Value
+					}
+				}
+				log.Printf("got <stream> from: %v, to: %v, version: %v\n", self.From, self.To, self.Version)
+				return nil
+			}
 		}
 	}
-	return nil
 }
 
 // TODO(artem): refactor
-func (self *Stream) Compose(_ *xml.Encoder, w io.Writer) error {
+func (self *Stream) WriteOpen() error {
+	log.Println("send <stream>")
+
 	data := xml.Header
 
 	data += "<stream:" + self.XMLName.Local + " xmlns='" + self.DefaultNamespace + "' xmlns:stream='" + self.XMLName.Space + "'"
@@ -66,7 +77,10 @@ func (self *Stream) Compose(_ *xml.Encoder, w io.Writer) error {
 	}
 	data += ">"
 
-	_, err := io.WriteString(w, data)
+	_, err := io.WriteString(self.rw, data)
+	if err == nil {
+		self.Opened = true
+	}
 	return err
 }
 
@@ -75,29 +89,14 @@ func (self *Stream) WriteElement(element elements.Element) error {
 }
 
 func (self *Stream) ReadElement() (elements.Element, error) {
-	var element elements.Element
 	var err error
+
 	for token, err := self.streamDecoder.Token(); err == nil; token, err = self.streamDecoder.Token() {
 		if start, ok := token.(xml.StartElement); ok {
-			element, err = Factory.DecodeElement(self.streamDecoder, &start)
-			if err != nil {
-				return nil, err
-			}
+			log.Printf("got element: %v (ns %v)\n", start.Name.Local, start.Name.Space)
+			return self.DecodeElement(self.streamDecoder, &start)
 		}
 	}
 
-	return element, err
-}
-
-func (self *Stream) FeaturesLoop() error {
-	for self.Opened && features.Features.IsRequiredFor(&self.Features) {
-		self.WriteElement(features.Features.CopyIfAvailable(&self.Features))
-		e, _ := self.ReadElement()
-		if feature_handler, ok := e.(features.Handler); ok {
-			feature_handler.Handle(&self.Features)
-		} else {
-			return errors.New("Non-handler element received.")
-		}
-	}
-	return nil
+	return nil, err
 }

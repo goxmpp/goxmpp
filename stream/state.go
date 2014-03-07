@@ -1,4 +1,4 @@
-package features
+package stream
 
 import (
 	"container/list"
@@ -13,11 +13,7 @@ type reflectedState struct {
 }
 
 type State struct {
-	states *list.List
-}
-
-func NewState() *State {
-	return &State{states: &list.List{}}
+	states list.List
 }
 
 func (self *State) Push(states ...interface{}) {

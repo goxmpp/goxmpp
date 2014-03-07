@@ -1,12 +1,11 @@
 package mechanisms
 
-//	"bytes"
-//	"encoding/base64"
-//	"encoding/xml"
-//	"github.com/dotdoom/goxmpp/extensions/features/auth"
-//	"github.com/dotdoom/goxmpp/stream/elements"
-//	"github.com/dotdoom/goxmpp/stream/elements/features"
-//	"log"
+import (
+	"log"
+
+	"github.com/dotdoom/goxmpp/extensions/features/auth"
+	"github.com/dotdoom/goxmpp/stream"
+)
 
 //
 //type PlainElement struct {
@@ -37,6 +36,16 @@ package mechanisms
 //	return true
 //}
 //
-//func init() {
-//	auth.Mechanisms.AddElement(NewPlainElement())
-//}
+
+type PlainState struct {
+	Callback          func(string, string) bool
+	RequireEncryption bool
+}
+
+func init() {
+	auth.Features.AddElement(&auth.MechanismElement{Name: "PLAIN"})
+	auth.Mechanisms["PLAIN"] = func(e *auth.AuthElement, stream *stream.Stream) error {
+		log.Println("PLAIN handler")
+		return nil
+	}
+}

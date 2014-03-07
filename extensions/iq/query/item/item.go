@@ -2,12 +2,13 @@ package item
 
 import (
 	"encoding/xml"
+
 	"github.com/dotdoom/goxmpp/extensions/iq/query"
 	"github.com/dotdoom/goxmpp/stream/elements"
 )
 
 func init() {
-	query.ElementFactory.AddConstructor("item", func() elements.Element {
+	query.ElementFactory.AddConstructor("http://jabber.org/protocol/muc#admin item", func() elements.Element {
 		return &Item{}
 	})
 }
