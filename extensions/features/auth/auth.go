@@ -13,23 +13,13 @@ import (
 type AuthElement struct {
 	XMLName   xml.Name `xml:"auth"`
 	Mechanism string   `xml:"mechanism,attr"`
-	*elements.InnerElements
+	Data      string   `xml:",chardata"`
 }
 
 type Handler func(*AuthElement, *stream.Stream) error
 
-func (self *AuthElement) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
-	self.XMLName = start.Name
-	for _, attr := range start.Attr {
-		if attr.Name.Local == "mechanism" {
-			self.Mechanism = attr.Value
-		}
-	}
-	return self.HandleInnerElements(d, start.End())
-}
-
 func NewAuthElement() *AuthElement {
-	return &AuthElement{InnerElements: elements.NewInnerElements(Factory)}
+	return &AuthElement{}
 }
 
 func (self *AuthElement) Handle(stream *stream.Stream) error {
