@@ -7,9 +7,10 @@ import (
 
 	"github.com/dotdoom/goxmpp/stream"
 	"github.com/dotdoom/goxmpp/stream/elements"
+	"github.com/dotdoom/goxmpp/stream/elements/stanzas"
 )
 
-var Factory = elements.NewElementFactory()
+var Factory = stanzas.Factory //elements.NewElementFactory()
 
 type FeaturesElement struct {
 	XMLName xml.Name `xml:"stream:features"`

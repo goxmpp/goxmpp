@@ -22,8 +22,7 @@ type PlainState struct {
 var usernamePasswordSeparator = []byte{0}
 
 func init() {
-	auth.Features.AddElement(&auth.MechanismElement{Name: "PLAIN"})
-	auth.Mechanisms["PLAIN"] = func(e *auth.AuthElement, stream *stream.Stream) error {
+	auth.AddMechanism("PLAIN", func(e *auth.AuthElement, stream *stream.Stream) error {
 		b, _ := base64.StdEncoding.DecodeString(e.Data)
 		user_password := bytes.Split(b, usernamePasswordSeparator)
 
@@ -40,10 +39,11 @@ func init() {
 			auth_state.Mechanism = "PLAIN"
 
 			stream.WriteElement(&SuccessElement{})
+			stream.Opened = false
 
 			return nil
 		} else {
 			return errors.New("AUTH FAILED")
 		}
-	}
+	})
 }
