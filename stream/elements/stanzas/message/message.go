@@ -13,16 +13,16 @@ func init() {
 		return NewMessageElement()
 	})
 
-	ElementFactory.AddConstructor(" body", func() elements.Element {
+	Factory.AddConstructor(" body", func() elements.Element {
 		return &Body{}
 	})
 }
 
 func NewMessageElement() *MessageElement {
-	return &MessageElement{InnerElements: elements.NewInnerElements(ElementFactory)}
+	return &MessageElement{InnerElements: elements.NewInnerElements(Factory)}
 }
 
-var ElementFactory = elements.NewElementFactory()
+var Factory = elements.NewFactory()
 
 type Body struct {
 	XMLName xml.Name `xml:"body"`

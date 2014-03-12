@@ -43,7 +43,7 @@ func (self *bindElement) CopyIfAvailable(stream *stream.Stream) elements.Element
 }
 
 func init() {
-	iq.ElementFactory.AddConstructor("urn:ietf:params:xml:ns:xmpp-bind bind", func() elements.Element {
+	iq.Factory.AddConstructor("urn:ietf:params:xml:ns:xmpp-bind bind", func() elements.Element {
 		return &BindElement{}
 	})
 	features.Tree.AddElement(&bindElement{})

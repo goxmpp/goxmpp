@@ -6,18 +6,18 @@ import "encoding/xml"
 type Constructor func() Element
 
 // Maintain a mapping between tag names (and namespaces) and Constructors
-type ElementFactory map[string]Constructor
+type Factory map[string]Constructor
 
-func NewElementFactory() ElementFactory {
-	return ElementFactory(make(map[string]Constructor))
+func NewFactory() Factory {
+	return Factory(make(map[string]Constructor))
 }
 
-func (self ElementFactory) AddConstructor(key string, constructor Constructor) {
+func (self Factory) AddConstructor(key string, constructor Constructor) {
 	self[key] = constructor
 }
 
 // Call a constructor for specified key or "*", if defined. Otherwise return an error
-func (self ElementFactory) Get(name string) (Element, error) {
+func (self Factory) Get(name string) (Element, error) {
 	if constructor, ok := self[name]; ok {
 		return constructor(), nil
 	}
@@ -30,7 +30,7 @@ func (self ElementFactory) Get(name string) (Element, error) {
 	return &InnerXML{}, nil
 }
 
-func (self ElementFactory) DecodeElement(d *xml.Decoder, element *xml.StartElement) (interface{}, error) {
+func (self Factory) DecodeElement(d *xml.Decoder, element *xml.StartElement) (interface{}, error) {
 	elementObject, err := self.Get(element.Name.Space + " " + element.Name.Local)
 	if err != nil {
 		return nil, err

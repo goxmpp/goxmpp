@@ -7,7 +7,7 @@ import (
 )
 
 func init() {
-	compression.ElementFactory.AddConstructor(" method", func() elements.Element { return &BasicMethod{} })
+	compression.Factory.AddConstructor(" method", func() elements.Element { return &BasicMethod{} })
 }
 
 type BasicMethod struct {

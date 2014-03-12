@@ -100,4 +100,4 @@ func (self *Stream) ReadElement() (elements.Element, error) {
 	return nil, err
 }
 
-var Factory = elements.NewElementFactory()
+var Factory = elements.NewFactory()

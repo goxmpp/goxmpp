@@ -18,10 +18,10 @@ func init() {
 	})
 }
 
-var ElementFactory = elements.NewElementFactory()
+var Factory = elements.NewFactory()
 
 func NewCompressionHandler() *CompressionHandler {
-	return &CompressionHandler{InnerElements: elements.NewInnerElements(ElementFactory)}
+	return &CompressionHandler{InnerElements: elements.NewInnerElements(Factory)}
 }
 
 type BaseCompression struct {

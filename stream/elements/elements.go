@@ -11,15 +11,15 @@ type InnerXML struct {
 
 type InnerElements struct {
 	Elements       []Element
-	ElementFactory `xml:"-"`
+	Factory `xml:"-"`
 	RawXML         []*InnerXML
 }
 
-func NewInnerElements(factory ElementFactory) *InnerElements {
+func NewInnerElements(factory Factory) *InnerElements {
 	return &InnerElements{
 		Elements:       make([]Element, 0),
 		RawXML:         make([]*InnerXML, 0),
-		ElementFactory: factory,
+		Factory: factory,
 	}
 }
 

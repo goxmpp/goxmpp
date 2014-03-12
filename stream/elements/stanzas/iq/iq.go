@@ -19,10 +19,10 @@ func init() {
 }
 
 func NewIQElement() *IQElement {
-	return &IQElement{InnerElements: elements.NewInnerElements(ElementFactory)}
+	return &IQElement{InnerElements: elements.NewInnerElements(Factory)}
 }
 
-var ElementFactory = elements.NewElementFactory()
+var Factory = elements.NewFactory()
 
 type IQElement struct {
 	XMLName xml.Name `xml:"iq"`
