@@ -29,10 +29,21 @@ func (self *mechanismsElement) IsRequiredFor(stream *stream.Stream) bool {
 func (self *mechanismsElement) CopyIfAvailable(stream *stream.Stream) elements.Element {
 	if self.IsRequiredFor(stream) {
 		x := newMechanismsElement()
-		Features.CopyAvailableFeatures(stream, x.Container)
+		mechanisms_element.CopyAvailableFeatures(stream, x.Container)
 		return x
 	}
 	return nil
 }
 
-var Features = newMechanismsElement()
+var mechanisms_element = newMechanismsElement()
+
+var mechanism_handlers map[string]Handler = make(map[string]Handler)
+
+func AddMechanism(name string, handler Handler) {
+	mechanisms_element.AddElement(&MechanismElement{Name: name})
+	mechanism_handlers[name] = handler
+}
+
+func init() {
+	features.Tree.AddElement(mechanisms_element)
+}
