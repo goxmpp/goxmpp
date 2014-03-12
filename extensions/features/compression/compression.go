@@ -3,8 +3,8 @@ package compression
 import (
 	"encoding/xml"
 
+	"github.com/dotdoom/goxmpp/stream"
 	"github.com/dotdoom/goxmpp/stream/elements"
-	"github.com/dotdoom/goxmpp/stream/elements/features"
 )
 
 const (
@@ -13,7 +13,7 @@ const (
 )
 
 func init() {
-	features.Factory.AddConstructor(STREAM_NS+" "+STREAM_NODE, func() elements.Element {
+	stream.Factory.AddConstructor(STREAM_NS+" "+STREAM_NODE, func() elements.Element {
 		return NewCompressionHandler()
 	})
 }

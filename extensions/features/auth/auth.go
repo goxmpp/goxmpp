@@ -6,7 +6,6 @@ import (
 
 	"github.com/dotdoom/goxmpp/stream"
 	"github.com/dotdoom/goxmpp/stream/elements"
-	"github.com/dotdoom/goxmpp/stream/elements/features"
 )
 
 type AuthElement struct {
@@ -26,7 +25,7 @@ func (self *AuthElement) Handle(stream *stream.Stream) error {
 }
 
 func init() {
-	features.Factory.AddConstructor("urn:ietf:params:xml:ns:xmpp-sasl auth", func() elements.Element {
+	stream.Factory.AddConstructor("urn:ietf:params:xml:ns:xmpp-sasl auth", func() elements.Element {
 		return &AuthElement{}
 	})
 }

@@ -7,10 +7,7 @@ import (
 
 	"github.com/dotdoom/goxmpp/stream"
 	"github.com/dotdoom/goxmpp/stream/elements"
-	"github.com/dotdoom/goxmpp/stream/elements/stanzas"
 )
-
-var Factory = stanzas.Factory //elements.NewElementFactory()
 
 type FeaturesElement struct {
 	XMLName xml.Name `xml:"stream:features"`
@@ -31,7 +28,6 @@ type Handler interface {
 
 func Loop(stream *stream.Stream) error {
 	log.Println("entering features loop")
-	stream.ElementFactory = Factory
 	for stream.Opened && Tree.IsRequiredFor(stream) {
 		stream.WriteElement(Tree.CopyIfAvailable(stream))
 		e, err := stream.ReadElement()
