@@ -1,6 +1,9 @@
 package elements
 
-import "encoding/xml"
+import (
+	"encoding/xml"
+	"log"
+)
 
 // Create an (empty) Parsable to parse XML into
 type Constructor func() Element
@@ -13,16 +16,27 @@ func NewFactory() Factory {
 }
 
 func (self Factory) AddConstructor(key string, constructor Constructor) {
+	log.Printf("Factory: adding constructor for %#v\n", key)
 	self[key] = constructor
 }
 
 // Call a constructor for specified key or "*", if defined. Otherwise return an error
-func (self Factory) Get(name string) (Element, error) {
-	if constructor, ok := self[name]; ok {
+func (self Factory) Get(element xml.StartElement) (Element, error) {
+	name_key := " " + element.Name.Local
+	full_key := element.Name.Space + name_key
+
+	log.Printf("Factory: searching for fully-qualified key %#v\n", full_key)
+	if constructor, ok := self[full_key]; ok {
+		return constructor(), nil
+	}
+
+	log.Printf("Factory: full key missed, searching for local key %#v\n", name_key)
+	if constructor, ok := self[name_key]; ok {
 		return constructor(), nil
 	}
 
 	// This is default constructor if defined
+	log.Printf("Factory: local key missed, attempting default\n")
 	if constructor, ok := self["*"]; ok {
 		return constructor(), nil
 	}
@@ -31,7 +45,7 @@ func (self Factory) Get(name string) (Element, error) {
 }
 
 func (self Factory) DecodeElement(d *xml.Decoder, element *xml.StartElement) (interface{}, error) {
-	elementObject, err := self.Get(element.Name.Space + " " + element.Name.Local)
+	elementObject, err := self.Get(*element)
 	if err != nil {
 		return nil, err
 	}

@@ -1,6 +1,9 @@
 package iq
 
-import "encoding/xml"
+import (
+	"encoding/xml"
+	"log"
+)
 
 import (
 	"github.com/dotdoom/goxmpp/stream"
@@ -36,4 +39,11 @@ func (iq *IQElement) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error 
 	iq.SetFromStartElement(start)
 
 	return iq.HandleInnerElements(d, start.End())
+}
+
+func (self *IQElement) Handle(stream *stream.Stream) error {
+	log.Printf("Handling IQ: from = %#v, to = %#v\n", self.From, self.To)
+	// TODO(dotdoom): the next line is for debugging only
+	stream.Opened = false
+	return nil
 }
