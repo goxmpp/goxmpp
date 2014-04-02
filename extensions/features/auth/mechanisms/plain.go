@@ -31,7 +31,7 @@ func newPlainElement() *PlainElement {
 
 func (self *PlainElement) CopyIfAvailable(stream *stream.Stream) elements.Element {
 	var plain_state *PlainState
-	if err := stream.State.Get(&plain_state); err != nil {
+	if err := stream.State.Get(&plain_state); err == nil {
 		return self
 	}
 	return nil
@@ -40,7 +40,7 @@ func (self *PlainElement) CopyIfAvailable(stream *stream.Stream) elements.Elemen
 var usernamePasswordSeparator = []byte{0}
 
 func init() {
-	auth.AddMechanism("PLAIN", newPlainElement(), func(e *auth.AuthElement, stream *stream.Stream) error {
+	auth.AddMechanism("PLAIN", func(e *auth.AuthElement, stream *stream.Stream) error {
 		b, _ := base64.StdEncoding.DecodeString(e.Data)
 		user_password := bytes.Split(b, usernamePasswordSeparator)
 

@@ -38,8 +38,7 @@ var MechanismsElement = newMechanismsElement()
 
 var mechanism_handlers map[string]Handler = make(map[string]Handler)
 
-func AddMechanism(name string, element elements.Element, handler Handler) {
-	MechanismsElement.AddElement(element)
+func AddMechanism(name string, handler Handler) {
 	mechanism_handlers[name] = handler
 }
 
