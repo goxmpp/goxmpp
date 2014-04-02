@@ -2,24 +2,27 @@ package message
 
 import "encoding/xml"
 
-import "github.com/dotdoom/goxmpp/stream/elements"
-import "github.com/dotdoom/goxmpp/stream/elements/stanzas"
+import (
+	"github.com/dotdoom/goxmpp/stream"
+	"github.com/dotdoom/goxmpp/stream/elements"
+	"github.com/dotdoom/goxmpp/stream/elements/stanzas"
+)
 
 func init() {
-	stanzas.Factory.AddConstructor(" message", func() elements.Element {
+	stream.StreamFactory.AddConstructor(" message", func() elements.Element {
 		return NewMessageElement()
 	})
 
-	ElementFactory.AddConstructor(" body", func() elements.Element {
+	MessageFactory.AddConstructor(" body", func() elements.Element {
 		return &Body{}
 	})
 }
 
 func NewMessageElement() *MessageElement {
-	return &MessageElement{InnerElements: elements.NewInnerElements(ElementFactory)}
+	return &MessageElement{InnerElements: elements.NewInnerElements(MessageFactory)}
 }
 
-var ElementFactory = elements.NewElementFactory()
+var MessageFactory = elements.NewFactory()
 
 type Body struct {
 	XMLName xml.Name `xml:"body"`

@@ -5,7 +5,7 @@ import "github.com/dotdoom/goxmpp/stream/elements"
 import "github.com/dotdoom/goxmpp/stream/elements/stanzas/iq"
 
 func init() {
-	iq.ElementFactory.AddConstructor("urn:xmpp:time time", func() elements.Element { return &TimeQuery{} })
+	iq.IQFactory.AddConstructor("urn:xmpp:time time", func() elements.Element { return &TimeQuery{} })
 }
 
 type TimeQuery struct {

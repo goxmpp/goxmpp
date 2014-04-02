@@ -4,7 +4,6 @@ import "encoding/xml"
 import (
 	_ "github.com/dotdoom/goxmpp"
 	"github.com/dotdoom/goxmpp/stream"
-	"github.com/dotdoom/goxmpp/stream/elements/stanzas"
 )
 
 import "bytes"
@@ -58,7 +57,6 @@ func logEpectations(t *testing.T, got, expect, source []byte) {
 
 func unmarshalTester(t *testing.T, source, expect []byte) {
 	st := stream.NewStream(bytes.NewBuffer(source))
-	st.ElementFactory = stanzas.Factory
 	s, err := st.ReadElement()
 	if err != nil {
 		t.Fatal(err)

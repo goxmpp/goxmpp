@@ -1,10 +1,6 @@
 package stanzas
 
-import (
-	"encoding/xml"
-
-	"github.com/dotdoom/goxmpp/stream/elements"
-)
+import "encoding/xml"
 
 type Base struct {
 	From string `xml:"from,attr,omitempty"`
@@ -30,5 +26,3 @@ func (b *Base) SetFromStartElement(start xml.StartElement) {
 		}
 	}
 }
-
-var Factory = elements.NewElementFactory()

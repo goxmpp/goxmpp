@@ -2,24 +2,27 @@ package iq
 
 import "encoding/xml"
 
-import "github.com/dotdoom/goxmpp/stream/elements"
-import "github.com/dotdoom/goxmpp/stream/elements/stanzas"
+import (
+	"github.com/dotdoom/goxmpp/stream"
+	"github.com/dotdoom/goxmpp/stream/elements"
+	"github.com/dotdoom/goxmpp/stream/elements/stanzas"
+)
 
 const (
 	STREAM_NODE = "iq"
 )
 
 func init() {
-	stanzas.Factory.AddConstructor(" "+STREAM_NODE, func() elements.Element {
+	stream.StreamFactory.AddConstructor(" "+STREAM_NODE, func() elements.Element {
 		return NewIQElement()
 	})
 }
 
 func NewIQElement() *IQElement {
-	return &IQElement{InnerElements: elements.NewInnerElements(ElementFactory)}
+	return &IQElement{InnerElements: elements.NewInnerElements(IQFactory)}
 }
 
-var ElementFactory = elements.NewElementFactory()
+var IQFactory = elements.NewFactory()
 
 type IQElement struct {
 	XMLName xml.Name `xml:"iq"`
