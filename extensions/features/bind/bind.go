@@ -10,7 +10,7 @@ import (
 	"github.com/dotdoom/goxmpp/stream/elements/stanzas/iq"
 )
 
-type State struct {
+type BindState struct {
 	Resource string
 }
 
@@ -24,10 +24,10 @@ type bindElement struct {
 }
 
 func (self *bindElement) IsRequiredFor(stream *stream.Stream) bool {
-	var auth_state *auth.State
+	var auth_state *auth.AuthState
 	err := stream.State.Get(&auth_state)
 	if err == nil && auth_state.UserName != "" {
-		var state *State
+		var state *BindState
 		err := stream.State.Get(&state)
 		return err != nil || state.Resource == ""
 	} else {

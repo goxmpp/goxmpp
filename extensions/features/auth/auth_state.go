@@ -1,6 +1,6 @@
 package auth
 
-type State struct {
+type AuthState struct {
 	UserName  string
 	Mechanism string
 }

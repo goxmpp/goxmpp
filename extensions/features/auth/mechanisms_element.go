@@ -20,7 +20,7 @@ func newMechanismsElement() *mechanismsElement {
 }
 
 func (self *mechanismsElement) IsRequiredFor(stream *stream.Stream) bool {
-	var state *State
+	var state *AuthState
 	err := stream.State.Get(&state)
 	return err != nil || state.UserName == ""
 }

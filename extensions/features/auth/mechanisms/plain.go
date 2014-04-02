@@ -50,9 +50,9 @@ func init() {
 		}
 
 		if plain_state.Callback(string(user_password[1]), string(user_password[2])) {
-			var auth_state *auth.State
+			var auth_state *auth.AuthState
 			if err := stream.State.Get(&auth_state); err != nil {
-				auth_state = &auth.State{}
+				auth_state = &auth.AuthState{}
 				stream.State.Push(auth_state)
 			}
 			auth_state.UserName = string(user_password[1])
