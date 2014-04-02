@@ -9,8 +9,7 @@ import (
 )
 
 type mechanismsElement struct {
-	XMLName    xml.Name `xml:"urn:ietf:params:xml:ns:xmpp-sasl mechanisms"`
-	Mechanisms []string `xml:"mechanism"`
+	XMLName xml.Name `xml:"urn:ietf:params:xml:ns:xmpp-sasl mechanisms"`
 	*features.Container
 }
 
@@ -29,21 +28,21 @@ func (self *mechanismsElement) IsRequiredFor(stream *stream.Stream) bool {
 func (self *mechanismsElement) CopyIfAvailable(stream *stream.Stream) elements.Element {
 	if self.IsRequiredFor(stream) {
 		x := newMechanismsElement()
-		mechanisms_element.CopyAvailableFeatures(stream, x.Container)
+		MechanismsElement.CopyAvailableFeatures(stream, x.Container)
 		return x
 	}
 	return nil
 }
 
-var mechanisms_element = newMechanismsElement()
+var MechanismsElement = newMechanismsElement()
 
 var mechanism_handlers map[string]Handler = make(map[string]Handler)
 
-func AddMechanism(name string, handler Handler) {
-	mechanisms_element.AddElement(&MechanismElement{Name: name})
+func AddMechanism(name string, element elements.Element, handler Handler) {
+	MechanismsElement.AddElement(element)
 	mechanism_handlers[name] = handler
 }
 
 func init() {
-	features.Tree.AddElement(mechanisms_element)
+	features.Tree.AddElement(MechanismsElement)
 }
