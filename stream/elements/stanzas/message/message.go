@@ -9,20 +9,20 @@ import (
 )
 
 func init() {
-	stream.Factory.AddConstructor(" message", func() elements.Element {
+	stream.StreamFactory.AddConstructor(" message", func() elements.Element {
 		return NewMessageElement()
 	})
 
-	Factory.AddConstructor(" body", func() elements.Element {
+	MessageFactory.AddConstructor(" body", func() elements.Element {
 		return &Body{}
 	})
 }
 
 func NewMessageElement() *MessageElement {
-	return &MessageElement{InnerElements: elements.NewInnerElements(Factory)}
+	return &MessageElement{InnerElements: elements.NewInnerElements(MessageFactory)}
 }
 
-var Factory = elements.NewFactory()
+var MessageFactory = elements.NewFactory()
 
 type Body struct {
 	XMLName xml.Name `xml:"body"`

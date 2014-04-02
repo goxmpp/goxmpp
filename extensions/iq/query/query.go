@@ -8,15 +8,15 @@ import (
 )
 
 func init() {
-	iq.Factory.AddConstructor("http://jabber.org/protocol/muc#admin query", func() elements.Element {
-		return &MucQuery{InnerElements: elements.NewInnerElements(Factory)}
+	iq.IQFactory.AddConstructor("http://jabber.org/protocol/muc#admin query", func() elements.Element {
+		return &MucQuery{InnerElements: elements.NewInnerElements(QueryFactory)}
 	})
-	iq.Factory.AddConstructor("http://jabber.org/protocol/disco#info query", func() elements.Element {
-		return &DiscoQuery{InnerElements: elements.NewInnerElements(Factory)}
+	iq.IQFactory.AddConstructor("http://jabber.org/protocol/disco#info query", func() elements.Element {
+		return &DiscoQuery{InnerElements: elements.NewInnerElements(QueryFactory)}
 	})
 }
 
-var Factory = elements.NewFactory()
+var QueryFactory = elements.NewFactory()
 
 type MucQuery struct {
 	XMLName xml.Name `xml:"http://jabber.org/protocol/muc#admin query"`

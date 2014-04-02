@@ -13,16 +13,16 @@ const (
 )
 
 func init() {
-	stream.Factory.AddConstructor(" "+STREAM_NODE, func() elements.Element {
+	stream.StreamFactory.AddConstructor(" "+STREAM_NODE, func() elements.Element {
 		return NewIQElement()
 	})
 }
 
 func NewIQElement() *IQElement {
-	return &IQElement{InnerElements: elements.NewInnerElements(Factory)}
+	return &IQElement{InnerElements: elements.NewInnerElements(IQFactory)}
 }
 
-var Factory = elements.NewFactory()
+var IQFactory = elements.NewFactory()
 
 type IQElement struct {
 	XMLName xml.Name `xml:"iq"`

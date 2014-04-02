@@ -13,15 +13,15 @@ const (
 )
 
 func init() {
-	stream.Factory.AddConstructor(STREAM_NS+" "+STREAM_NODE, func() elements.Element {
+	stream.StreamFactory.AddConstructor(STREAM_NS+" "+STREAM_NODE, func() elements.Element {
 		return NewCompressionHandler()
 	})
 }
 
-var Factory = elements.NewFactory()
+var CompressionFactory = elements.NewFactory()
 
 func NewCompressionHandler() *CompressionHandler {
-	return &CompressionHandler{InnerElements: elements.NewInnerElements(Factory)}
+	return &CompressionHandler{InnerElements: elements.NewInnerElements(CompressionFactory)}
 }
 
 type BaseCompression struct {

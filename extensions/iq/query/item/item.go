@@ -8,7 +8,7 @@ import (
 )
 
 func init() {
-	query.Factory.AddConstructor("http://jabber.org/protocol/muc#admin item", func() elements.Element {
+	query.QueryFactory.AddConstructor("http://jabber.org/protocol/muc#admin item", func() elements.Element {
 		return &Item{}
 	})
 }

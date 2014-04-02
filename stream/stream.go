@@ -93,11 +93,11 @@ func (self *Stream) ReadElement() (elements.Element, error) {
 	for token, err := self.streamDecoder.Token(); err == nil; token, err = self.streamDecoder.Token() {
 		if start, ok := token.(xml.StartElement); ok {
 			log.Printf("got element: %v (ns %v)\n", start.Name.Local, start.Name.Space)
-			return Factory.DecodeElement(self.streamDecoder, &start)
+			return StreamFactory.DecodeElement(self.streamDecoder, &start)
 		}
 	}
 
 	return nil, err
 }
 
-var Factory = elements.NewFactory()
+var StreamFactory = elements.NewFactory()
