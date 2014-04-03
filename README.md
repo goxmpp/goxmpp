@@ -1,10 +1,20 @@
 [![Build Status](https://travis-ci.org/dotdoom/goxmpp.png?branch=master)](https://travis-ci.org/dotdoom/goxmpp)
 
+NOTE: XMPP Session Establishment, described in outdated RFC 3921, is no longer a part of standard: [RFC 6121: Functional Summary](http://xmpp.org/rfcs/rfc6121.html#intro-summary).
+However since this is a widely used feature, it is implemented in goxmpp.
+
 ## [XMPP Standard Compliance](http://xmpp.org/xmpp-protocols/rfcs/)
 
 ```
 RFC 6120: XMPP CORE                       In progress
+  XML Streams                             Yes
+  STARTTLS Negotiation                    No
+  SASL Negotiation                        No
+  Resource Binding                        Yes
+  XML Stanzas                             In progress
 RFC 6121: XMPP IM                         In progress
+RFC 3921 (superseded by RFC 6121):        Rejected
+  Session Establishment:                  No
 ```
 
 ## [XMPP Extensions (XEPs)](http://xmpp.org/xmpp-protocols/xmpp-extensions/)
