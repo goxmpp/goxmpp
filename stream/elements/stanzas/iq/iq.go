@@ -38,7 +38,7 @@ func (iq *IQElement) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error 
 
 	iq.SetFromStartElement(start)
 
-	return iq.HandleInnerElements(d, start.End())
+	return iq.UnmarshalInnerElements(d, start.End())
 }
 
 func (self *IQElement) Handle(stream *stream.Stream) error {

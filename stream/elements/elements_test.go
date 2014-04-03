@@ -19,7 +19,7 @@ func NewBasicXML() *BasicXML {
 
 func (bxml *BasicXML) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 	bxml.XMLName = start.Name
-	return bxml.HandleInnerElements(d, start.End())
+	return bxml.UnmarshalInnerElements(d, start.End())
 }
 
 var basicXMLSource = `
