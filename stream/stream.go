@@ -9,10 +9,11 @@ import (
 )
 
 type Stream struct {
-	XMLName          xml.Name
-	ID               string `xml:"id,attr"`
-	From             string `xml:"from,attr"` // This holds user JID after auth.
-	To               string `xml:"to,attr"`
+	XMLName xml.Name
+	ID      string `xml:"id,attr"`
+	// TODO(dotdoom): 2014-04-03: should we really reverse the next two in gojabberd?
+	From             string `xml:"from,attr"` // This holds server domain name.
+	To               string `xml:"to,attr"`   // This holds user JID after bind.
 	Version          string `xml:"version,attr"`
 	DefaultNamespace string `xml:"-"`
 	Opened           bool   `xml:"-"`
@@ -22,6 +23,7 @@ type Stream struct {
 
 func NewStream(rw io.ReadWriter) *Stream {
 	st := &Stream{}
+	// FIXME(dotdoom): 2014-04-03: need to set DefaultNamespace (here on in gojabberd)
 	st.SetRW(rw)
 	return st
 }
