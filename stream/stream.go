@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"github.com/dotdoom/goxmpp/stream/elements"
+	"github.com/dotdoom/goxmpp/stream/elements/stanzas"
 )
 
 type Stream struct {
@@ -20,8 +21,8 @@ type Stream struct {
 	Connection
 }
 
-func NewStream(rw io.ReadWriter) *Stream {
-	st := &Stream{}
+func NewStream(rw io.ReadWriteCloser) *Stream {
+	st := &Stream{ElementFactory: stanzas.Factory}
 	st.SetRW(rw)
 	return st
 }
@@ -101,3 +102,12 @@ func (self *Stream) ReadElement() (elements.Element, error) {
 }
 
 var StreamFactory = elements.NewFactory()
+
+func (s *Stream) Close() error {
+	_, err := io.WriteString(s.rw, "</stream:"+s.XMLName.Local+">")
+	if err != nil {
+		return err
+	}
+	s.Opened = false
+	return s.rw.Close()
+}

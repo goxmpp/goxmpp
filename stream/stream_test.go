@@ -1,7 +1,8 @@
 package stream_test
 
-import "encoding/xml"
 import (
+	"encoding/xml"
+
 	_ "github.com/dotdoom/goxmpp"
 	"github.com/dotdoom/goxmpp/stream"
 )
@@ -9,6 +10,14 @@ import (
 import "bytes"
 import "testing"
 import "log"
+
+type BytesBuffer struct {
+	*bytes.Buffer
+}
+
+func (b BytesBuffer) Close() error {
+	return nil
+}
 
 var iqSource = `<iq to="test@conference.jabber.ru" id="ab7ca" type="set">
 sdfsdf
@@ -56,7 +65,7 @@ func logEpectations(t *testing.T, got, expect, source []byte) {
 }
 
 func unmarshalTester(t *testing.T, source, expect []byte) {
-	st := stream.NewStream(bytes.NewBuffer(source))
+	st := stream.NewStream(BytesBuffer{bytes.NewBuffer(source)})
 	s, err := st.ReadElement()
 	if err != nil {
 		t.Fatal(err)
