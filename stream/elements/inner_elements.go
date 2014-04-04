@@ -10,16 +10,16 @@ type InnerXML struct {
 }
 
 type InnerElements struct {
-	Elements       []Element
-	Factory `xml:"-"`
-	RawXML         []*InnerXML
+	Elements []Element
+	Factory  `xml:"-"`
+	RawXML   []*InnerXML
 }
 
 func NewInnerElements(factory Factory) *InnerElements {
 	return &InnerElements{
-		Elements:       make([]Element, 0),
-		RawXML:         make([]*InnerXML, 0),
-		Factory: factory,
+		Elements: make([]Element, 0),
+		RawXML:   make([]*InnerXML, 0),
+		Factory:  factory,
 	}
 }
 
@@ -27,7 +27,7 @@ func (c *InnerElements) AddElement(e Element) {
 	c.Elements = append(c.Elements, e)
 }
 
-func (c *InnerElements) HandleInnerElements(d *xml.Decoder, final xml.EndElement) error {
+func (c *InnerElements) UnmarshalInnerElements(d *xml.Decoder, final xml.EndElement) error {
 	var err error
 	for token, err := d.Token(); err == nil; token, err = d.Token() {
 		// TODO: Add logic to handler inner elements with same name as our start element
@@ -54,5 +54,5 @@ func (c *InnerElements) HandleInnerElements(d *xml.Decoder, final xml.EndElement
 }
 
 func (ie *InnerElements) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
-	return ie.HandleInnerElements(d, start.End())
+	return ie.UnmarshalInnerElements(d, start.End())
 }

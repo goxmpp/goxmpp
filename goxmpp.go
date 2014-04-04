@@ -5,6 +5,7 @@ import (
 	_ "github.com/dotdoom/goxmpp/extensions/features/bind"
 	_ "github.com/dotdoom/goxmpp/extensions/features/compression"
 	_ "github.com/dotdoom/goxmpp/extensions/features/compression/method"
+	_ "github.com/dotdoom/goxmpp/extensions/features/session"
 	_ "github.com/dotdoom/goxmpp/extensions/features/starttls"
 	_ "github.com/dotdoom/goxmpp/extensions/iq/disco_info"
 	_ "github.com/dotdoom/goxmpp/extensions/iq/disco_items"

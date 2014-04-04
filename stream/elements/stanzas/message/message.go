@@ -40,5 +40,5 @@ func (msg *MessageElement) UnmarshalXML(d *xml.Decoder, start xml.StartElement) 
 
 	msg.SetFromStartElement(start)
 
-	return msg.HandleInnerElements(d, start.End())
+	return msg.UnmarshalInnerElements(d, start.End())
 }
