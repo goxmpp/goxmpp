@@ -14,7 +14,7 @@ RFC 6120: XMPP CORE                       In progress
   XML Stanzas                             In progress
 RFC 6121: XMPP IM                         In progress
 RFC 3921 (superseded by RFC 6121):        Rejected
-  Session Establishment:                  No
+  Session Establishment:                  Yes
 ```
 
 ## [XMPP Extensions (XEPs)](http://xmpp.org/xmpp-protocols/xmpp-extensions/)
