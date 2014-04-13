@@ -34,11 +34,3 @@ type MessageElement struct {
 	stanzas.Base
 	*elements.InnerElements
 }
-
-func (msg *MessageElement) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
-	msg.XMLName = start.Name
-
-	msg.SetFromStartElement(start)
-
-	return msg.UnmarshalInnerElements(d, start.End())
-}

@@ -27,11 +27,3 @@ type PresenceElement struct {
 	stanzas.Base
 	*elements.InnerElements
 }
-
-func (self *PresenceElement) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
-	self.XMLName = start.Name
-
-	self.SetFromStartElement(start)
-
-	return self.UnmarshalInnerElements(d, start.End())
-}
