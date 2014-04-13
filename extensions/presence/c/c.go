@@ -16,7 +16,7 @@ type CElement struct {
 }
 
 func init() {
-	presence.PresenceFactory.AddConstructor("http://jabber.org/protocol/caps c", func() elements.Element {
+	presence.PresenceFactory.AddConstructor(func() elements.Element {
 		return &CElement{}
 	})
 }

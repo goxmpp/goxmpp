@@ -12,12 +12,8 @@ import (
 	"github.com/dotdoom/goxmpp/stream/elements/stanzas"
 )
 
-const (
-	STREAM_NODE = "iq"
-)
-
 func init() {
-	stream.StreamFactory.AddConstructor(" "+STREAM_NODE, func() elements.Element {
+	stream.StreamFactory.AddConstructor(func() elements.Element {
 		return NewIQElement()
 	})
 }

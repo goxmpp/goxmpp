@@ -9,7 +9,7 @@ import (
 )
 
 func init() {
-	stream.StreamFactory.AddConstructor(" presence", func() elements.Element {
+	stream.StreamFactory.AddConstructor(func() elements.Element {
 		return NewPresenceElement()
 	})
 }

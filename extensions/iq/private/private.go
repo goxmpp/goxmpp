@@ -32,7 +32,7 @@ func NewPrivateElement() *PrivateElement {
 }
 
 func init() {
-	iq.IQFactory.AddConstructor("jabber:iq:private query", func() elements.Element {
+	iq.IQFactory.AddConstructor(func() elements.Element {
 		return NewPrivateElement()
 	})
 }

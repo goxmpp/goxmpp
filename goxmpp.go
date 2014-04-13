@@ -20,7 +20,6 @@ import (
 	_ "github.com/dotdoom/goxmpp/extensions/iq/time"
 	_ "github.com/dotdoom/goxmpp/extensions/iq/version"
 	_ "github.com/dotdoom/goxmpp/extensions/presence/c"
-	_ "github.com/dotdoom/goxmpp/stream"
 	_ "github.com/dotdoom/goxmpp/stream/elements/stanzas/iq"
 	_ "github.com/dotdoom/goxmpp/stream/elements/stanzas/message"
 	_ "github.com/dotdoom/goxmpp/stream/elements/stanzas/presence"

@@ -7,13 +7,8 @@ import (
 	"github.com/dotdoom/goxmpp/stream/elements"
 )
 
-const (
-	STREAM_NS   = "urn:ietf:params:xml:ns:xmpp-sasl"
-	STREAM_NODE = "compression"
-)
-
 func init() {
-	stream.StreamFactory.AddConstructor(STREAM_NS+" "+STREAM_NODE, func() elements.Element {
+	stream.StreamFactory.AddConstructor(func() elements.Element {
 		return NewCompressionHandler()
 	})
 }

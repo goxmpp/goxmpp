@@ -56,7 +56,7 @@ func (self *RosterElement) Handle(request_id *iq.IQElement, stream *stream.Strea
 }
 
 func init() {
-	iq.IQFactory.AddConstructor("jabber:iq:roster query", func() elements.Element {
+	iq.IQFactory.AddConstructor(func() elements.Element {
 		return &RosterElement{}
 	})
 }

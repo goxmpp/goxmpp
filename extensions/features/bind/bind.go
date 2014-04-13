@@ -75,7 +75,7 @@ func (self *BindElement) Handle(request_id *iq.IQElement, stream *stream.Stream)
 }
 
 func init() {
-	iq.IQFactory.AddConstructor("urn:ietf:params:xml:ns:xmpp-bind bind", func() elements.Element {
+	iq.IQFactory.AddConstructor(func() elements.Element {
 		return &BindElement{}
 	})
 	features.Tree.AddElement(&bindElement{})

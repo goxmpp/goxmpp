@@ -61,7 +61,7 @@ func (self *SessionElement) Handle(request_id *iq.IQElement, stream *stream.Stre
 }
 
 func init() {
-	iq.IQFactory.AddConstructor("urn:ietf:params:xml:ns:xmpp-session session", func() elements.Element {
+	iq.IQFactory.AddConstructor(func() elements.Element {
 		return &SessionElement{}
 	})
 	features.Tree.AddElement(&sessionFeatureElement{})
