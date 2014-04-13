@@ -57,6 +57,16 @@ func (self *Stream) ReadOpen() error {
 	}
 }
 
+func (self *Stream) Close(send_close_tag bool) error {
+	self.Opened = false
+	if send_close_tag {
+		if _, err := io.WriteString(self.rw, "</stream:stream>"); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 // TODO(artem): refactor
 func (self *Stream) WriteOpen() error {
 	log.Println("send <stream>")
