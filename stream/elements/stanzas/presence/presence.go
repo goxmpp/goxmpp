@@ -23,7 +23,7 @@ var PresenceFactory = elements.NewFactory()
 type PresenceElement struct {
 	XMLName xml.Name `xml:"presence"`
 	Show    string   `xml:"show,omitempty"`
-	Status  string   `xml:"status,omitempty"`
+	Status  string   `xml:"status"`
 	stanzas.Base
 	*elements.InnerElements
 }
