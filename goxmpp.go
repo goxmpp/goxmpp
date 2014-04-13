@@ -12,6 +12,7 @@ import (
 	_ "github.com/dotdoom/goxmpp/extensions/iq/last"
 	_ "github.com/dotdoom/goxmpp/extensions/iq/ping"
 	_ "github.com/dotdoom/goxmpp/extensions/iq/privacy"
+	_ "github.com/dotdoom/goxmpp/extensions/iq/private"
 	_ "github.com/dotdoom/goxmpp/extensions/iq/query"
 	_ "github.com/dotdoom/goxmpp/extensions/iq/query/item"
 	_ "github.com/dotdoom/goxmpp/extensions/iq/roster"
@@ -21,4 +22,5 @@ import (
 	_ "github.com/dotdoom/goxmpp/stream"
 	_ "github.com/dotdoom/goxmpp/stream/elements/stanzas/iq"
 	_ "github.com/dotdoom/goxmpp/stream/elements/stanzas/message"
+	_ "github.com/dotdoom/goxmpp/stream/elements/stanzas/presence"
 )
