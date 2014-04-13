@@ -8,10 +8,10 @@ import (
 )
 
 func init() {
-	iq.IQFactory.AddConstructor("http://jabber.org/protocol/muc#admin query", func() elements.Element {
+	iq.IQFactory.AddConstructor(func() elements.Element {
 		return &MucQuery{InnerElements: elements.NewInnerElements(QueryFactory)}
 	})
-	iq.IQFactory.AddConstructor("http://jabber.org/protocol/disco#info query", func() elements.Element {
+	iq.IQFactory.AddConstructor(func() elements.Element {
 		return &DiscoQuery{InnerElements: elements.NewInnerElements(QueryFactory)}
 	})
 }

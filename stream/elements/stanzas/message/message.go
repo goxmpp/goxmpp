@@ -9,11 +9,11 @@ import (
 )
 
 func init() {
-	stream.StreamFactory.AddConstructor(" message", func() elements.Element {
+	stream.StreamFactory.AddConstructor(func() elements.Element {
 		return NewMessageElement()
 	})
 
-	MessageFactory.AddConstructor(" body", func() elements.Element {
+	MessageFactory.AddConstructor(func() elements.Element {
 		return &Body{}
 	})
 }

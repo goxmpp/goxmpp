@@ -3,6 +3,8 @@ package elements
 import (
 	"encoding/xml"
 	"log"
+	"reflect"
+	"strings"
 )
 
 // Create an (empty) Parsable to parse XML into
@@ -15,7 +17,21 @@ func NewFactory() Factory {
 	return Factory(make(map[string]Constructor))
 }
 
-func (self Factory) AddConstructor(key string, constructor Constructor) {
+func keyFromConstructor(c Constructor) string {
+	if f, ok := reflect.TypeOf(c()).Elem().FieldByName("XMLName"); ok {
+		tag := f.Tag.Get("xml")
+		if strings.Contains(tag, " ") {
+			return tag
+		} else {
+			return " " + tag
+		}
+	} else {
+		return "*"
+	}
+}
+
+func (self Factory) AddConstructor(constructor Constructor) {
+	key := keyFromConstructor(constructor)
 	log.Printf("Factory: adding constructor for %#v\n", key)
 	self[key] = constructor
 }

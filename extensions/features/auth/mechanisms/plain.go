@@ -16,8 +16,8 @@ type SuccessElement struct {
 }
 
 type PlainState struct {
-	Callback          func(string, string) bool
-	RequireEncryption bool
+	VerifyUserAndPassword func(string, string) bool
+	RequireEncryption     bool
 }
 
 type PlainElement struct {
@@ -49,7 +49,7 @@ func init() {
 			return err
 		}
 
-		if plain_state.Callback(string(user_password[1]), string(user_password[2])) {
+		if plain_state.VerifyUserAndPassword(string(user_password[1]), string(user_password[2])) {
 			var auth_state *auth.AuthState
 			if err := stream.State.Get(&auth_state); err != nil {
 				auth_state = &auth.AuthState{}
@@ -59,7 +59,7 @@ func init() {
 			auth_state.Mechanism = "PLAIN"
 
 			stream.WriteElement(&SuccessElement{})
-			stream.Opened = false
+			stream.Close(false)
 
 			return nil
 		} else {
