@@ -30,14 +30,6 @@ type IQElement struct {
 	*elements.InnerElements
 }
 
-func (iq *IQElement) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
-	iq.XMLName = start.Name
-
-	iq.SetFromStartElement(start)
-
-	return iq.UnmarshalInnerElements(d, start.End())
-}
-
 type Handler interface {
 	Handle(*IQElement, *stream.Stream) error
 }
@@ -46,7 +38,7 @@ func (self *IQElement) Handle(stream *stream.Stream) error {
 	log.Printf("Handling IQ: from = %#v, to = %#v\n", self.From, self.To)
 
 	match := false
-	for _, element := range self.Elements {
+	for _, element := range self.Elements() {
 		if handler, ok := element.(Handler); ok {
 			match = true
 			if err := handler.Handle(self, stream); err != nil {

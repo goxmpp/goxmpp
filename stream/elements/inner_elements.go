@@ -10,49 +10,62 @@ type InnerXML struct {
 }
 
 type InnerElements struct {
-	Elements []Element
-	Factory  `xml:"-"`
-	RawXML   []*InnerXML
+	Inner *elements `xml:",any"`
 }
 
 func NewInnerElements(factory Factory) *InnerElements {
-	return &InnerElements{
-		Elements: make([]Element, 0),
-		RawXML:   make([]*InnerXML, 0),
+	return &InnerElements{Inner: NewElements(factory)}
+}
+
+func (ie *InnerElements) AddElement(element Element) {
+	ie.Inner.AddElement(element)
+}
+
+func (ie *InnerElements) Elements() []Element {
+	return ie.Inner.Elements()
+}
+
+type elements struct {
+	elements []Element
+	rawXML   []*InnerXML
+	Factory  `xml:"-"`
+}
+
+func NewElements(factory Factory) *elements {
+	return &elements{
+		elements: make([]Element, 0),
+		rawXML:   make([]*InnerXML, 0),
 		Factory:  factory,
 	}
 }
 
-func (c *InnerElements) AddElement(e Element) {
-	c.Elements = append(c.Elements, e)
+func (es *elements) AddElement(e Element) {
+	es.elements = append(es.elements, e)
 }
 
-func (c *InnerElements) UnmarshalInnerElements(d *xml.Decoder, final xml.EndElement) error {
-	var err error
-	for token, err := d.Token(); err == nil; token, err = d.Token() {
-		// TODO: Add logic to handler inner elements with same name as our start element
-		switch element := token.(type) {
-		case xml.EndElement:
-			if element.Name.Local == final.Name.Local {
-				break
-			}
-		case xml.StartElement:
-			elementObject, err := c.DecodeElement(d, &element)
-			if err != nil {
-				return err
-			}
+func (es *elements) Elements() []Element {
+	return es.elements
+}
 
-			if innerXML, ok := elementObject.(*InnerXML); ok {
-				c.RawXML = append(c.RawXML, innerXML)
-			} else {
-				c.AddElement(elementObject)
-			}
-		}
+func (es *elements) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	elementObject, err := es.DecodeElement(d, &start)
+	if err != nil {
+		return err
 	}
 
-	return err
+	if innerXML, ok := elementObject.(*InnerXML); ok {
+		es.rawXML = append(es.rawXML, innerXML)
+	} else {
+		es.AddElement(elementObject)
+	}
+
+	return nil
 }
 
-func (ie *InnerElements) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
-	return ie.UnmarshalInnerElements(d, start.End())
+func (es *elements) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+	if err := e.Encode(es.elements); err != nil {
+		return err
+	}
+
+	return e.Encode(es.rawXML)
 }
