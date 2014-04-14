@@ -30,6 +30,7 @@ sdfsdf
     </query>
     <unknown>test</unknown>
     sdfsdf
+    <unknown2>test</unknown2>
 </iq>
 sdfdf`
 
@@ -39,6 +40,7 @@ var iqExpect = `<iq to="test@conference.jabber.ru" type="set" id="ab7ca">
         <item affiliation="outcast" jid="test2@example.net">test1</item>
     </query>
     <unknown>test</unknown>
+    <unknown2>test</unknown2>
 </iq>`
 
 func is(got, expect []byte) bool {

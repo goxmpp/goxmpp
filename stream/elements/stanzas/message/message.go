@@ -9,11 +9,11 @@ import (
 )
 
 func init() {
-	stream.StreamFactory.AddConstructor(" message", func() elements.Element {
+	stream.StreamFactory.AddConstructor(func() elements.Element {
 		return NewMessageElement()
 	})
 
-	MessageFactory.AddConstructor(" body", func() elements.Element {
+	MessageFactory.AddConstructor(func() elements.Element {
 		return &Body{}
 	})
 }
@@ -33,12 +33,4 @@ type MessageElement struct {
 	XMLName xml.Name `xml:"message"`
 	stanzas.Base
 	*elements.InnerElements
-}
-
-func (msg *MessageElement) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
-	msg.XMLName = start.Name
-
-	msg.SetFromStartElement(start)
-
-	return msg.HandleInnerElements(d, start.End())
 }

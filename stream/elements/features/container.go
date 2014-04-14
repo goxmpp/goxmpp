@@ -24,7 +24,7 @@ func NewContainer() *Container {
 }
 
 func (self *Container) CopyAvailableFeatures(stream *stream.Stream, dest *Container) {
-	for _, feature := range self.Elements {
+	for _, feature := range self.Elements() {
 		if feature_element, ok := feature.(AccessControllable); ok {
 			dest.AddElement(feature_element.CopyIfAvailable(stream))
 		} else {
@@ -34,7 +34,7 @@ func (self *Container) CopyAvailableFeatures(stream *stream.Stream, dest *Contai
 }
 
 func (self *Container) HasFeaturesRequiredFor(stream *stream.Stream) bool {
-	for _, feature := range self.Elements {
+	for _, feature := range self.Elements() {
 		if feature_element, ok := feature.(AccessController); ok && feature_element.IsRequiredFor(stream) {
 			return true
 		}

@@ -25,7 +25,7 @@ func (self *AuthElement) Handle(stream *stream.Stream) error {
 }
 
 func init() {
-	stream.StreamFactory.AddConstructor("urn:ietf:params:xml:ns:xmpp-sasl auth", func() elements.Element {
+	stream.StreamFactory.AddConstructor(func() elements.Element {
 		return &AuthElement{}
 	})
 }

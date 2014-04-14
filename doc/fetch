@@ -1,0 +1,22 @@
+#!/bin/sh
+
+#
+# This script removes existing 'xep' and 'rfc' subdirs and fetches RFC and XEP from XMPP Foundation(tm) website
+#
+
+echo 'Fetching RFCs and XEPs'
+
+fetch() {
+	local ft=$1 url=$2
+	echo "--- downloading $ft"
+	rm -rf $ft; mkdir $_; pushd $_ >/dev/null && {
+		wget -q -O - "$url" | pcregrep -o '[\w\-/:.]+'$ft'-?\d+\.\w+' | sort -u | wget --base "$url" -nv -i -
+		popd >/dev/null
+	}
+}
+
+pushd "$(dirname "$0")" >/dev/null && {
+	fetch rfc 'http://xmpp.org/xmpp-protocols/rfcs/'
+	fetch xep 'http://xmpp.org/xmpp-protocols/xmpp-extensions/'
+	popd >/dev/null
+}

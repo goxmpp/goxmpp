@@ -17,16 +17,12 @@ func NewBasicXML() *BasicXML {
 	return &BasicXML{InnerElements: elements.NewInnerElements(elements.NewFactory())}
 }
 
-func (bxml *BasicXML) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
-	bxml.XMLName = start.Name
-	return bxml.HandleInnerElements(d, start.End())
-}
-
 var basicXMLSource = `
 <html>
     <body>
         <div>test</div>
     </body>
+    <something>really strange</something>
 </html>
 `
 
@@ -37,19 +33,12 @@ func TestSimple(t *testing.T) {
 	}
 
 	t.Log(bxml)
-	t.Log(bxml.InnerElements)
-	t.Log(bxml.InnerElements.RawXML[0])
 
 	if bxml.XMLName.Local != "html" {
 		t.Fatal("Wrong outer XML tag name unmarshaled")
 	}
-
-	if bxml.RawXML[0].XMLName.Local != "body" {
-		t.Fatal("Wrong xml InnerXML outer tag")
-	}
-
-	if strings.TrimSpace(bxml.RawXML[0].XML) != `<div>test</div>` {
-		t.Fatal("Wrong InnerXML parsed")
+	if len(bxml.Elements()) > 0 {
+		t.Fatal("Only RawXML should have been parsed")
 	}
 
 	if raw_xml, err := xml.MarshalIndent(bxml, "", "    "); err != nil {

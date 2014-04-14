@@ -11,15 +11,10 @@ import (
 	"github.com/dotdoom/goxmpp/stream/elements/features"
 )
 
-const (
-	STREAM_NS   = "http://jabber.org/protocol/compress"
-	STREAM_NODE = "compress"
-)
-
 func init() {
 	features.Tree.AddElement(NewCompression())
-	stream.StreamFactory.AddConstructor(STREAM_NS+" "+STREAM_NODE, func() elements.Element {
-		return &CompressElement{}
+	stream.StreamFactory.AddConstructor(func() elements.Element {
+		return NewCompressionHandler()
 	})
 }
 
