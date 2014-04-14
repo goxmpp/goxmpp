@@ -5,6 +5,7 @@ import (
 	"io"
 
 	"github.com/dotdoom/goxmpp/extensions/features/compression"
+	"github.com/dotdoom/goxmpp/stream"
 )
 
 func init() {

@@ -14,7 +14,7 @@ import (
 func init() {
 	features.Tree.AddElement(NewCompression())
 	stream.StreamFactory.AddConstructor(func() elements.Element {
-		return NewCompressionHandler()
+		return &CompressElement{}
 	})
 }
 
@@ -54,8 +54,13 @@ type CompressElement struct {
 }
 
 func (c *CompressElement) Handle(stream *stream.Stream) error {
-	if compressor, ok := compressionMethods[c.Method]; ok {
+	if compressorConstructor, ok := compressionMethods[c.Method]; ok {
 		stream.WriteElement(&CompressionSuccess{})
+		compressor, err := compressorConstructor(stream)
+		if err != nil {
+			return err
+		}
+
 		if err := swapStreamRW(stream, compressor); err != nil {
 			stream.WriteElement(&ProcessingFailedError{})
 			return err

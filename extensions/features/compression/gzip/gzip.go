@@ -5,10 +5,17 @@ import (
 	"io"
 
 	"github.com/dotdoom/goxmpp/extensions/features/compression"
+	"github.com/dotdoom/goxmpp/stream"
 )
 
 func init() {
-	compression.AddMethod("gzip", &compressor{})
+	compression.AddMethod("gzip", func(stream *stream.Stream) (compression.Compressor, error) {
+		var state *State
+		if err := stream.State.Get(&state); err != nil {
+			return nil, err
+		}
+		return &compressor{}, nil
+	})
 }
 
 type State struct {

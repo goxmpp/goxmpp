@@ -10,7 +10,7 @@ import (
 
 func init() {
 	features.Tree.AddElement(NewStartTLSFeature())
-	features.Factory.AddConstructor("urn:ietf:params:xml:ns:xmpp-tls starttls", func() elements.Element {
+	stream.StreamFactory.AddConstructor(func() elements.Element {
 		return &StartTLSElement{}
 	})
 }
@@ -30,7 +30,7 @@ type StartTLSElement struct {
 
 func (s *StartTLSElement) Handle(stream *stream.Stream) error {
 	stream.WriteElement(&ProceedElement{})
-
+	return nil
 }
 
 type ProceedElement struct {
