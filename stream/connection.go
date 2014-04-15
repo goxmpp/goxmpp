@@ -16,11 +16,15 @@ func (self *Connection) SetRW(rw io.ReadWriteCloser) {
 	self.updateCoders()
 }
 
-type SwapRW func(source_rw io.ReadWriteCloser) io.ReadWriteCloser
+type SwapRW func(source_rw io.ReadWriteCloser) (io.ReadWriteCloser, error)
 
-func (self *Connection) UpdateRW(srw SwapRW) {
-	self.rw = srw(self.rw)
-	self.updateCoders()
+func (self *Connection) UpdateRW(srw SwapRW) error {
+	new_rw, err := srw(self.rw)
+	if err == nil {
+		self.rw = new_rw
+		self.updateCoders()
+	}
+	return err
 }
 
 func (self *Connection) updateCoders() {

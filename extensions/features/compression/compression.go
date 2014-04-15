@@ -105,8 +105,6 @@ func (c *compressElement) Handle(s *stream.Stream) error {
 		return fmt.Errorf("Unsupported compression method requested")
 	}
 
-	s.WriteElement(&CompressionSuccess{})
-
 	var state *CompressState
 	if err := s.State.Get(&state); err != nil {
 		s.WriteElement(&ProcessingFailedError{})
@@ -114,6 +112,7 @@ func (c *compressElement) Handle(s *stream.Stream) error {
 	}
 
 	state.Compressed = true
+	s.WriteElement(&CompressionSuccess{})
 
 	if err := swapStreamRW(s, compressor); err != nil {
 		s.WriteElement(&ProcessingFailedError{})
@@ -125,24 +124,18 @@ func (c *compressElement) Handle(s *stream.Stream) error {
 }
 
 func swapStreamRW(strm *stream.Stream, compressor Compressor) error {
-	var err error
-	strm.UpdateRW(
-		func(srwc io.ReadWriteCloser) io.ReadWriteCloser {
-			var reader io.ReadCloser
-
+	return strm.UpdateRW(
+		func(srwc io.ReadWriteCloser) (io.ReadWriteCloser, error) {
 			writer := compressor.GetWriter(srwc)
-			reader, err = compressor.GetReader(srwc)
+			reader, err := compressor.GetReader(srwc)
 			if err != nil {
-				log.Println(err)
+				log.Println("Could not create compressed reader", err)
 				strm.WriteElement(&SetupFailedError{})
-				return nil
+				return nil, err
 			}
 
-			return NewCompressionReadWriter(srwc, reader, writer)
-		},
-	)
-
-	return err
+			return NewCompressionReadWriter(srwc, reader, writer), nil
+		})
 }
 
 type CompressionSuccess struct {
