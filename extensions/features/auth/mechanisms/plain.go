@@ -59,7 +59,7 @@ func init() {
 			auth_state.Mechanism = "PLAIN"
 
 			stream.WriteElement(&SuccessElement{})
-			stream.Close(false)
+			stream.ReOpen = true
 
 			return nil
 		} else {

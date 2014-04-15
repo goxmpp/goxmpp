@@ -1,14 +1,38 @@
 package starttls
 
-/*
 import (
 	"encoding/xml"
+
+	"github.com/dotdoom/goxmpp/stream"
+	"github.com/dotdoom/goxmpp/stream/elements"
 	"github.com/dotdoom/goxmpp/stream/elements/features"
 )
 
+func init() {
+	features.Tree.AddElement(NewStartTLSFeature())
+	stream.StreamFactory.AddConstructor(func() elements.Element {
+		return &StartTLSElement{}
+	})
+}
+
+type StartTLSFeatureElement struct {
+	XMLName  xml.Name `xml:"urn:ietf:params:xml:ns:xmpp-tls starttls"`
+	Required bool     `xml:"required,omitempty"`
+}
+
+func NewStartTLSFeature() *StartTLSFeatureElement {
+	return &StartTLSFeatureElement{}
+}
+
 type StartTLSElement struct {
-	XMLName     xml.Name `xml:"urn:ietf:params:xml:ns:xmpp-tls starttls"`
-	Required    bool     `xml:"required,omitempty"`
-	Certificate []byte
-	features.Elements
-}*/
+	XMLName xml.Name `xml:"urn:ietf:params:xml:ns:xmpp-tls starttls"`
+}
+
+func (s *StartTLSElement) Handle(stream *stream.Stream) error {
+	stream.WriteElement(&ProceedElement{})
+	return nil
+}
+
+type ProceedElement struct {
+	XMLName xml.Name `xml:"urn:ietf:params:xml:ns:xmpp-tls proceed"`
+}
