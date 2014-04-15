@@ -30,7 +30,11 @@ func NewStartTLSFeature(required bool) *StartTLSFeatureElement {
 }
 
 func (s *StartTLSFeatureElement) CopyIfAvailable(s *stream.Stream) elements.Element {
-	// Handcoded for now because this will be reworked anyway
+	// Check if it is enabled and not started
+	var state *StartTLSState
+	if err := s.State.Get(&state); err != nil || state.Started {
+		return nil
+	}
 	return NewStartTLSFeature(true)
 }
 
@@ -46,6 +50,10 @@ type TSLConfig struct {
 type StartTLSState struct {
 	Started bool
 	Config  TLSConfig
+}
+
+func NewStartTLSState(conf TLSConfig) *StartTLSState {
+	return &StartTLSState{Started: false, Config: conf}
 }
 
 func (s *StartTLSElement) Handle(s *stream.Stream) error {
@@ -75,9 +83,13 @@ func (s *StartTLSElement) Handle(s *stream.Stream) error {
 	})
 	if err != nil {
 		log.Println("Could not replace connection", err)
+		return err
 	}
 
-	return err
+	state.Started = true
+	s.ReOpen = true
+
+	return nil
 }
 
 type ProceedElement struct {
