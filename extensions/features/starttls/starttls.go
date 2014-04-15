@@ -1,6 +1,7 @@
 package starttls
 
 import (
+	"crypto/rand"
 	"crypto/tls"
 	"encoding/xml"
 	"errors"
@@ -14,7 +15,7 @@ import (
 )
 
 func init() {
-	features.Tree.AddElement(NewStartTLSFeature())
+	features.Tree.AddElement(NewStartTLSFeature(false))
 	stream.StreamFactory.AddConstructor(func() elements.Element {
 		return &StartTLSElement{}
 	})
@@ -29,10 +30,10 @@ func NewStartTLSFeature(required bool) *StartTLSFeatureElement {
 	return &StartTLSFeatureElement{Required: required}
 }
 
-func (s *StartTLSFeatureElement) CopyIfAvailable(s *stream.Stream) elements.Element {
+func (s *StartTLSFeatureElement) CopyIfAvailable(st *stream.Stream) elements.Element {
 	// Check if it is enabled and not started
 	var state *StartTLSState
-	if err := s.State.Get(&state); err != nil || state.Started {
+	if err := st.State.Get(&state); err != nil || state.Started {
 		return nil
 	}
 	return NewStartTLSFeature(true)
@@ -42,23 +43,27 @@ type StartTLSElement struct {
 	XMLName xml.Name `xml:"urn:ietf:params:xml:ns:xmpp-tls starttls"`
 }
 
-type TSLConfig struct {
+type TLSConfig struct {
 	PEMPath string
 	KeyPath string
 }
 
-type StartTLSState struct {
-	Started bool
-	Config  TLSConfig
+func NewTLSConfig(pem, key string) *TLSConfig {
+	return &TLSConfig{PEMPath: pem, KeyPath: key}
 }
 
-func NewStartTLSState(conf TLSConfig) *StartTLSState {
+type StartTLSState struct {
+	Started bool
+	Config  *TLSConfig
+}
+
+func NewStartTLSState(conf *TLSConfig) *StartTLSState {
 	return &StartTLSState{Started: false, Config: conf}
 }
 
-func (s *StartTLSElement) Handle(s *stream.Stream) error {
+func (s *StartTLSElement) Handle(st *stream.Stream) error {
 	var state *StartTLSState
-	if err := s.State.Get(&state); err != nil {
+	if err := st.State.Get(&state); err != nil {
 		return err
 	}
 
@@ -68,15 +73,21 @@ func (s *StartTLSElement) Handle(s *stream.Stream) error {
 		return err
 	}
 
-	config := tls.Config{Certificates: []tls.Certificate{cert}, ClientAuth: tls.RequireAnyClientCert}
+	config := &tls.Config{
+		Certificates: []tls.Certificate{cert},
+		ClientAuth:   tls.VerifyClientCertIfGiven,
+		Rand:         rand.Reader,
+	}
 
-	err = s.UpdateRW(func(srwc io.ReadWriteCloser) (io.ReadWriteCloser, error) {
+	err = st.UpdateRW(func(srwc io.ReadWriteCloser) (io.ReadWriteCloser, error) {
 		if conn, ok := srwc.(net.Conn); ok {
-			tls_conn, err := tls.Server(conn, config)
-			if err != nil {
-				return nil, err
-			}
-			s.WriteElement(&ProceedElement{})
+			tls_conn := tls.Server(conn, config)
+
+			// Once we inialized - let client proceed
+			st.WriteElement(&ProceedElement{})
+
+			// Now do a handshake
+			tls_conn.Handshake()
 			return tls_conn, nil
 		}
 		return nil, errors.New("Wrong ReadWriteCloser, expected connection")
@@ -87,7 +98,7 @@ func (s *StartTLSElement) Handle(s *stream.Stream) error {
 	}
 
 	state.Started = true
-	s.ReOpen = true
+	st.ReOpen = true
 
 	return nil
 }
