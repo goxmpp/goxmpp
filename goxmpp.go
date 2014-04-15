@@ -8,7 +8,7 @@ import (
 	_ "github.com/dotdoom/goxmpp/extensions/features/compression/lzw"
 	_ "github.com/dotdoom/goxmpp/extensions/features/compression/zlib"
 	_ "github.com/dotdoom/goxmpp/extensions/features/session"
-	//_ "github.com/dotdoom/goxmpp/extensions/features/starttls"
+	_ "github.com/dotdoom/goxmpp/extensions/features/starttls"
 	_ "github.com/dotdoom/goxmpp/extensions/iq/disco_info"
 	_ "github.com/dotdoom/goxmpp/extensions/iq/disco_items"
 	_ "github.com/dotdoom/goxmpp/extensions/iq/last"

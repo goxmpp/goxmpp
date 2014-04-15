@@ -108,7 +108,7 @@ func (c *compressElement) Handle(s *stream.Stream) error {
 	var state *CompressState
 	if err := s.State.Get(&state); err != nil {
 		s.WriteElement(&ProcessingFailedError{})
-		return nil
+		return err
 	}
 
 	state.Compressed = true
