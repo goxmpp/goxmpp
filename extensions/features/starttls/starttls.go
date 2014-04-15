@@ -36,7 +36,7 @@ func (s *StartTLSFeatureElement) CopyIfAvailable(st *stream.Stream) elements.Ele
 	if err := st.State.Get(&state); err != nil || state.Started {
 		return nil
 	}
-	return NewStartTLSFeature(true)
+	return NewStartTLSFeature(state.Required)
 }
 
 type StartTLSElement struct {
@@ -53,12 +53,17 @@ func NewTLSConfig(pem, key string) *TLSConfig {
 }
 
 type StartTLSState struct {
-	Started bool
-	Config  *TLSConfig
+	Required bool
+	Started  bool
+	Config   *TLSConfig
 }
 
-func NewStartTLSState(conf *TLSConfig) *StartTLSState {
-	return &StartTLSState{Started: false, Config: conf}
+func NewStartTLSState(required bool, conf *TLSConfig) *StartTLSState {
+	return &StartTLSState{
+		Started:  false,
+		Config:   conf,
+		Required: required,
+	}
 }
 
 func (s *StartTLSElement) Handle(st *stream.Stream) error {
