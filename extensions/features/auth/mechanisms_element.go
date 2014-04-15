@@ -28,7 +28,7 @@ func (self *mechanismsElement) IsRequiredFor(stream *stream.Stream) bool {
 func (self *mechanismsElement) CopyIfAvailable(stream *stream.Stream) elements.Element {
 	if self.IsRequiredFor(stream) {
 		x := newMechanismsElement()
-		MechanismsElement.CopyAvailableFeatures(stream, x.Container)
+		self.CopyAvailableFeatures(stream, x.Container)
 		return x
 	}
 	return nil

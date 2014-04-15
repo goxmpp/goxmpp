@@ -27,3 +27,7 @@ func (self *Connection) updateCoders() {
 	self.streamEncoder = xml.NewEncoder(self.rw)
 	self.streamDecoder = xml.NewDecoder(self.rw)
 }
+
+func (self *Connection) Close() error {
+	return self.rw.Close()
+}

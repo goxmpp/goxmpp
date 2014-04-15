@@ -12,64 +12,116 @@ import (
 )
 
 func init() {
-	features.Tree.AddElement(NewCompression())
+	features.Tree.AddElement(CompressTemplate)
 	stream.StreamFactory.AddConstructor(func() elements.Element {
-		return &CompressElement{}
+		return NewCompressHandler()
 	})
 }
 
-type CompressorConstructor func(*stream.Stream) (Compressor, error)
 type Compressor interface {
 	GetReader(io.Reader) (io.ReadCloser, error)
 	GetWriter(io.Writer) io.WriteCloser
+	Name() string
+	IsAvailable(*stream.Stream) bool
+}
+type CompressorConfig struct {
+	Level int
+}
+type CompressState struct {
+	Compressed bool
+	Config     map[string]CompressorConfig
 }
 
-var compressionMethods map[string]CompressorConstructor = make(map[string]CompressorConstructor)
-
-func AddMethod(name string, handler CompressorConstructor) {
-	compressionMethods[name] = handler
+func NewCompressState() *CompressState {
+	return &CompressState{Compressed: false}
 }
 
-func NewCompression() *compression {
-	comp := &compression{
-		Methods:   make([]string, 0, len(compressionMethods)),
-		Container: features.NewContainer(),
-	}
-	for method := range compressionMethods {
-		comp.Methods = append(comp.Methods, method)
-	}
-	return comp
+type BaseCompressor struct {
+	XMLName        xml.Name `xml:"method"`
+	CompressorName string   `xml:",chardata"`
+}
+
+func NewBaseCompressor(name string) BaseCompressor {
+	return BaseCompressor{CompressorName: name}
+}
+
+func (bc BaseCompressor) Name() string {
+	return bc.CompressorName
+}
+
+func (bc BaseCompressor) IsAvailable(stream *stream.Stream) bool {
+	// TODO Add some logic to check if this method is available
+	return true
 }
 
 // This struct is used for marshaling
 type compression struct {
-	XMLName xml.Name `xml:"http://jabber.org/protocol/compress compression"`
-	Methods []string `xml:"method"`
+	XMLName xml.Name `xml:"http://jabber.org/features/compress compression"`
 	*features.Container
 }
 
-type CompressElement struct {
-	XMLName xml.Name `xml:"http://jabber.org/protocol/compress compress"`
-	Method  string   `xm;"method"`
+func NewCompression() *compression {
+	return &compression{
+		Container: features.NewContainer(),
+	}
 }
 
-func (c *CompressElement) Handle(stream *stream.Stream) error {
-	if compressorConstructor, ok := compressionMethods[c.Method]; ok {
-		stream.WriteElement(&CompressionSuccess{})
-		compressor, err := compressorConstructor(stream)
-		if err != nil {
-			return err
-		}
+var CompressTemplate = NewCompression()
 
-		if err := swapStreamRW(stream, compressor); err != nil {
-			stream.WriteElement(&ProcessingFailedError{})
-			return err
-		}
+func (c *compression) CopyIfAvailable(stream *stream.Stream) elements.Element {
+	var state *CompressState
+	err := stream.State.Get(&state)
+
+	if err != nil || state.Compressed {
 		return nil
 	}
 
-	stream.WriteElement(&MethodNotSupportedError{})
-	return fmt.Errorf("Unsupported compression method requested")
+	compress := NewCompression()
+	c.CopyAvailableFeatures(stream, compress.Container)
+	return compress
+}
+
+type compressElement struct {
+	XMLName xml.Name `xml:"http://jabber.org/protocol/compress compress"`
+	Method  string   `xml:"method"`
+}
+
+func NewCompressHandler() *compressElement {
+	return &compressElement{}
+}
+
+func (c *compressElement) Handle(s *stream.Stream) error {
+	var compressor Compressor
+
+	for _, element := range CompressTemplate.Elements() {
+		if compr, ok := element.(Compressor); ok && compr.Name() == c.Method && compr.IsAvailable(s) {
+			compressor = compr
+			break
+		}
+	}
+
+	if compressor == nil {
+		s.WriteElement(&MethodNotSupportedError{})
+		return fmt.Errorf("Unsupported compression method requested")
+	}
+
+	s.WriteElement(&CompressionSuccess{})
+
+	var state *CompressState
+	if err := s.State.Get(&state); err != nil {
+		s.WriteElement(&ProcessingFailedError{})
+		return nil
+	}
+
+	state.Compressed = true
+
+	if err := swapStreamRW(s, compressor); err != nil {
+		s.WriteElement(&ProcessingFailedError{})
+		return err
+	}
+
+	s.ReOpen = true
+	return nil
 }
 
 func swapStreamRW(strm *stream.Stream, compressor Compressor) error {
@@ -90,11 +142,7 @@ func swapStreamRW(strm *stream.Stream, compressor Compressor) error {
 		},
 	)
 
-	if err != nil {
-		return err
-	}
-
-	return strm.ReadOpen()
+	return err
 }
 
 type CompressionSuccess struct {
@@ -121,6 +169,9 @@ type compressedReadWriter struct {
 	reader io.ReadCloser
 	writer io.WriteCloser
 }
+type Flusher interface {
+	Flush() error
+}
 
 func NewCompressionReadWriter(s io.ReadWriteCloser, r io.ReadCloser, w io.WriteCloser) *compressedReadWriter {
 	return &compressedReadWriter{source: s, reader: r, writer: w}
@@ -131,7 +182,17 @@ func (c *compressedReadWriter) Read(b []byte) (int, error) {
 }
 
 func (c *compressedReadWriter) Write(b []byte) (int, error) {
-	return c.writer.Write(b)
+	n, err := c.writer.Write(b)
+	if err != nil {
+		return n, err
+	}
+	// Need to flush here, otherwise data won't get to network
+	// Data will be buffered on lower lever e.g. TCP
+	if f, ok := c.writer.(Flusher); ok {
+		return n, f.Flush()
+	}
+
+	return n, nil
 }
 
 func (c *compressedReadWriter) Close() error {

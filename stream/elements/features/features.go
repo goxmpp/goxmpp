@@ -34,7 +34,6 @@ func Loop(stream *stream.Stream) error {
 		if err != nil {
 			return err
 		}
-		log.Printf("got feature element: %#v\n", e)
 		if feature_handler, ok := e.(Handler); ok {
 			log.Println("calling feature handler")
 			if err := feature_handler.Handle(stream); err != nil {
@@ -43,6 +42,10 @@ func Loop(stream *stream.Stream) error {
 			log.Println("feature handler completed")
 		} else {
 			return errors.New("Non-handler element received.")
+		}
+
+		if stream.ReOpen {
+			stream.ReadSentOpen()
 		}
 	}
 	log.Println("stream closed or no required features")
