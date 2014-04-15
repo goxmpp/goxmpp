@@ -8,7 +8,7 @@ However since this is a widely used feature, it is implemented in goxmpp.
 ```
 RFC 6120: XMPP CORE                       In progress
   XML Streams                             Yes
-  STARTTLS Negotiation                    No
+  STARTTLS Negotiation                    Yes
   SASL Negotiation                        No
   Resource Binding                        Yes
   XML Stanzas                             In progress
@@ -26,7 +26,7 @@ XEP-0030: Service Discovery               No
 xep-0049: Private XML Storage             In progress
 XEP-0077: In-Band Registration            No
 XEP-0115: Entity Capabilities             In progress
-XEP-0138: Stream Compression              In progress
+XEP-0138: Stream Compression              Yes
 XEP-0199: XMPP Ping                       No
 XEP-0202: Entity Time                     No
 XEP-0203: Delayed Delivery                No
