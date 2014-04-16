@@ -20,7 +20,9 @@ func (self *PrivateElement) Handle(request_id *iq.IQElement, stream *stream.Stre
 	response_iq := iq.NewIQElement()
 	response_iq.Type = "error"
 	response_iq.ID = request_id.ID
-	stream.WriteElement(response_iq)
+	if err := stream.WriteElement(response_iq); err != nil {
+		return err
+	}
 
 	return nil
 }

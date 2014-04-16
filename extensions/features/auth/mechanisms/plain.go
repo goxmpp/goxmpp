@@ -58,7 +58,9 @@ func init() {
 			auth_state.UserName = string(user_password[1])
 			auth_state.Mechanism = "PLAIN"
 
-			stream.WriteElement(&SuccessElement{})
+			if err := stream.WriteElement(&SuccessElement{}); err != nil {
+				return err
+			}
 			stream.ReOpen = true
 
 			return nil

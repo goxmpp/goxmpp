@@ -121,7 +121,11 @@ func (self *Stream) Close() error {
 }
 
 func (self *Stream) WriteElement(element elements.Element) error {
-	return self.streamEncoder.Encode(element)
+	err := self.streamEncoder.Encode(element)
+	if err != nil {
+		log.Println("Error sending rely:", err)
+	}
+	return err
 }
 
 func (self *Stream) ReadElement() (elements.Element, error) {

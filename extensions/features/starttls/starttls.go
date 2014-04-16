@@ -89,7 +89,9 @@ func (s *StartTLSElement) Handle(st *stream.Stream) error {
 			tls_conn := tls.Server(conn, config)
 
 			// Once we inialized - let client proceed
-			st.WriteElement(&ProceedElement{})
+			if err := st.WriteElement(&ProceedElement{}); err != nil {
+				return nil, err
+			}
 
 			// Now do a handshake
 			if err := tls_conn.Handshake(); err != nil {
