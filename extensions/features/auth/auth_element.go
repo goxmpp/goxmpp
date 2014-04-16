@@ -12,7 +12,7 @@ import (
 type AuthElement struct {
 	XMLName   xml.Name `xml:"auth"`
 	Mechanism string   `xml:"mechanism,attr"`
-	Data      string   `xml:",chardata,omitempty"`
+	Data      string   `xml:",chardata"`
 }
 
 type Handler func(*AuthElement, *stream.Stream) error
