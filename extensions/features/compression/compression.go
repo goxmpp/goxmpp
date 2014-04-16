@@ -101,21 +101,29 @@ func (c *compressElement) Handle(s *stream.Stream) error {
 	}
 
 	if compressor == nil {
-		s.WriteElement(&MethodNotSupportedError{})
+		if err := s.WriteElement(&MethodNotSupportedError{}); err != nil {
+			return err
+		}
 		return fmt.Errorf("Unsupported compression method requested")
 	}
 
 	var state *CompressState
 	if err := s.State.Get(&state); err != nil {
-		s.WriteElement(&ProcessingFailedError{})
+		if err := s.WriteElement(&ProcessingFailedError{}); err != nil {
+			return err
+		}
 		return err
 	}
 
 	state.Compressed = true
-	s.WriteElement(&CompressionSuccess{})
+	if err := s.WriteElement(&CompressionSuccess{}); err != nil {
+		return err
+	}
 
 	if err := swapStreamRW(s, compressor); err != nil {
-		s.WriteElement(&ProcessingFailedError{})
+		if err := s.WriteElement(&ProcessingFailedError{}); err != nil {
+			return err
+		}
 		return err
 	}
 
@@ -130,7 +138,9 @@ func swapStreamRW(strm *stream.Stream, compressor Compressor) error {
 			reader, err := compressor.GetReader(srwc)
 			if err != nil {
 				log.Println("Could not create compressed reader", err)
-				strm.WriteElement(&SetupFailedError{})
+				if err := strm.WriteElement(&SetupFailedError{}); err != nil {
+					return nil, err
+				}
 				return nil, err
 			}
 

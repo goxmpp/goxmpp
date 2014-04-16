@@ -69,7 +69,9 @@ func (self *BindElement) Handle(request_id *iq.IQElement, stream *stream.Stream)
 	response_iq.Type = "result"
 	response_iq.ID = request_id.ID
 	response_iq.AddElement(&BindElement{JID: stream.To})
-	stream.WriteElement(response_iq)
+	if err := stream.WriteElement(response_iq); err != nil {
+		return err
+	}
 
 	return nil
 }

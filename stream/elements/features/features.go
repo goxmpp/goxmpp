@@ -29,7 +29,9 @@ type Handler interface {
 func Loop(stream *stream.Stream) error {
 	log.Println("entering features loop")
 	for stream.Opened && Tree.IsRequiredFor(stream) {
-		stream.WriteElement(Tree.CopyIfAvailable(stream))
+		if err := stream.WriteElement(Tree.CopyIfAvailable(stream)); err != nil {
+			return err
+		}
 		e, err := stream.ReadElement()
 		if err != nil {
 			return err

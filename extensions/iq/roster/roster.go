@@ -50,7 +50,9 @@ func (self *RosterElement) Handle(request_id *iq.IQElement, stream *stream.Strea
 	response_iq.Type = "result"
 	response_iq.ID = request_id.ID
 	response_iq.AddElement(&ri)
-	stream.WriteElement(response_iq)
+	if err := stream.WriteElement(response_iq); err != nil {
+		return err
+	}
 
 	return nil
 }
