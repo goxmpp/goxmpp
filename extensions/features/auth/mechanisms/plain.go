@@ -6,6 +6,7 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
+	"log"
 	"strings"
 
 	"github.com/dotdoom/goxmpp/extensions/features/auth"
@@ -20,10 +21,6 @@ type SuccessElement struct {
 type ResponseElement struct {
 	XMLName xml.Name `xml:"urn:ietf:params:xml:ns:xmpp-sasl response"`
 	Data    string   `xml:",chardata,omitempty"`
-}
-
-type NotAuthorized struct {
-	XMLName xml.Name `xml:"not-authorized"`
 }
 
 type IncorrectEncoding struct {
@@ -168,6 +165,10 @@ func init() {
 	auth.AddMechanism("PLAIN", func(e *auth.AuthElement, stream *stream.Stream) error {
 		b, err := base64.StdEncoding.DecodeString(e.Data)
 		if err != nil {
+			log.Println("Could not decode Base64 in Plain handler:", err)
+			if err := stream.WriteElement(auth.NewFailute(IncorrectEncoding{})); err != nil {
+				return err
+			}
 			return err
 		}
 		user_password := bytes.Split(b, usernamePasswordSeparator)
@@ -183,12 +184,13 @@ func init() {
 				auth_state = &auth.AuthState{}
 				stream.State.Push(auth_state)
 			}
-			auth_state.UserName = string(user_password[1])
-			auth_state.Mechanism = "PLAIN"
 
 			if err := stream.WriteElement(&SuccessElement{}); err != nil {
 				return err
 			}
+
+			auth_state.UserName = string(user_password[1])
+			auth_state.Mechanism = "PLAIN"
 			stream.ReOpen = true
 
 			return nil
@@ -196,9 +198,10 @@ func init() {
 			return errors.New("AUTH FAILED")
 		}
 	})
+
 	auth.AddMechanism("DIGEST-MD5", func(e *auth.AuthElement, strm *stream.Stream) error {
 		var md5_state *DigestMD5State
-		if err := stream.State.Get(&md5_state); err != nil {
+		if err := strm.State.Get(&md5_state); err != nil {
 			return err
 		}
 		// TODO Need to handle aborts
@@ -217,13 +220,17 @@ func init() {
 		}
 
 		resp_el, ok := el.(*ResponseElement)
-		if !ok || resp.Data == "" {
+		if !ok || resp_el.Data == "" {
 			return errors.New("Wrong response received")
 		}
 
 		// Check MD5
-		raw_resp_data, err := _base64.StdEncoding.DecodeString(resp_el.Data)
+		raw_resp_data, err := base64.StdEncoding.DecodeString(resp_el.Data)
 		if err != nil {
+			log.Println("Could not decode Base64 in DigestMD5 handler:", err)
+			if err := strm.WriteElement(auth.NewFailute(IncorrectEncoding{})); err != nil {
+				return err
+			}
 			return err
 		}
 		resp := decodeMD5Response(raw_resp_data)
@@ -242,7 +249,7 @@ func init() {
 			return err
 		}
 		if resp, ok := el.(*ResponseElement); !ok || resp.Data != "" {
-			// Need to send failure
+			// Need to send meaningful error to other side
 			return errors.New("Wrong response received")
 		}
 
@@ -250,7 +257,13 @@ func init() {
 			return err
 		}
 
-		auth_state.UserName = resp.username
+		var auth_state *auth.AuthState
+		if err := strm.State.Get(&auth_state); err != nil {
+			auth_state = &auth.AuthState{}
+			strm.State.Push(auth_state)
+		}
+
+		auth_state.UserName = resp.UserName
 
 		strm.ReOpen = true
 
