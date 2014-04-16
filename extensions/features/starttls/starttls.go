@@ -92,7 +92,10 @@ func (s *StartTLSElement) Handle(st *stream.Stream) error {
 			st.WriteElement(&ProceedElement{})
 
 			// Now do a handshake
-			tls_conn.Handshake()
+			if err := tls_conn.Handshake(); err != nil {
+				log.Println("TLS Handshake error:", err)
+				return nil, err
+			}
 			return tls_conn, nil
 		}
 		return nil, errors.New("Wrong ReadWriteCloser, expected connection")
