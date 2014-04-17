@@ -142,24 +142,24 @@ type DigestMD5State struct {
 }
 
 type digestMD5Handler struct {
-	state    *DigestMD5State
-	chalenge *Challenge
-	strm     *stream.Stream
+	state     *DigestMD5State
+	challenge *Challenge
+	strm      *stream.Stream
 }
 
 func newDigestMD5Handler(state *DigestMD5State, strm *stream.Stream) (*digestMD5Handler, error) {
 
-	chalenge, err := NewChallenge(state.Realm)
+	challenge, err := NewChallenge(state.Realm)
 	if err != nil {
-		log.Println("Could not create a chalenge")
+		log.Println("Could not create a challenge")
 		return nil, err
 	}
 
-	return &digestMD5Handler{chalenge: chalenge, state: state, strm: strm}, nil
+	return &digestMD5Handler{challenge: challenge, state: state, strm: strm}, nil
 }
 
 func (h *digestMD5Handler) Handle() error {
-	if err := h.strm.WriteElement(mechanisms.NewChallengeElement(h.chalenge.String())); err != nil {
+	if err := h.strm.WriteElement(mechanisms.NewChallengeElement(h.challenge.String())); err != nil {
 		return err
 	}
 
@@ -175,17 +175,17 @@ func (h *digestMD5Handler) Handle() error {
 		return err
 	}
 
-	log.Println("Sent chalenge", h.chalenge.String())
+	log.Println("Sent challenge", h.challenge.String())
 	log.Println("Received response", string(raw_resp_data))
 
 	resp := NewMD5ResponseFromData(raw_resp_data)
-	log.Printf("Challenge object %#v", h.chalenge)
+	log.Printf("Challenge object %#v", h.challenge)
 	log.Printf("Response object %#v", resp)
 
-	if err := resp.Validate(h.chalenge, h.state); err != nil {
+	if err := resp.Validate(h.challenge, h.state); err != nil {
 		return err
 	}
-	if !h.state.ValidateMD5(h.chalenge, resp) {
+	if !h.state.ValidateMD5(h.challenge, resp) {
 		return errors.New("AUTH FAILED")
 	}
 
