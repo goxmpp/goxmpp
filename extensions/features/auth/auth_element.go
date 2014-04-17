@@ -3,6 +3,7 @@ package auth
 import (
 	"encoding/xml"
 	"fmt"
+	"log"
 
 	"github.com/dotdoom/goxmpp/stream"
 	"github.com/dotdoom/goxmpp/stream/elements"
@@ -18,10 +19,21 @@ type Handler func(*AuthElement, *stream.Stream) error
 
 func (self *AuthElement) Handle(stream *stream.Stream) error {
 	if handler := mechanism_handlers[self.Mechanism]; handler != nil {
-		return handler(self, stream)
+		if err := handler(self, stream); err != nil {
+			log.Println("Authorization failed:", err)
+			if err := stream.WriteElement(NewFailute(NotAuthorized{})); err != nil {
+				return err
+			}
+			return err
+		}
 	} else {
+		if err := stream.WriteElement(NewFailute(InvalidMechanism{})); err != nil {
+			return err
+		}
 		return fmt.Errorf("No handler for mechanism %v", self.Mechanism)
 	}
+
+	return nil
 }
 
 func init() {

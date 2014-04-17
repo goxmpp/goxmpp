@@ -1,18 +1,22 @@
-package mechanisms
+package plain
 
 import (
 	"bytes"
-	"encoding/base64"
-	"encoding/xml"
 	"errors"
 
 	"github.com/dotdoom/goxmpp/extensions/features/auth"
+	"github.com/dotdoom/goxmpp/extensions/features/auth/mechanisms"
 	"github.com/dotdoom/goxmpp/stream"
-	"github.com/dotdoom/goxmpp/stream/elements"
 )
 
-type SuccessElement struct {
-	XMLName xml.Name `xml:"urn:ietf:params:xml:ns:xmpp-sasl success"`
+type PlainElement string
+
+func (plain PlainElement) IsAvailable(strm *stream.Stream) bool {
+	var state *PlainState
+	if err := strm.State.Get(&state); err == nil {
+		return true
+	}
+	return false
 }
 
 type PlainState struct {
@@ -20,28 +24,14 @@ type PlainState struct {
 	RequireEncryption     bool
 }
 
-type PlainElement struct {
-	XMLName xml.Name `xml:"mechanism"`
-	Name    string   `xml:",chardata"`
-}
-
-func newPlainElement() *PlainElement {
-	return &PlainElement{Name: "PLAIN"}
-}
-
-func (self *PlainElement) CopyIfAvailable(stream *stream.Stream) elements.Element {
-	var plain_state *PlainState
-	if err := stream.State.Get(&plain_state); err == nil {
-		return self
-	}
-	return nil
-}
-
 var usernamePasswordSeparator = []byte{0}
 
 func init() {
 	auth.AddMechanism("PLAIN", func(e *auth.AuthElement, stream *stream.Stream) error {
-		b, _ := base64.StdEncoding.DecodeString(e.Data)
+		b, err := mechanisms.DecodeBase64(e.Data, stream)
+		if err != nil {
+			return err
+		}
 		user_password := bytes.Split(b, usernamePasswordSeparator)
 
 		var plain_state *PlainState
@@ -55,12 +45,13 @@ func init() {
 				auth_state = &auth.AuthState{}
 				stream.State.Push(auth_state)
 			}
-			auth_state.UserName = string(user_password[1])
-			auth_state.Mechanism = "PLAIN"
 
-			if err := stream.WriteElement(&SuccessElement{}); err != nil {
+			if err := stream.WriteElement(mechanisms.SuccessElement{}); err != nil {
 				return err
 			}
+
+			auth_state.UserName = string(user_password[1])
+			auth_state.Mechanism = "PLAIN"
 			stream.ReOpen = true
 
 			return nil
@@ -68,5 +59,6 @@ func init() {
 			return errors.New("AUTH FAILED")
 		}
 	})
-	auth.MechanismsElement.AddElement(newPlainElement())
+
+	auth.MechanismsElement.AddElement(mechanisms.NewMechanismElement(PlainElement("PLAIN")))
 }
