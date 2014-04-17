@@ -1,4 +1,4 @@
-package mechanisms
+package plain
 
 import (
 	"bytes"
@@ -7,8 +7,19 @@ import (
 	"log"
 
 	"github.com/dotdoom/goxmpp/extensions/features/auth"
+	"github.com/dotdoom/goxmpp/extensions/features/auth/mechanisms"
 	"github.com/dotdoom/goxmpp/stream"
 )
+
+type PlainElement string
+
+func (plain PlainElement) IsAvailable(strm *stream.Stream) bool {
+	var state *PlainState
+	if err := strm.State.Get(&state); err == nil {
+		return true
+	}
+	return false
+}
 
 type PlainState struct {
 	VerifyUserAndPassword func(string, string) bool
@@ -22,7 +33,7 @@ func init() {
 		b, err := base64.StdEncoding.DecodeString(e.Data)
 		if err != nil {
 			log.Println("Could not decode Base64 in Plain handler:", err)
-			if err := stream.WriteElement(auth.NewFailute(IncorrectEncoding{})); err != nil {
+			if err := stream.WriteElement(auth.NewFailute(mechanisms.IncorrectEncoding{})); err != nil {
 				return err
 			}
 			return err
@@ -41,7 +52,7 @@ func init() {
 				stream.State.Push(auth_state)
 			}
 
-			if err := stream.WriteElement(&SuccessElement{}); err != nil {
+			if err := stream.WriteElement(mechanisms.SuccessElement{}); err != nil {
 				return err
 			}
 
@@ -55,5 +66,5 @@ func init() {
 		}
 	})
 
-	auth.MechanismsElement.AddElement(newMechanismElement("PLAIN"))
+	auth.MechanismsElement.AddElement(mechanisms.NewMechanismElement(PlainElement("PLAIN")))
 }

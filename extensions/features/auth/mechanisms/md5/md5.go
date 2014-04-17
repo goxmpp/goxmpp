@@ -1,29 +1,30 @@
-package mechanisms
+package md5
 
 import (
 	"bytes"
 	"crypto/md5"
 	"crypto/rand"
 	"encoding/base64"
-	"encoding/xml"
 	"errors"
 	"fmt"
 	"log"
 	"strings"
 
 	"github.com/dotdoom/goxmpp/extensions/features/auth"
+	"github.com/dotdoom/goxmpp/extensions/features/auth/mechanisms"
 	"github.com/dotdoom/goxmpp/stream"
 )
 
 const A2_AUTH_SUFFIX = "00000000000000000000000000000000"
 
-type ChalengeElement struct {
-	XMLName xml.Name `xml:"urn:ietf:params:xml:ns:xmpp-sasl challenge"`
-	Data    string   `xml:",chardata"`
-}
+type DigestMD5Element string
 
-func NewChalengeElement(data string) ChalengeElement {
-	return ChalengeElement{Data: base64.StdEncoding.EncodeToString([]byte(data))}
+func (md5 DigestMD5Element) IsAvailable(strm *stream.Stream) bool {
+	var state *DigestMD5State
+	if err := strm.State.Get(&state); err == nil {
+		return true
+	}
+	return false
 }
 
 type Chalenge struct {
@@ -133,7 +134,7 @@ func init() {
 			log.Println("Could not create a chalenge")
 			return err
 		}
-		if err := strm.WriteElement(NewChalengeElement(chalenge.String())); err != nil {
+		if err := strm.WriteElement(mechanisms.NewChalengeElement(chalenge.String())); err != nil {
 			return err
 		}
 
@@ -143,7 +144,7 @@ func init() {
 			return err
 		}
 
-		resp_el, ok := el.(*ResponseElement)
+		resp_el, ok := el.(*mechanisms.ResponseElement)
 		if !ok || resp_el.Data == "" {
 			return errors.New("Wrong response received")
 		}
@@ -155,7 +156,7 @@ func init() {
 		log.Println("Received response", string(raw_resp_data))
 		if err != nil {
 			log.Println("Could not decode Base64 in DigestMD5 handler:", err)
-			if err := strm.WriteElement(auth.NewFailute(IncorrectEncoding{})); err != nil {
+			if err := strm.WriteElement(auth.NewFailute(mechanisms.IncorrectEncoding{})); err != nil {
 				return err
 			}
 			return err
@@ -173,7 +174,7 @@ func init() {
 		}
 
 		// Send response
-		if err := strm.WriteElement(NewChalengeElement("rspauth")); err != nil {
+		if err := strm.WriteElement(mechanisms.NewChalengeElement("rspauth")); err != nil {
 			return err
 		}
 
@@ -181,12 +182,12 @@ func init() {
 		if err != nil {
 			return err
 		}
-		if resp, ok := el.(*ResponseElement); !ok || resp.Data != "" {
+		if resp, ok := el.(*mechanisms.ResponseElement); !ok || resp.Data != "" {
 			// Need to send meaningful error to other side
 			return errors.New("Wrong response received")
 		}
 
-		if err := strm.WriteElement(SuccessElement{}); err != nil {
+		if err := strm.WriteElement(mechanisms.SuccessElement{}); err != nil {
 			return err
 		}
 
@@ -203,7 +204,7 @@ func init() {
 		return nil
 	})
 
-	auth.MechanismsElement.AddElement(newMechanismElement("DIGEST-MD5"))
+	auth.MechanismsElement.AddElement(mechanisms.NewMechanismElement(DigestMD5Element("DIGEST-MD5")))
 }
 
 func GenerateResponseHash(c *Chalenge, r *Response, password string) string {

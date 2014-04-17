@@ -1,7 +1,8 @@
 package goxmpp
 
 import (
-	_ "github.com/dotdoom/goxmpp/extensions/features/auth/mechanisms"
+	_ "github.com/dotdoom/goxmpp/extensions/features/auth/mechanisms/md5"
+	_ "github.com/dotdoom/goxmpp/extensions/features/auth/mechanisms/plain"
 	_ "github.com/dotdoom/goxmpp/extensions/features/bind"
 	_ "github.com/dotdoom/goxmpp/extensions/features/compression"
 	_ "github.com/dotdoom/goxmpp/extensions/features/compression/gzip"

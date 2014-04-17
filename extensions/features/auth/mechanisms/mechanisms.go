@@ -1,6 +1,7 @@
 package mechanisms
 
 import (
+	"encoding/base64"
 	"encoding/xml"
 
 	"github.com/dotdoom/goxmpp/stream"
@@ -16,6 +17,15 @@ func init() {
 	})
 }
 
+type ChalengeElement struct {
+	XMLName xml.Name `xml:"urn:ietf:params:xml:ns:xmpp-sasl challenge"`
+	Data    string   `xml:",chardata"`
+}
+
+func NewChalengeElement(data string) ChalengeElement {
+	return ChalengeElement{Data: base64.StdEncoding.EncodeToString([]byte(data))}
+}
+
 type SuccessElement struct {
 	XMLName xml.Name `xml:"urn:ietf:params:xml:ns:xmpp-sasl success"`
 }
@@ -23,6 +33,10 @@ type SuccessElement struct {
 type ResponseElement struct {
 	XMLName xml.Name `xml:"urn:ietf:params:xml:ns:xmpp-sasl response"`
 	Data    string   `xml:",chardata"`
+}
+
+func NewResponseElement(data string) ResponseElement {
+	return ResponseElement{Data: base64.StdEncoding.EncodeToString([]byte(data))}
 }
 
 type IncorrectEncoding struct {
@@ -47,25 +61,20 @@ type Abort struct {
 
 type MechanismElement struct {
 	XMLName xml.Name `xml:"mechanism"`
-	Name    string   `xml:",chardata"`
+	Method  Method   `xml:",chardata"`
 }
 
-func newMechanismElement(name string) *MechanismElement {
-	return &MechanismElement{Name: name}
+type Method interface {
+	IsAvailable(*stream.Stream) bool
+}
+
+func NewMechanismElement(method Method) *MechanismElement {
+	return &MechanismElement{Method: method}
 }
 
 func (self *MechanismElement) CopyIfAvailable(strm *stream.Stream) elements.Element {
-	switch self.Name {
-	case "PLAIN":
-		var plain_state *PlainState
-		if err := strm.State.Get(&plain_state); err == nil {
-			return self
-		}
-	case "DIGEST-MD5":
-		var md5_state *DigestMD5State
-		if err := strm.State.Get(&md5_state); err == nil {
-			return self
-		}
+	if self.Method.IsAvailable(strm) {
+		return self
 	}
 	return nil
 }
