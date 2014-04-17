@@ -2,9 +2,7 @@ package plain
 
 import (
 	"bytes"
-	"encoding/base64"
 	"errors"
-	"log"
 
 	"github.com/dotdoom/goxmpp/extensions/features/auth"
 	"github.com/dotdoom/goxmpp/extensions/features/auth/mechanisms"
@@ -30,12 +28,8 @@ var usernamePasswordSeparator = []byte{0}
 
 func init() {
 	auth.AddMechanism("PLAIN", func(e *auth.AuthElement, stream *stream.Stream) error {
-		b, err := base64.StdEncoding.DecodeString(e.Data)
+		b, err := mechanisms.DecodeBase64(e.Data, stream)
 		if err != nil {
-			log.Println("Could not decode Base64 in Plain handler:", err)
-			if err := stream.WriteElement(auth.NewFailute(mechanisms.IncorrectEncoding{})); err != nil {
-				return err
-			}
 			return err
 		}
 		user_password := bytes.Split(b, usernamePasswordSeparator)

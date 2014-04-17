@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"crypto/md5"
 	"crypto/rand"
-	"encoding/base64"
 	"errors"
 	"fmt"
 	"log"
@@ -77,7 +76,7 @@ type Response struct {
 	AuthId    string
 }
 
-func decodeMD5Response(data []byte) *Response {
+func NewMD5ResponseFromData(data []byte) *Response {
 	resp := &Response{}
 
 	for _, param := range bytes.Split(data, []byte(",")) {
@@ -113,120 +112,7 @@ func decodeMD5Response(data []byte) *Response {
 	return resp
 }
 
-type DigestMD5State struct {
-	ValidateMD5 func(*Chalenge, *Response) bool
-	Realm       []string
-	Host        string
-}
-
-func init() {
-	auth.AddMechanism("DIGEST-MD5", func(e *auth.AuthElement, strm *stream.Stream) error {
-		var md5_state *DigestMD5State
-		if err := strm.State.Get(&md5_state); err != nil {
-			return err
-		}
-		// TODO Need to handle aborts
-
-		// First send chalenge with nonce
-		//chalenge := `realm="cataclysm.cx",nonce="OA6MG9tEQGm2hh",qop="auth",charset=utf-8,algorithm=md5-sess`
-		chalenge, err := NewChalenge(md5_state.Realm)
-		if err != nil {
-			log.Println("Could not create a chalenge")
-			return err
-		}
-		if err := strm.WriteElement(mechanisms.NewChalengeElement(chalenge.String())); err != nil {
-			return err
-		}
-
-		// Receive a response with encoded MD5
-		el, err := strm.ReadElement()
-		if err != nil {
-			return err
-		}
-
-		resp_el, ok := el.(*mechanisms.ResponseElement)
-		if !ok || resp_el.Data == "" {
-			return errors.New("Wrong response received")
-		}
-
-		// Check MD5
-		raw_resp_data, err := base64.StdEncoding.DecodeString(resp_el.Data)
-
-		log.Println("Sent chalenge", chalenge.String())
-		log.Println("Received response", string(raw_resp_data))
-		if err != nil {
-			log.Println("Could not decode Base64 in DigestMD5 handler:", err)
-			if err := strm.WriteElement(auth.NewFailute(mechanisms.IncorrectEncoding{})); err != nil {
-				return err
-			}
-			return err
-		}
-
-		resp := decodeMD5Response(raw_resp_data)
-		log.Printf("Chalenge object %#v", chalenge)
-		log.Printf("Response object %#v", resp)
-
-		if err := basicResponseCheck(chalenge, resp, md5_state); err != nil {
-			return err
-		}
-		if !md5_state.ValidateMD5(chalenge, resp) {
-			return errors.New("AUTH FAILED")
-		}
-
-		// Send response
-		if err := strm.WriteElement(mechanisms.NewChalengeElement("rspauth")); err != nil {
-			return err
-		}
-
-		el, err = strm.ReadElement()
-		if err != nil {
-			return err
-		}
-		if resp, ok := el.(*mechanisms.ResponseElement); !ok || resp.Data != "" {
-			// Need to send meaningful error to other side
-			return errors.New("Wrong response received")
-		}
-
-		if err := strm.WriteElement(mechanisms.SuccessElement{}); err != nil {
-			return err
-		}
-
-		var auth_state *auth.AuthState
-		if err := strm.State.Get(&auth_state); err != nil {
-			auth_state = &auth.AuthState{}
-			strm.State.Push(auth_state)
-		}
-
-		auth_state.UserName = resp.UserName
-
-		strm.ReOpen = true
-
-		return nil
-	})
-
-	auth.MechanismsElement.AddElement(mechanisms.NewMechanismElement(DigestMD5Element("DIGEST-MD5")))
-}
-
-func GenerateResponseHash(c *Chalenge, r *Response, password string) string {
-	x := md5.Sum([]byte(fmt.Sprintf("%s:%s:%s", r.UserName, r.Realm, password)))
-
-	start_str := fmt.Sprintf("%s:%s:%s", x, c.Nonce, r.CNonce)
-	if r.AuthId != "" {
-		start_str = fmt.Sprintf("%s:%s", start_str, r.AuthId)
-	}
-	start := md5.Sum([]byte(start_str))
-
-	end_str := fmt.Sprintf("AUTHENTICATE:%s", r.DigestURI)
-	if c.QOP == "auth-int" || c.QOP == "auth-conf" {
-		end_str += fmt.Sprintf("%s:%s", end_str, A2_AUTH_SUFFIX)
-	}
-	end := md5.Sum([]byte(end_str))
-
-	hash_str := fmt.Sprintf("%x:%s:%s:%s:%s:%x", start, c.Nonce, r.NC, r.CNonce, c.QOP, end)
-	return fmt.Sprintf("%x", md5.Sum([]byte(hash_str)))
-}
-
-func basicResponseCheck(c *Chalenge, r *Response, state *DigestMD5State) error {
+func (r *Response) Validate(c *Chalenge, state *DigestMD5State) error {
 	// TODO check authid
 	if r.Nonce != c.Nonce {
 		return errors.New("Wrong nonce replied")
@@ -247,4 +133,139 @@ func basicResponseCheck(c *Chalenge, r *Response, state *DigestMD5State) error {
 	}
 
 	return nil
+}
+
+type DigestMD5State struct {
+	ValidateMD5 func(*Chalenge, *Response) bool
+	Realm       []string
+	Host        string
+}
+
+type digestMD5Handler struct {
+	state    *DigestMD5State
+	chalenge *Chalenge
+	strm     *stream.Stream
+}
+
+func newDigestMD5Handler(state *DigestMD5State, strm *stream.Stream) (*digestMD5Handler, error) {
+
+	chalenge, err := NewChalenge(state.Realm)
+	if err != nil {
+		log.Println("Could not create a chalenge")
+		return nil, err
+	}
+
+	return &digestMD5Handler{chalenge: chalenge, state: state, strm: strm}, nil
+}
+
+func (h *digestMD5Handler) Handle() error {
+	if err := h.strm.WriteElement(mechanisms.NewChalengeElement(h.chalenge.String())); err != nil {
+		return err
+	}
+
+	// Receive a response with encoded MD5
+	resp_el, err := h.ReadResponse()
+	if err != nil {
+		return err
+	}
+
+	// Check MD5
+	raw_resp_data, err := mechanisms.DecodeBase64(resp_el.Data, h.strm)
+	if err != nil {
+		return err
+	}
+
+	log.Println("Sent chalenge", h.chalenge.String())
+	log.Println("Received response", string(raw_resp_data))
+
+	resp := NewMD5ResponseFromData(raw_resp_data)
+	log.Printf("Chalenge object %#v", h.chalenge)
+	log.Printf("Response object %#v", resp)
+
+	if err := resp.Validate(h.chalenge, h.state); err != nil {
+		return err
+	}
+	if !h.state.ValidateMD5(h.chalenge, resp) {
+		return errors.New("AUTH FAILED")
+	}
+
+	// Send response
+	if err := h.strm.WriteElement(mechanisms.NewChalengeElement("rspauth")); err != nil {
+		return err
+	}
+
+	rsp, err := h.ReadResponse()
+	if err != nil {
+		return err
+	}
+	if rsp.Data != "" {
+		return errors.New("Wrong response, expected empty response")
+	}
+
+	if err := h.strm.WriteElement(mechanisms.SuccessElement{}); err != nil {
+		return err
+	}
+
+	var auth_state *auth.AuthState
+	if err := h.strm.State.Get(&auth_state); err != nil {
+		auth_state = &auth.AuthState{}
+		h.strm.State.Push(auth_state)
+	}
+
+	auth_state.UserName = resp.UserName
+
+	h.strm.ReOpen = true
+
+	return nil
+}
+
+func (r *Response) GenerateHash(c *Chalenge, password string) string {
+	x := md5.Sum([]byte(fmt.Sprintf("%s:%s:%s", r.UserName, r.Realm, password)))
+
+	start_str := fmt.Sprintf("%s:%s:%s", x, c.Nonce, r.CNonce)
+	if r.AuthId != "" {
+		start_str = fmt.Sprintf("%s:%s", start_str, r.AuthId)
+	}
+	start := md5.Sum([]byte(start_str))
+
+	end_str := fmt.Sprintf("AUTHENTICATE:%s", r.DigestURI)
+	if c.QOP == "auth-int" || c.QOP == "auth-conf" {
+		end_str += fmt.Sprintf("%s:%s", end_str, A2_AUTH_SUFFIX)
+	}
+	end := md5.Sum([]byte(end_str))
+
+	hash_str := fmt.Sprintf("%x:%s:%s:%s:%s:%x", start, c.Nonce, r.NC, r.CNonce, c.QOP, end)
+	return fmt.Sprintf("%x", md5.Sum([]byte(hash_str)))
+}
+
+func (h *digestMD5Handler) ReadResponse() (*mechanisms.ResponseElement, error) {
+	el, err := h.strm.ReadElement()
+	if err != nil {
+		return nil, err
+	}
+
+	resp, ok := el.(*mechanisms.ResponseElement)
+	if !ok {
+		// Need to send meaningful error to other side
+		return nil, errors.New("Wrong response received")
+	}
+
+	return resp, nil
+}
+
+func init() {
+	auth.AddMechanism("DIGEST-MD5", func(e *auth.AuthElement, strm *stream.Stream) error {
+		var state *DigestMD5State
+		if err := strm.State.Get(&state); err != nil {
+			return nil
+		}
+		handler, err := newDigestMD5Handler(state, strm)
+		if err != nil {
+			return err
+		}
+
+		return handler.Handle()
+	})
+
+	auth.MechanismsElement.AddElement(mechanisms.NewMechanismElement(DigestMD5Element("DIGEST-MD5")))
 }

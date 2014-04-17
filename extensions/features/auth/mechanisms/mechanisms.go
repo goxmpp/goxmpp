@@ -3,7 +3,9 @@ package mechanisms
 import (
 	"encoding/base64"
 	"encoding/xml"
+	"log"
 
+	"github.com/dotdoom/goxmpp/extensions/features/auth"
 	"github.com/dotdoom/goxmpp/stream"
 	"github.com/dotdoom/goxmpp/stream/elements"
 )
@@ -77,4 +79,17 @@ func (self *MechanismElement) CopyIfAvailable(strm *stream.Stream) elements.Elem
 		return self
 	}
 	return nil
+}
+
+func DecodeBase64(data string, strm *stream.Stream) ([]byte, error) {
+	raw_data, err := base64.StdEncoding.DecodeString(data)
+
+	if err != nil {
+		log.Println("Could not decode Base64 in DigestMD5 handler:", err)
+		if err := strm.WriteElement(auth.NewFailute(IncorrectEncoding{})); err != nil {
+			return raw_data, err
+		}
+	}
+
+	return raw_data, err
 }
