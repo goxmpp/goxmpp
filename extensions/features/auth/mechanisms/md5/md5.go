@@ -26,7 +26,7 @@ func (md5 DigestMD5Element) IsAvailable(strm *stream.Stream) bool {
 	return false
 }
 
-type Chalenge struct {
+type Challenge struct {
 	Realm     []string
 	Nonce     string
 	QOP       string
@@ -34,12 +34,12 @@ type Chalenge struct {
 	Algorithm string
 }
 
-func NewChalenge(realm []string) (*Chalenge, error) {
+func NewChallenge(realm []string) (*Challenge, error) {
 	nonce := make([]byte, 14)
 	if _, err := rand.Read(nonce); err != nil {
 		return nil, err
 	}
-	return &Chalenge{
+	return &Challenge{
 		Realm:     realm,
 		Nonce:     fmt.Sprintf("%x", nonce),
 		QOP:       "auth",
@@ -47,7 +47,7 @@ func NewChalenge(realm []string) (*Chalenge, error) {
 	}, nil
 }
 
-func (c *Chalenge) String() string {
+func (c *Challenge) String() string {
 	str := []string{fmt.Sprintf("nonce=\"%s\"", c.Nonce), fmt.Sprintf("algorithm=\"%s\"", c.Algorithm)}
 	for _, realm := range c.Realm {
 		str = append(str, fmt.Sprintf("realm=\"%s\"", realm))
@@ -112,7 +112,7 @@ func NewMD5ResponseFromData(data []byte) *Response {
 	return resp
 }
 
-func (r *Response) Validate(c *Chalenge, state *DigestMD5State) error {
+func (r *Response) Validate(c *Challenge, state *DigestMD5State) error {
 	// TODO check authid
 	if r.Nonce != c.Nonce {
 		return errors.New("Wrong nonce replied")
@@ -136,20 +136,20 @@ func (r *Response) Validate(c *Chalenge, state *DigestMD5State) error {
 }
 
 type DigestMD5State struct {
-	ValidateMD5 func(*Chalenge, *Response) bool
+	ValidateMD5 func(*Challenge, *Response) bool
 	Realm       []string
 	Host        string
 }
 
 type digestMD5Handler struct {
 	state    *DigestMD5State
-	chalenge *Chalenge
+	chalenge *Challenge
 	strm     *stream.Stream
 }
 
 func newDigestMD5Handler(state *DigestMD5State, strm *stream.Stream) (*digestMD5Handler, error) {
 
-	chalenge, err := NewChalenge(state.Realm)
+	chalenge, err := NewChallenge(state.Realm)
 	if err != nil {
 		log.Println("Could not create a chalenge")
 		return nil, err
@@ -159,7 +159,7 @@ func newDigestMD5Handler(state *DigestMD5State, strm *stream.Stream) (*digestMD5
 }
 
 func (h *digestMD5Handler) Handle() error {
-	if err := h.strm.WriteElement(mechanisms.NewChalengeElement(h.chalenge.String())); err != nil {
+	if err := h.strm.WriteElement(mechanisms.NewChallengeElement(h.chalenge.String())); err != nil {
 		return err
 	}
 
@@ -179,7 +179,7 @@ func (h *digestMD5Handler) Handle() error {
 	log.Println("Received response", string(raw_resp_data))
 
 	resp := NewMD5ResponseFromData(raw_resp_data)
-	log.Printf("Chalenge object %#v", h.chalenge)
+	log.Printf("Challenge object %#v", h.chalenge)
 	log.Printf("Response object %#v", resp)
 
 	if err := resp.Validate(h.chalenge, h.state); err != nil {
@@ -190,7 +190,7 @@ func (h *digestMD5Handler) Handle() error {
 	}
 
 	// Send response
-	if err := h.strm.WriteElement(mechanisms.NewChalengeElement("rspauth")); err != nil {
+	if err := h.strm.WriteElement(mechanisms.NewChallengeElement("rspauth")); err != nil {
 		return err
 	}
 
@@ -219,7 +219,7 @@ func (h *digestMD5Handler) Handle() error {
 	return nil
 }
 
-func (r *Response) GenerateHash(c *Chalenge, password string) string {
+func (r *Response) GenerateHash(c *Challenge, password string) string {
 	x := md5.Sum([]byte(fmt.Sprintf("%s:%s:%s", r.UserName, r.Realm, password)))
 
 	start_str := fmt.Sprintf("%s:%s:%s", x, c.Nonce, r.CNonce)

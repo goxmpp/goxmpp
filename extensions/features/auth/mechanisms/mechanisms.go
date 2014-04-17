@@ -19,13 +19,13 @@ func init() {
 	})
 }
 
-type ChalengeElement struct {
+type ChallengeElement struct {
 	XMLName xml.Name `xml:"urn:ietf:params:xml:ns:xmpp-sasl challenge"`
 	Data    string   `xml:",chardata"`
 }
 
-func NewChalengeElement(data string) ChalengeElement {
-	return ChalengeElement{Data: base64.StdEncoding.EncodeToString([]byte(data))}
+func NewChallengeElement(data string) ChallengeElement {
+	return ChallengeElement{Data: base64.StdEncoding.EncodeToString([]byte(data))}
 }
 
 type SuccessElement struct {
