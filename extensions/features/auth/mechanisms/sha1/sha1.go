@@ -30,7 +30,7 @@ func (sha SHAElement) IsAvailable(strm *stream.Stream) bool {
 
 type ClientAuth struct {
 	Binding  string
-	Nonce    string
+	Nonce    []byte
 	UserName string
 }
 
@@ -41,7 +41,7 @@ func NewClientAuth(username, binding string) (*ClientAuth, error) {
 	}
 
 	return &ClientAuth{
-		Nonce:    string(nonce),
+		Nonce:    nonce,
 		UserName: username,
 		Binding:  binding,
 	}, nil
@@ -50,6 +50,8 @@ func NewClientAuth(username, binding string) (*ClientAuth, error) {
 func NewClientAuthFromData(client_auth string) (*ClientAuth, error) {
 	ca := &ClientAuth{}
 
+	log.Println("Client auth string", client_auth)
+
 	if err := CheckSCRAMString(client_auth); err != nil {
 		return nil, err
 	}
@@ -57,7 +59,7 @@ func NewClientAuthFromData(client_auth string) (*ClientAuth, error) {
 	tokens := strings.Split(client_auth, ",")
 	binding := []string{}
 	for _, tok := range tokens {
-		if tok[1] != '=' {
+		if len(tok) <= 1 || tok[1] != '=' {
 			binding = append(binding, tok)
 		} else {
 			kv := strings.SplitN(tok, "=", 2)
@@ -65,16 +67,23 @@ func NewClientAuthFromData(client_auth string) (*ClientAuth, error) {
 			case "n":
 				ca.UserName = kv[1]
 			case "r":
-				ca.Nonce = kv[1]
+				log.Println("Nonce from auth string", kv[1])
+				nonce, err := base64.StdEncoding.DecodeString(kv[1])
+				if err != nil {
+					return nil, err
+				}
+				ca.Nonce = nonce
 			}
 		}
 	}
 	ca.Binding = strings.Join(binding, ",")
+
+	log.Printf("%#v", ca)
 	return ca, nil
 }
 
 func (ca *ClientAuth) String() string {
-	return fmt.Sprintf("%s,n=%s,r=%s", ca.Binding, ca.UserName, ca.Nonce)
+	return fmt.Sprintf("%s,n=%s,r=%s", ca.Binding, ca.UserName, base64.StdEncoding.EncodeToString(ca.Nonce))
 }
 
 func CheckSCRAMString(scram string) error {
@@ -86,11 +95,11 @@ func CheckSCRAMString(scram string) error {
 
 type Challenge struct {
 	Iterations int    // Iterations count
-	Nonce      string // Client's + server's
+	Nonce      []byte // Client's + server's
 	Salt       []byte // Encoded in Base64
 }
 
-func NewChallenge(base_nonce string) (*Challenge, error) {
+func NewChallenge(base_nonce []byte) (*Challenge, error) {
 	nonce := make([]byte, 50)
 	if _, err := rand.Read(nonce); err != nil {
 		return nil, err
@@ -103,7 +112,7 @@ func NewChallenge(base_nonce string) (*Challenge, error) {
 	mrand.Seed(time.Now().UnixNano())
 
 	return &Challenge{
-		Nonce:      fmt.Sprintf("%s%x", base_nonce, nonce),
+		Nonce:      append(base_nonce, nonce...),
 		Salt:       salt,
 		Iterations: 1024 + mrand.Intn(9000-1024),
 	}, nil
@@ -111,15 +120,15 @@ func NewChallenge(base_nonce string) (*Challenge, error) {
 
 func (c *Challenge) String() string {
 	return strings.Join([]string{
-		fmt.Sprintf("r=%s", c.Nonce),
+		fmt.Sprintf("r=%s", base64.StdEncoding.EncodeToString(c.Nonce)),
 		fmt.Sprintf("s=%s", base64.StdEncoding.EncodeToString(c.Salt)),
-		fmt.Sprintf("i=%i", c.Iterations),
+		fmt.Sprintf("i=%d", c.Iterations),
 	}, ",")
 }
 
 type Response struct {
-	Nonce      string
-	Proof      string
+	Nonce      []byte
+	Proof      []byte
 	Binding    string // Base64 encoded
 	server_sig []byte
 }
@@ -131,15 +140,26 @@ func NewSHAResponseFromData(data []byte) (*Response, error) {
 
 	resp := &Response{}
 	for _, token := range bytes.Split(data, []byte(",")) {
-		kv := bytes.Split(token, []byte("="))
+		kv := bytes.SplitN(token, []byte("="), 2)
 		val := string(kv[1])
 		switch string(kv[0]) {
 		case "c":
 			resp.Binding = val
 		case "r":
-			resp.Nonce = val
+			log.Println("Raw nonce", val)
+			nonce, err := base64.StdEncoding.DecodeString(val)
+			if err != nil {
+				log.Println("Could not decode nonce")
+				return nil, err
+			}
+			resp.Nonce = nonce
 		case "p":
-			resp.Proof = val
+			proof, err := base64.StdEncoding.DecodeString(val)
+			if err != nil {
+				log.Println("Could not decode proof")
+				return nil, err
+			}
+			resp.Proof = proof
 		}
 	}
 
@@ -156,23 +176,23 @@ type SHAState struct {
 }
 
 type shaHandler struct {
-	state       *SHAState
 	challenge   *Challenge
 	client_auth *ClientAuth
 	strm        *stream.Stream
 }
 
-func newSHAHandler(state *SHAState, strm *stream.Stream, client_auth *ClientAuth) (*shaHandler, error) {
+func newSHAHandler(strm *stream.Stream, client_auth *ClientAuth) (*shaHandler, error) {
 	challenge, err := NewChallenge(client_auth.Nonce)
 	if err != nil {
 		log.Println("Could not create a challenge")
 		return nil, err
 	}
 
-	return &shaHandler{challenge: challenge, state: state, strm: strm, client_auth: client_auth}, nil
+	return &shaHandler{challenge: challenge, strm: strm, client_auth: client_auth}, nil
 }
 
 func (h *shaHandler) Handle() error {
+	log.Println("Sending challenge", h.challenge)
 	if err := h.strm.WriteElement(mechanisms.NewChallengeElement(h.challenge.String())); err != nil {
 		return err
 	}
@@ -194,15 +214,23 @@ func (h *shaHandler) Handle() error {
 
 	resp, err := NewSHAResponseFromData(raw_resp_data)
 	if err != nil {
-		return nil
+		return err
 	}
 	log.Printf("Challenge object %#v", h.challenge)
 	log.Printf("Response object %#v", resp)
 
-	if err := resp.Validate(h.challenge, h.state); err != nil {
+	//if err := resp.Validate(h.challenge); err != nil {
+	//	return err
+	//}
+	var auth_state *auth.AuthState
+	if err := h.strm.State.Get(&auth_state); err != nil {
+		log.Println("Could not get auth state")
 		return err
 	}
-	if !h.state.Validate(h.challenge, resp) {
+	proof := resp.GenerateProof(h.challenge, h.client_auth, auth_state.GetPasswordByUserName(h.client_auth.UserName))
+	log.Println("Expected proof", proof)
+	log.Println("     Got proof", resp.Proof)
+	if fmt.Sprintf("%x", proof) != fmt.Sprintf("%x", resp.Proof) {
 		return errors.New("AUTH FAILED")
 	}
 
@@ -211,11 +239,8 @@ func (h *shaHandler) Handle() error {
 		return err
 	}
 
-	var auth_state *auth.AuthState
-	if err := h.strm.State.Get(&auth_state); err != nil {
-		auth_state = &auth.AuthState{}
-		h.strm.State.Push(auth_state)
-	}
+	auth_state = &auth.AuthState{}
+	h.strm.State.Push(auth_state)
 
 	auth_state.UserName = h.client_auth.UserName
 
@@ -238,7 +263,6 @@ func (c *Challenge) SaltPassword(password string) []byte {
 	prev = append(prev, result...)
 
 	for i := 0; i < c.Iterations; i++ {
-		mac.Reset()
 		mac.Write(prev)
 		tmp := mac.Sum(nil)
 
@@ -291,20 +315,26 @@ func byteXOR(left, right []byte) []byte {
 }
 
 func (r *Response) GetAuthMessage(c *Challenge, ca *ClientAuth) string {
-	return fmt.Sprintf("n=%s,r=%s,%s,c=%s,r=%s", ca.UserName, ca.Nonce, c.String(), r.Binding, c.Nonce)
+	return fmt.Sprintf("n=%s,r=%s,%s,c=%s,r=%s", ca.UserName, base64.StdEncoding.EncodeToString(ca.Nonce),
+		c.String(),
+		r.Binding, base64.StdEncoding.EncodeToString(r.Nonce))
 }
 
-func (r *Response) GenerateProof(c *Challenge, ca *ClientAuth, password string) string {
+func (r *Response) GenerateProof(c *Challenge, ca *ClientAuth, password string) []byte {
+	log.Println("Password", password)
 	salted_pwd := c.SaltPassword(password)
 
 	// Get Client and Server Keys
 	clientk := GetClientKey(salted_pwd)
+	log.Println("Client key", clientk)
 
 	// Get Stored Key
 	storek := sha1.Sum(clientk)
 
 	// Build Auth Message
 	auth := r.GetAuthMessage(c, ca)
+
+	log.Println("Auth string", auth)
 
 	client_sig := GetClientSignature(auth, storek[:])
 
@@ -313,14 +343,15 @@ func (r *Response) GenerateProof(c *Challenge, ca *ClientAuth, password string) 
 
 	r.server_sig = GetServerSignature(auth, GetServerKey(salted_pwd))
 
-	return string(client_proof)
+	return client_proof
 }
 
 func init() {
 	auth.AddMechanism("SCRAM-SHA-1", func(e *auth.AuthElement, strm *stream.Stream) error {
 		var state *SHAState
 		if err := strm.State.Get(&state); err != nil {
-			return nil
+			log.Println("SCRAM-SHA-1 is not available but tried to be used")
+			return err
 		}
 
 		auth_data, err := mechanisms.DecodeBase64(e.Data, strm)
@@ -333,7 +364,7 @@ func init() {
 			return err
 		}
 
-		handler, err := newSHAHandler(state, strm, client_auth)
+		handler, err := newSHAHandler(strm, client_auth)
 		if err != nil {
 			return err
 		}

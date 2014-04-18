@@ -242,7 +242,7 @@ func init() {
 	auth.AddMechanism("DIGEST-MD5", func(e *auth.AuthElement, strm *stream.Stream) error {
 		var state *DigestMD5State
 		if err := strm.State.Get(&state); err != nil {
-			return nil
+			return err
 		}
 		handler, err := newDigestMD5Handler(state, strm)
 		if err != nil {
