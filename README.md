@@ -9,7 +9,7 @@ However since this is a widely used feature, it is implemented in goxmpp.
 RFC 6120: XMPP CORE                       In progress
   XML Streams                             Yes
   STARTTLS Negotiation                    Yes
-  SASL Negotiation                        No
+  SASL Negotiation                        In progress
   Resource Binding                        Yes
   XML Stanzas                             In progress
 RFC 6121: XMPP IM                         In progress
