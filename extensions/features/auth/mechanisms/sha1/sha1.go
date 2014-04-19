@@ -18,6 +18,8 @@ import (
 	"github.com/dotdoom/goxmpp/stream"
 )
 
+const MIN_ITERS = 4096
+
 type SHAElement string
 
 func (sha SHAElement) IsAvailable(strm *stream.Stream) bool {
@@ -30,7 +32,7 @@ func (sha SHAElement) IsAvailable(strm *stream.Stream) bool {
 
 type ClientAuth struct {
 	Binding  string
-	Nonce    []byte
+	Nonce    string
 	UserName string
 }
 
@@ -41,7 +43,7 @@ func NewClientAuth(username, binding string) (*ClientAuth, error) {
 	}
 
 	return &ClientAuth{
-		Nonce:    nonce,
+		Nonce:    fmt.Sprintf("%x", nonce),
 		UserName: username,
 		Binding:  binding,
 	}, nil
@@ -65,14 +67,11 @@ func NewClientAuthFromData(client_auth string) (*ClientAuth, error) {
 			kv := strings.SplitN(tok, "=", 2)
 			switch kv[0] {
 			case "n":
+				// TODO add username normalization
 				ca.UserName = kv[1]
 			case "r":
 				log.Println("Nonce from auth string", kv[1])
-				nonce, err := base64.StdEncoding.DecodeString(kv[1])
-				if err != nil {
-					return nil, err
-				}
-				ca.Nonce = nonce
+				ca.Nonce = kv[1]
 			}
 		}
 	}
@@ -83,7 +82,11 @@ func NewClientAuthFromData(client_auth string) (*ClientAuth, error) {
 }
 
 func (ca *ClientAuth) String() string {
-	return fmt.Sprintf("%s,n=%s,r=%s", ca.Binding, ca.UserName, base64.StdEncoding.EncodeToString(ca.Nonce))
+	return strings.Join([]string{ca.Binding, ca.BareClientFirst()}, ",")
+}
+
+func (ca *ClientAuth) BareClientFirst() string {
+	return fmt.Sprintf("n=%s,r=%s", ca.UserName, ca.Nonce)
 }
 
 func CheckSCRAMString(scram string) error {
@@ -95,12 +98,12 @@ func CheckSCRAMString(scram string) error {
 
 type Challenge struct {
 	Iterations int    // Iterations count
-	Nonce      []byte // Client's + server's
+	Nonce      string // client nonce + our nonce
 	Salt       []byte // Encoded in Base64
 }
 
-func NewChallenge(base_nonce []byte) (*Challenge, error) {
-	nonce := make([]byte, 50)
+func NewChallenge(base_nonce string) (*Challenge, error) {
+	nonce := make([]byte, 30)
 	if _, err := rand.Read(nonce); err != nil {
 		return nil, err
 	}
@@ -112,22 +115,22 @@ func NewChallenge(base_nonce []byte) (*Challenge, error) {
 	mrand.Seed(time.Now().UnixNano())
 
 	return &Challenge{
-		Nonce:      append(base_nonce, nonce...),
+		Nonce:      fmt.Sprintf("%s%x", base_nonce, nonce),
 		Salt:       salt,
-		Iterations: 1024 + mrand.Intn(9000-1024),
+		Iterations: MIN_ITERS + mrand.Intn(9000-MIN_ITERS),
 	}, nil
 }
 
 func (c *Challenge) String() string {
 	return strings.Join([]string{
-		fmt.Sprintf("r=%s", base64.StdEncoding.EncodeToString(c.Nonce)),
+		fmt.Sprintf("r=%s", c.Nonce),
 		fmt.Sprintf("s=%s", base64.StdEncoding.EncodeToString(c.Salt)),
 		fmt.Sprintf("i=%d", c.Iterations),
 	}, ",")
 }
 
 type Response struct {
-	Nonce      []byte
+	Nonce      string
 	Proof      []byte
 	Binding    string // Base64 encoded
 	server_sig []byte
@@ -147,12 +150,7 @@ func NewSHAResponseFromData(data []byte) (*Response, error) {
 			resp.Binding = val
 		case "r":
 			log.Println("Raw nonce", val)
-			nonce, err := base64.StdEncoding.DecodeString(val)
-			if err != nil {
-				log.Println("Could not decode nonce")
-				return nil, err
-			}
-			resp.Nonce = nonce
+			resp.Nonce = val
 		case "p":
 			proof, err := base64.StdEncoding.DecodeString(val)
 			if err != nil {
@@ -164,6 +162,14 @@ func NewSHAResponseFromData(data []byte) (*Response, error) {
 	}
 
 	return resp, nil
+}
+
+func (r *Response) String() string {
+	return fmt.Sprintf("%s,p=%s", r.MessageNoProof(), base64.StdEncoding.EncodeToString(r.Proof))
+}
+
+func (r *Response) MessageNoProof() string {
+	return fmt.Sprintf("c=%s,r=%s", r.Binding, r.Nonce)
 }
 
 func (r *Response) Validate(c *Challenge, state *SHAState) error {
@@ -230,12 +236,13 @@ func (h *shaHandler) Handle() error {
 	proof := resp.GenerateProof(h.challenge, h.client_auth, auth_state.GetPasswordByUserName(h.client_auth.UserName))
 	log.Println("Expected proof", proof)
 	log.Println("     Got proof", resp.Proof)
-	if fmt.Sprintf("%x", proof) != fmt.Sprintf("%x", resp.Proof) {
+	if !resp.CheckProof(h.challenge, h.client_auth, auth_state.GetPasswordByUserName(h.client_auth.UserName)) {
 		return errors.New("AUTH FAILED")
 	}
 
 	// Send response
 	if err := h.strm.WriteElement(mechanisms.NewSuccessElement(GetServerSignatureMessage(resp.server_sig))); err != nil {
+		log.Println("Could not write signature")
 		return err
 	}
 
@@ -262,7 +269,8 @@ func (c *Challenge) SaltPassword(password string) []byte {
 	prev := make([]byte, 0, len(result))
 	prev = append(prev, result...)
 
-	for i := 0; i < c.Iterations; i++ {
+	for i := 1; i < c.Iterations; i++ {
+		mac.Reset()
 		mac.Write(prev)
 		tmp := mac.Sum(nil)
 
@@ -315,9 +323,7 @@ func byteXOR(left, right []byte) []byte {
 }
 
 func (r *Response) GetAuthMessage(c *Challenge, ca *ClientAuth) string {
-	return fmt.Sprintf("n=%s,r=%s,%s,c=%s,r=%s", ca.UserName, base64.StdEncoding.EncodeToString(ca.Nonce),
-		c.String(),
-		r.Binding, base64.StdEncoding.EncodeToString(r.Nonce))
+	return strings.Join([]string{ca.BareClientFirst(), c.String(), r.MessageNoProof()}, ",")
 }
 
 func (r *Response) GenerateProof(c *Challenge, ca *ClientAuth, password string) []byte {
@@ -344,6 +350,32 @@ func (r *Response) GenerateProof(c *Challenge, ca *ClientAuth, password string) 
 	r.server_sig = GetServerSignature(auth, GetServerKey(salted_pwd))
 
 	return client_proof
+}
+
+func (r *Response) CheckProof(c *Challenge, ca *ClientAuth, password string) bool {
+	log.Println("Password", password)
+	salted_pwd := c.SaltPassword(password)
+
+	// Get Client and Server Keys
+	clientk := GetClientKey(salted_pwd)
+	log.Println("Client key", clientk)
+
+	// Get Stored Key
+	storek := sha1.Sum(clientk)
+
+	// Build Auth Message
+	auth := r.GetAuthMessage(c, ca)
+
+	log.Println("Auth string", auth)
+
+	client_sig := GetClientSignature(auth, storek[:])
+
+	rck := byteXOR(client_sig, r.Proof)
+	r.server_sig = GetServerSignature(auth, GetServerKey(salted_pwd))
+
+	log.Printf("%x", sha1.Sum(rck))
+	log.Printf("%x", storek)
+	return fmt.Sprintf("%x", sha1.Sum(rck)) == fmt.Sprintf("%x", storek)
 }
 
 func init() {
