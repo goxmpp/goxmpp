@@ -164,7 +164,7 @@ func (h *digestMD5Handler) Handle() error {
 	}
 
 	// Receive a response with encoded MD5
-	resp_el, err := h.ReadResponse()
+	resp_el, err := mechanisms.ReadResponse(h.strm)
 	if err != nil {
 		return err
 	}
@@ -194,7 +194,7 @@ func (h *digestMD5Handler) Handle() error {
 		return err
 	}
 
-	rsp, err := h.ReadResponse()
+	rsp, err := mechanisms.ReadResponse(h.strm)
 	if err != nil {
 		return err
 	}
@@ -238,26 +238,11 @@ func (r *Response) GenerateHash(c *Challenge, password string) string {
 	return fmt.Sprintf("%x", md5.Sum([]byte(hash_str)))
 }
 
-func (h *digestMD5Handler) ReadResponse() (*mechanisms.ResponseElement, error) {
-	el, err := h.strm.ReadElement()
-	if err != nil {
-		return nil, err
-	}
-
-	resp, ok := el.(*mechanisms.ResponseElement)
-	if !ok {
-		// Need to send meaningful error to other side
-		return nil, errors.New("Wrong response received")
-	}
-
-	return resp, nil
-}
-
 func init() {
 	auth.AddMechanism("DIGEST-MD5", func(e *auth.AuthElement, strm *stream.Stream) error {
 		var state *DigestMD5State
 		if err := strm.State.Get(&state); err != nil {
-			return nil
+			return err
 		}
 		handler, err := newDigestMD5Handler(state, strm)
 		if err != nil {

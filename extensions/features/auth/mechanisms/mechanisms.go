@@ -3,6 +3,7 @@ package mechanisms
 import (
 	"encoding/base64"
 	"encoding/xml"
+	"errors"
 	"log"
 
 	"github.com/dotdoom/goxmpp/extensions/features/auth"
@@ -30,6 +31,11 @@ func NewChallengeElement(data string) ChallengeElement {
 
 type SuccessElement struct {
 	XMLName xml.Name `xml:"urn:ietf:params:xml:ns:xmpp-sasl success"`
+	Data    string   `xml:",chardata"`
+}
+
+func NewSuccessElement(data string) SuccessElement {
+	return SuccessElement{Data: base64.StdEncoding.EncodeToString([]byte(data))}
 }
 
 type ResponseElement struct {
@@ -39,6 +45,21 @@ type ResponseElement struct {
 
 func NewResponseElement(data string) ResponseElement {
 	return ResponseElement{Data: base64.StdEncoding.EncodeToString([]byte(data))}
+}
+
+func ReadResponse(strm *stream.Stream) (*ResponseElement, error) {
+	el, err := strm.ReadElement()
+	if err != nil {
+		return nil, err
+	}
+
+	resp, ok := el.(*ResponseElement)
+	if !ok {
+		// Need to send meaningful error to other side
+		return nil, errors.New("Wrong response received")
+	}
+
+	return resp, nil
 }
 
 type IncorrectEncoding struct {
