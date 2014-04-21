@@ -24,7 +24,7 @@ type SHAElement string
 
 func (sha SHAElement) IsAvailable(strm *stream.Stream) bool {
 	var state *SHAState
-	if err := strm.State.Get(&state); err == nil {
+	if err := strm.State.Get(&state); err == nil && !state.Authenticated {
 		return true
 	}
 	return false
@@ -178,7 +178,7 @@ func (r *Response) Validate(c *Challenge, state *SHAState) error {
 }
 
 type SHAState struct {
-	Validate func(*Challenge, *Response) bool
+	Authenticated bool
 }
 
 type shaHandler struct {
@@ -230,8 +230,8 @@ func (h *shaHandler) Handle() error {
 	//}
 	var auth_state *auth.AuthState
 	if err := h.strm.State.Get(&auth_state); err != nil {
-		log.Println("Could not get auth state")
-		return err
+		auth_state = &auth.AuthState{}
+		h.strm.State.Push(auth_state)
 	}
 	proof := resp.GenerateProof(h.challenge, h.client_auth, auth_state.GetPasswordByUserName(h.client_auth.UserName))
 	log.Println("Expected proof", proof)
@@ -246,10 +246,13 @@ func (h *shaHandler) Handle() error {
 		return err
 	}
 
-	auth_state = &auth.AuthState{}
-	h.strm.State.Push(auth_state)
-
 	auth_state.UserName = h.client_auth.UserName
+
+	var state *SHAState
+	if err := h.strm.State.Get(&state); err != nil {
+		return err
+	}
+	state.Authenticated = true
 
 	h.strm.ReOpen = true
 
