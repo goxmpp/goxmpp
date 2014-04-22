@@ -66,7 +66,7 @@ func (h *shaHandler) Handle() error {
 	}
 
 	// Send response
-	if err := h.strm.WriteElement(mechanisms.NewSuccessElement(h.scram.ServerReply())); err != nil {
+	if err := h.strm.WriteElement(mechanisms.NewSuccessElement(h.scram.ServerFinal())); err != nil {
 		log.Println("Could not write signature")
 		return err
 	}
