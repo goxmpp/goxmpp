@@ -2,7 +2,6 @@ package sha1
 
 import (
 	"crypto/sha1"
-	"errors"
 	"log"
 
 	"github.com/azhavnerchik/sasl/scram"
@@ -55,14 +54,8 @@ func (h *shaHandler) Handle() error {
 		return err
 	}
 
-	proof, err := scram.ExtractProof(raw_resp_data)
-	if err != nil {
-		log.Println("Could not parse response")
+	if err := h.scram.CheckClientFinal(raw_resp_data); err != nil {
 		return err
-	}
-	log.Println()
-	if !h.scram.CheckProof(proof) {
-		return errors.New("AUTH FAILED")
 	}
 
 	// Send response

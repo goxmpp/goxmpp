@@ -25,8 +25,8 @@ type ChallengeElement struct {
 	Data    string   `xml:",chardata"`
 }
 
-func NewChallengeElement(data string) ChallengeElement {
-	return ChallengeElement{Data: base64.StdEncoding.EncodeToString([]byte(data))}
+func NewChallengeElement(data []byte) ChallengeElement {
+	return ChallengeElement{Data: base64.StdEncoding.EncodeToString(data)}
 }
 
 type SuccessElement struct {
@@ -34,8 +34,8 @@ type SuccessElement struct {
 	Data    string   `xml:",chardata"`
 }
 
-func NewSuccessElement(data string) SuccessElement {
-	return SuccessElement{Data: base64.StdEncoding.EncodeToString([]byte(data))}
+func NewSuccessElement(data []byte) SuccessElement {
+	return SuccessElement{Data: base64.StdEncoding.EncodeToString(data)}
 }
 
 type ResponseElement struct {

@@ -159,7 +159,7 @@ func newDigestMD5Handler(state *DigestMD5State, strm *stream.Stream) (*digestMD5
 }
 
 func (h *digestMD5Handler) Handle() error {
-	if err := h.strm.WriteElement(mechanisms.NewChallengeElement(h.challenge.String())); err != nil {
+	if err := h.strm.WriteElement(mechanisms.NewChallengeElement([]byte(h.challenge.String()))); err != nil {
 		return err
 	}
 
@@ -190,7 +190,7 @@ func (h *digestMD5Handler) Handle() error {
 	}
 
 	// Send response
-	if err := h.strm.WriteElement(mechanisms.NewChallengeElement("rspauth")); err != nil {
+	if err := h.strm.WriteElement(mechanisms.NewChallengeElement([]byte("rspauth"))); err != nil {
 		return err
 	}
 
