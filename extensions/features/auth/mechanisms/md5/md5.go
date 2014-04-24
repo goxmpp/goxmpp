@@ -31,7 +31,10 @@ type digestMD5Handler struct {
 }
 
 func newDigestMD5Handler(state *DigestMD5State, strm *stream.Stream) (*digestMD5Handler, error) {
-	return &digestMD5Handler{md5: md5.New(state.Realm, "md5-sess"), state: state, strm: strm}, nil
+	md5 := md5.New()
+	md5.SetRealm(state.Realm...)
+	md5.SetQOP("auth")
+	return &digestMD5Handler{md5: md5, state: state, strm: strm}, nil
 }
 
 func (h *digestMD5Handler) Handle() error {
