@@ -3,7 +3,7 @@ package md5
 import (
 	"errors"
 
-	"github.com/azhavnerchik/sasl/md5"
+	"github.com/azhavnerchik/sasl/digest"
 	"github.com/dotdoom/goxmpp/extensions/features/auth"
 	"github.com/dotdoom/goxmpp/extensions/features/auth/mechanisms"
 	"github.com/dotdoom/goxmpp/stream"
@@ -27,13 +27,11 @@ type DigestMD5State struct {
 type digestMD5Handler struct {
 	state *DigestMD5State
 	strm  *stream.Stream
-	md5   *md5.MD5
+	md5   *digest.Server
 }
 
 func newDigestMD5Handler(state *DigestMD5State, strm *stream.Stream) (*digestMD5Handler, error) {
-	md5 := md5.New()
-	md5.SetRealm(state.Realm...)
-	md5.SetQOP("auth")
+	md5 := digest.NewServer(&digest.Options{Realms: state.Realm, QOPs: []string{"auth"}})
 	return &digestMD5Handler{md5: md5, state: state, strm: strm}, nil
 }
 
@@ -43,6 +41,7 @@ func (h *digestMD5Handler) Handle() error {
 		auth_state = &auth.AuthState{}
 		h.strm.State.Push(auth_state)
 	}
+
 	if err := h.strm.WriteElement(mechanisms.NewChallengeElement(h.md5.Challenge())); err != nil {
 		return err
 	}

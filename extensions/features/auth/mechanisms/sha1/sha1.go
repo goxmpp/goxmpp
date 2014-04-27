@@ -27,18 +27,18 @@ type SHAState struct {
 }
 
 type shaHandler struct {
-	scram     *scram.Scram
+	scram     *scram.Server
 	strm      *stream.Stream
 	authState *auth.AuthState
 	shaState  *SHAState
 }
 
-func newSHAHandler(strm *stream.Stream, scram *scram.Scram, astate *auth.AuthState, sstate *SHAState) *shaHandler {
+func newSHAHandler(strm *stream.Stream, scram *scram.Server, astate *auth.AuthState, sstate *SHAState) *shaHandler {
 	return &shaHandler{strm: strm, scram: scram, authState: astate, shaState: sstate}
 }
 
 func (h *shaHandler) Handle() error {
-	if err := h.strm.WriteElement(mechanisms.NewChallengeElement(h.scram.ServerFirst())); err != nil {
+	if err := h.strm.WriteElement(mechanisms.NewChallengeElement(h.scram.First())); err != nil {
 		return err
 	}
 
@@ -59,7 +59,7 @@ func (h *shaHandler) Handle() error {
 	}
 
 	// Send response
-	if err := h.strm.WriteElement(mechanisms.NewSuccessElement(h.scram.ServerFinal())); err != nil {
+	if err := h.strm.WriteElement(mechanisms.NewSuccessElement(h.scram.Final())); err != nil {
 		log.Println("Could not write signature")
 		return err
 	}
@@ -92,7 +92,7 @@ func init() {
 			return err
 		}
 
-		scram := scram.New(sha1.New, false, nil)
+		scram := scram.NewServer(sha1.New, nil)
 		if err := scram.ParseClientFirst(auth_data); err != nil {
 			return err
 		}
