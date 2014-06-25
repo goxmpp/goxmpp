@@ -4,11 +4,11 @@ import (
 	"encoding/xml"
 	"log"
 
-	"github.com/dotdoom/goxmpp/extensions/features/bind"
-	"github.com/dotdoom/goxmpp/stream"
-	"github.com/dotdoom/goxmpp/stream/elements"
-	"github.com/dotdoom/goxmpp/stream/elements/features"
-	"github.com/dotdoom/goxmpp/stream/elements/stanzas/iq"
+	"github.com/goxmpp/goxmpp/extensions/features/bind"
+	"github.com/goxmpp/goxmpp/stream"
+	"github.com/goxmpp/goxmpp/stream/elements"
+	"github.com/goxmpp/goxmpp/stream/elements/features"
+	"github.com/goxmpp/goxmpp/stream/elements/stanzas/iq"
 )
 
 type sessionFeatureElement struct {
@@ -41,7 +41,7 @@ func (self *sessionFeatureElement) CopyIfAvailable(stream *stream.Stream) elemen
 }
 
 func (self *SessionElement) Handle(request_id *iq.IQElement, stream *stream.Stream) error {
-	// FIXME(dotdoom): 2014-04-04: auth check, state presence check, resource check required
+	// FIXME(goxmpp): 2014-04-04: auth check, state presence check, resource check required
 	var state *SessionState
 	if err := stream.State.Get(&state); err != nil {
 		state = &SessionState{}
@@ -51,7 +51,7 @@ func (self *SessionElement) Handle(request_id *iq.IQElement, stream *stream.Stre
 
 	log.Printf("Session opened")
 
-	// TODO(dotdoom): 2014-04-03: might be easier to just use original IQ?
+	// TODO(goxmpp): 2014-04-03: might be easier to just use original IQ?
 	response_iq := iq.NewIQElement()
 	response_iq.Type = "result"
 	response_iq.ID = request_id.ID

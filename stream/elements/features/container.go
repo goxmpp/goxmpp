@@ -1,8 +1,8 @@
 package features
 
 import (
-	"github.com/dotdoom/goxmpp/stream"
-	"github.com/dotdoom/goxmpp/stream/elements"
+	"github.com/goxmpp/goxmpp/stream"
+	"github.com/goxmpp/goxmpp/stream/elements"
 )
 
 type Container struct {

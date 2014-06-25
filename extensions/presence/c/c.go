@@ -3,8 +3,8 @@ package c
 import (
 	"encoding/xml"
 
-	"github.com/dotdoom/goxmpp/stream/elements"
-	"github.com/dotdoom/goxmpp/stream/elements/stanzas/presence"
+	"github.com/goxmpp/goxmpp/stream/elements"
+	"github.com/goxmpp/goxmpp/stream/elements/stanzas/presence"
 )
 
 type CElement struct {

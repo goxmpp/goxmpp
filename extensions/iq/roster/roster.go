@@ -4,9 +4,9 @@ import (
 	"encoding/xml"
 	"log"
 
-	"github.com/dotdoom/goxmpp/stream"
-	"github.com/dotdoom/goxmpp/stream/elements"
-	"github.com/dotdoom/goxmpp/stream/elements/stanzas/iq"
+	"github.com/goxmpp/goxmpp/stream"
+	"github.com/goxmpp/goxmpp/stream/elements"
+	"github.com/goxmpp/goxmpp/stream/elements/stanzas/iq"
 )
 
 type RosterState struct {
@@ -30,7 +30,7 @@ type RosterElement struct {
 }
 
 func (self *RosterElement) Handle(request_id *iq.IQElement, stream *stream.Stream) error {
-	// FIXME(dotdoom): 2014-04-03: auth check, state presence check, bind etc
+	// FIXME(goxmpp): 2014-04-03: auth check, state presence check, bind etc
 	var state *RosterState
 	stream.State.Get(&state)
 
@@ -45,7 +45,7 @@ func (self *RosterElement) Handle(request_id *iq.IQElement, stream *stream.Strea
 	})
 	ri.Items[0].Groups = append(ri.Items[0].Groups, "TestGroup")
 
-	// TODO(dotdoom): 2014-04-03: might be easier to just use original IQ?
+	// TODO(goxmpp): 2014-04-03: might be easier to just use original IQ?
 	response_iq := iq.NewIQElement()
 	response_iq.Type = "result"
 	response_iq.ID = request_id.ID

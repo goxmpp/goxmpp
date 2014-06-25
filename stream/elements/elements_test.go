@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/dotdoom/goxmpp/stream/elements"
+	"github.com/goxmpp/goxmpp/stream/elements"
 )
 
 type BasicXML struct {

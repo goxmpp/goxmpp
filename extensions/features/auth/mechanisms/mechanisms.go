@@ -6,9 +6,9 @@ import (
 	"errors"
 	"log"
 
-	"github.com/dotdoom/goxmpp/extensions/features/auth"
-	"github.com/dotdoom/goxmpp/stream"
-	"github.com/dotdoom/goxmpp/stream/elements"
+	"github.com/goxmpp/goxmpp/extensions/features/auth"
+	"github.com/goxmpp/goxmpp/stream"
+	"github.com/goxmpp/goxmpp/stream/elements"
 )
 
 func init() {

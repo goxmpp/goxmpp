@@ -3,9 +3,9 @@ package message
 import "encoding/xml"
 
 import (
-	"github.com/dotdoom/goxmpp/stream"
-	"github.com/dotdoom/goxmpp/stream/elements"
-	"github.com/dotdoom/goxmpp/stream/elements/stanzas"
+	"github.com/goxmpp/goxmpp/stream"
+	"github.com/goxmpp/goxmpp/stream/elements"
+	"github.com/goxmpp/goxmpp/stream/elements/stanzas"
 )
 
 func init() {

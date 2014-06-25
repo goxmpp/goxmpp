@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/dotdoom/goxmpp.png?branch=master)](https://travis-ci.org/dotdoom/goxmpp)
+[![Build Status](https://travis-ci.org/goxmpp/goxmpp.png?branch=master)](https://travis-ci.org/goxmpp/goxmpp)
 
 NOTE: XMPP Session Establishment, described in outdated RFC 3921, is no longer a part of standard: [RFC 6121: Functional Summary](http://xmpp.org/rfcs/rfc6121.html#intro-summary).
 However since this is a widely used feature, it is implemented in goxmpp.

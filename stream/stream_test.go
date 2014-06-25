@@ -3,8 +3,8 @@ package stream_test
 import (
 	"encoding/xml"
 
-	_ "github.com/dotdoom/goxmpp"
-	"github.com/dotdoom/goxmpp/stream"
+	_ "github.com/goxmpp/goxmpp"
+	"github.com/goxmpp/goxmpp/stream"
 )
 
 import "bytes"

@@ -7,9 +7,9 @@ import (
 )
 
 import (
-	"github.com/dotdoom/goxmpp/stream"
-	"github.com/dotdoom/goxmpp/stream/elements"
-	"github.com/dotdoom/goxmpp/stream/elements/stanzas"
+	"github.com/goxmpp/goxmpp/stream"
+	"github.com/goxmpp/goxmpp/stream/elements"
+	"github.com/goxmpp/goxmpp/stream/elements/stanzas"
 )
 
 func init() {
@@ -50,7 +50,7 @@ func (self *IQElement) Handle(stream *stream.Stream) error {
 	if match {
 		return nil
 	} else {
-		// TODO(dotdoom): return more specific error class so it can be intercepted outside
+		// TODO(goxmpp): return more specific error class so it can be intercepted outside
 		return errors.New("No inner elements handle this IQ")
 	}
 }

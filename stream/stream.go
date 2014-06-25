@@ -5,7 +5,7 @@ import (
 	"io"
 	"log"
 
-	"github.com/dotdoom/goxmpp/stream/elements"
+	"github.com/goxmpp/goxmpp/stream/elements"
 )
 
 type StreamHandler func(*Stream) error
@@ -13,7 +13,7 @@ type StreamHandler func(*Stream) error
 type Stream struct {
 	XMLName xml.Name
 	ID      string `xml:"id,attr"`
-	// TODO(dotdoom): 2014-04-03: should we really reverse the next two in gojabberd?
+	// TODO(goxmpp): 2014-04-03: should we really reverse the next two in gojabberd?
 	From             string `xml:"from,attr,omitempty"` // This holds server domain name.
 	To               string `xml:"to,attr,omitempty"`   // This holds user JID after bind.
 	Version          string `xml:"version,attr"`

@@ -5,9 +5,9 @@ import (
 	"log"
 
 	"github.com/azhavnerchik/sasl/scram"
-	"github.com/dotdoom/goxmpp/extensions/features/auth"
-	"github.com/dotdoom/goxmpp/extensions/features/auth/mechanisms"
-	"github.com/dotdoom/goxmpp/stream"
+	"github.com/goxmpp/goxmpp/extensions/features/auth"
+	"github.com/goxmpp/goxmpp/extensions/features/auth/mechanisms"
+	"github.com/goxmpp/goxmpp/stream"
 )
 
 const MIN_ITERS = 4096

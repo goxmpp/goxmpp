@@ -3,7 +3,7 @@ package auth
 import (
 	"encoding/xml"
 
-	"github.com/dotdoom/goxmpp/stream/elements"
+	"github.com/goxmpp/goxmpp/stream/elements"
 )
 
 type Failure struct {

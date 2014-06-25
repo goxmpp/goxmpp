@@ -1,8 +1,8 @@
 package time
 
 import "encoding/xml"
-import "github.com/dotdoom/goxmpp/stream/elements"
-import "github.com/dotdoom/goxmpp/stream/elements/stanzas/iq"
+import "github.com/goxmpp/goxmpp/stream/elements"
+import "github.com/goxmpp/goxmpp/stream/elements/stanzas/iq"
 
 func init() {
 	iq.IQFactory.AddConstructor(func() elements.Element { return &TimeQuery{} })

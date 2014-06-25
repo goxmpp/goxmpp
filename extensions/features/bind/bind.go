@@ -4,11 +4,11 @@ import (
 	"encoding/xml"
 	"log"
 
-	"github.com/dotdoom/goxmpp/extensions/features/auth"
-	"github.com/dotdoom/goxmpp/stream"
-	"github.com/dotdoom/goxmpp/stream/elements"
-	"github.com/dotdoom/goxmpp/stream/elements/features"
-	"github.com/dotdoom/goxmpp/stream/elements/stanzas/iq"
+	"github.com/goxmpp/goxmpp/extensions/features/auth"
+	"github.com/goxmpp/goxmpp/stream"
+	"github.com/goxmpp/goxmpp/stream/elements"
+	"github.com/goxmpp/goxmpp/stream/elements/features"
+	"github.com/goxmpp/goxmpp/stream/elements/stanzas/iq"
 )
 
 type BindState struct {
@@ -34,7 +34,7 @@ func (self *bindElement) IsRequiredFor(stream *stream.Stream) bool {
 		err := stream.State.Get(&state)
 		// Bind is required by XMPP standard, so it has to be always present.
 		// However we cheat here a little and allow to skip this.
-		// FIXME(dotdoom): 2014-04-03: what will happen to JID in stream.{From,To} ?
+		// FIXME(goxmpp): 2014-04-03: what will happen to JID in stream.{From,To} ?
 		return err == nil && state.Resource == ""
 	} else {
 		return false
@@ -49,13 +49,13 @@ func (self *bindElement) CopyIfAvailable(stream *stream.Stream) elements.Element
 }
 
 func (self *BindElement) Handle(request_id *iq.IQElement, stream *stream.Stream) error {
-	// FIXME(dotdoom): 2014-04-03: auth check, state presence check, resource check required
+	// FIXME(goxmpp): 2014-04-03: auth check, state presence check, resource check required
 	var state *BindState
 	stream.State.Get(&state)
 	if state.VerifyResource(self.Resource) {
 		state.Resource = self.Resource
 	} else {
-		// TODO(dotdoom): 2014-04-03
+		// TODO(goxmpp): 2014-04-03
 	}
 
 	var authState *auth.AuthState
@@ -64,7 +64,7 @@ func (self *BindElement) Handle(request_id *iq.IQElement, stream *stream.Stream)
 	stream.To = authState.UserName + "@" + stream.From + "/" + state.Resource
 	log.Printf("Bound to JID: %#v", stream.To)
 
-	// TODO(dotdoom): 2014-04-03: might be easier to just use original IQ?
+	// TODO(goxmpp): 2014-04-03: might be easier to just use original IQ?
 	response_iq := iq.NewIQElement()
 	response_iq.Type = "result"
 	response_iq.ID = request_id.ID

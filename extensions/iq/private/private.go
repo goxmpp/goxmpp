@@ -4,9 +4,9 @@ import (
 	"encoding/xml"
 	"log"
 
-	"github.com/dotdoom/goxmpp/stream"
-	"github.com/dotdoom/goxmpp/stream/elements"
-	"github.com/dotdoom/goxmpp/stream/elements/stanzas/iq"
+	"github.com/goxmpp/goxmpp/stream"
+	"github.com/goxmpp/goxmpp/stream/elements"
+	"github.com/goxmpp/goxmpp/stream/elements/stanzas/iq"
 )
 
 type PrivateElement struct {
