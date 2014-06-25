@@ -3,10 +3,10 @@ package md5
 import (
 	"errors"
 
-	"github.com/azhavnerchik/sasl/digest"
 	"github.com/goxmpp/goxmpp/extensions/features/auth"
 	"github.com/goxmpp/goxmpp/extensions/features/auth/mechanisms"
 	"github.com/goxmpp/goxmpp/stream"
+	"github.com/goxmpp/sasl/digest"
 )
 
 type DigestMD5Element string
