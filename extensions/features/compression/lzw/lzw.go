@@ -7,7 +7,7 @@ import (
 
 	"github.com/goxmpp/goxmpp/extensions/features/compression"
 	"github.com/goxmpp/goxmpp/stream"
-	"github.com/goxmpp/goxmpp/stream/elements"
+	"github.com/goxmpp/xtream"
 )
 
 func init() {
@@ -22,7 +22,7 @@ type compressor struct {
 	compression.BaseCompressor
 }
 
-func (c *compressor) CopyIfAvailable(s *stream.Stream) elements.Element {
+func (c *compressor) CopyIfAvailable(s *stream.Stream) xtream.Element {
 	log.Println("Enabling compressor", c.Name())
 	if c.IsAvailable(s) {
 		return &compressor{BaseCompressor: compression.NewBaseCompressor(c.Name())}

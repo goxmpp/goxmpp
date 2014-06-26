@@ -6,9 +6,9 @@ import (
 
 	"github.com/goxmpp/goxmpp/extensions/features/bind"
 	"github.com/goxmpp/goxmpp/stream"
-	"github.com/goxmpp/goxmpp/stream/elements"
-	"github.com/goxmpp/goxmpp/stream/elements/features"
-	"github.com/goxmpp/goxmpp/stream/elements/stanzas/iq"
+	"github.com/goxmpp/goxmpp/stream/features"
+	"github.com/goxmpp/goxmpp/stream/stanzas/iq"
+	"github.com/goxmpp/xtream"
 )
 
 type sessionFeatureElement struct {
@@ -28,7 +28,7 @@ func (self *sessionFeatureElement) IsRequiredFor(stream *stream.Stream) bool {
 	return false
 }
 
-func (self *sessionFeatureElement) CopyIfAvailable(stream *stream.Stream) elements.Element {
+func (self *sessionFeatureElement) CopyIfAvailable(stream *stream.Stream) xtream.Element {
 	var bind_state *bind.BindState
 	err := stream.State.Get(&bind_state)
 	if err == nil && bind_state.Resource != "" {
@@ -63,8 +63,8 @@ func (self *SessionElement) Handle(request_id *iq.IQElement, stream *stream.Stre
 }
 
 func init() {
-	iq.IQFactory.AddConstructor(func() elements.Element {
+	xtream.NodeFactory.Add(func() xtream.Element {
 		return &SessionElement{}
-	})
+	}, iq.IQXMLName, xml.Name{Local: "session", Space: "urn:ietf:params:xml:ns:xmpp-session"})
 	features.Tree.AddElement(&sessionFeatureElement{})
 }

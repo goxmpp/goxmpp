@@ -7,15 +7,15 @@ import (
 	"log"
 
 	"github.com/goxmpp/goxmpp/stream"
-	"github.com/goxmpp/goxmpp/stream/elements"
-	"github.com/goxmpp/goxmpp/stream/elements/features"
+	"github.com/goxmpp/goxmpp/stream/features"
+	"github.com/goxmpp/xtream"
 )
 
 func init() {
 	features.Tree.AddElement(CompressTemplate)
-	stream.StreamFactory.AddConstructor(func() elements.Element {
+	xtream.NodeFactory.Add(func() xtream.Element {
 		return NewCompressHandler()
-	})
+	}, stream.StreamXMLName, xml.Name{Local: "compress"})
 }
 
 type Compressor interface {
@@ -68,7 +68,7 @@ func NewCompression() *compression {
 
 var CompressTemplate = NewCompression()
 
-func (c *compression) CopyIfAvailable(stream *stream.Stream) elements.Element {
+func (c *compression) CopyIfAvailable(stream *stream.Stream) xtream.Element {
 	var state *CompressState
 	err := stream.State.Get(&state)
 

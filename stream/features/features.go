@@ -6,7 +6,7 @@ import (
 	"log"
 
 	"github.com/goxmpp/goxmpp/stream"
-	"github.com/goxmpp/goxmpp/stream/elements"
+	"github.com/goxmpp/xtream"
 )
 
 type FeaturesElement struct {
@@ -54,7 +54,7 @@ func Loop(stream *stream.Stream) error {
 	return nil
 }
 
-func (self *FeaturesElement) CopyIfAvailable(stream *stream.Stream) elements.Element {
+func (self *FeaturesElement) CopyIfAvailable(stream *stream.Stream) xtream.Element {
 	e := NewFeaturesElement()
 	self.CopyAvailableFeatures(stream, e.Container)
 	return e

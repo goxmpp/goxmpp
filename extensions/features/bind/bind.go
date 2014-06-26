@@ -6,9 +6,9 @@ import (
 
 	"github.com/goxmpp/goxmpp/extensions/features/auth"
 	"github.com/goxmpp/goxmpp/stream"
-	"github.com/goxmpp/goxmpp/stream/elements"
-	"github.com/goxmpp/goxmpp/stream/elements/features"
-	"github.com/goxmpp/goxmpp/stream/elements/stanzas/iq"
+	"github.com/goxmpp/goxmpp/stream/features"
+	"github.com/goxmpp/goxmpp/stream/stanzas/iq"
+	"github.com/goxmpp/xtream"
 )
 
 type BindState struct {
@@ -41,7 +41,7 @@ func (self *bindElement) IsRequiredFor(stream *stream.Stream) bool {
 	}
 }
 
-func (self *bindElement) CopyIfAvailable(stream *stream.Stream) elements.Element {
+func (self *bindElement) CopyIfAvailable(stream *stream.Stream) xtream.Element {
 	if self.IsRequiredFor(stream) {
 		return &bindElement{}
 	}
@@ -77,8 +77,8 @@ func (self *BindElement) Handle(request_id *iq.IQElement, stream *stream.Stream)
 }
 
 func init() {
-	iq.IQFactory.AddConstructor(func() elements.Element {
+	xtream.NodeFactory.Add(func() xtream.Element {
 		return &BindElement{}
-	})
+	}, iq.IQXMLName, xml.Name{Local: "bind", Space: "urn:ietf:params:xml:ns:xmpp-bind"})
 	features.Tree.AddElement(&bindElement{})
 }

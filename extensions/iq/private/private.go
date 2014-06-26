@@ -5,13 +5,15 @@ import (
 	"log"
 
 	"github.com/goxmpp/goxmpp/stream"
-	"github.com/goxmpp/goxmpp/stream/elements"
-	"github.com/goxmpp/goxmpp/stream/elements/stanzas/iq"
+	"github.com/goxmpp/goxmpp/stream/stanzas/iq"
+	"github.com/goxmpp/xtream"
 )
 
+var privateXMLName = xml.Name{Local: "query", Space: "jabber:iq:private"}
+
 type PrivateElement struct {
-	XMLName xml.Name `xml:"jabber:iq:private query"`
-	*elements.InnerElements
+	XMLName              xml.Name `xml:"jabber:iq:private query"`
+	xtream.InnerElements `xml:",any"`
 }
 
 func (self *PrivateElement) Handle(request_id *iq.IQElement, stream *stream.Stream) error {
@@ -27,14 +29,12 @@ func (self *PrivateElement) Handle(request_id *iq.IQElement, stream *stream.Stre
 	return nil
 }
 
-var PrivateFactory = elements.NewFactory()
-
 func NewPrivateElement() *PrivateElement {
-	return &PrivateElement{InnerElements: elements.NewInnerElements(PrivateFactory)}
+	return &PrivateElement{InnerElements: xtream.NewElements(&privateXMLName)}
 }
 
 func init() {
-	iq.IQFactory.AddConstructor(func() elements.Element {
+	xtream.NodeFactory.Add(func() xtream.Element {
 		return NewPrivateElement()
-	})
+	}, iq.IQXMLName, privateXMLName)
 }

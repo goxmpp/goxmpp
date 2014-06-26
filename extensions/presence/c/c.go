@@ -3,8 +3,7 @@ package c
 import (
 	"encoding/xml"
 
-	"github.com/goxmpp/goxmpp/stream/elements"
-	"github.com/goxmpp/goxmpp/stream/elements/stanzas/presence"
+	"github.com/goxmpp/xtream"
 )
 
 type CElement struct {
@@ -16,7 +15,7 @@ type CElement struct {
 }
 
 func init() {
-	presence.PresenceFactory.AddConstructor(func() elements.Element {
+	xtream.NodeFactory.Add(func() xtream.Element {
 		return &CElement{}
-	})
+	}, xml.Name{Local: "presence"}, xml.Name{Local: "c"})
 }

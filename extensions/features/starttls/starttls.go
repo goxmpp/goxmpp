@@ -10,15 +10,15 @@ import (
 	"net"
 
 	"github.com/goxmpp/goxmpp/stream"
-	"github.com/goxmpp/goxmpp/stream/elements"
-	"github.com/goxmpp/goxmpp/stream/elements/features"
+	"github.com/goxmpp/goxmpp/stream/features"
+	"github.com/goxmpp/xtream"
 )
 
 func init() {
 	features.Tree.AddElement(NewStartTLSFeature(false))
-	stream.StreamFactory.AddConstructor(func() elements.Element {
+	xtream.NodeFactory.Add(func() xtream.Element {
 		return &StartTLSElement{}
-	})
+	}, stream.StreamXMLName, xml.Name{Local: "starttls", Space: "urn:ietf:params:xml:ns:xmpp-tls"})
 }
 
 type StartTLSFeatureElement struct {
@@ -30,7 +30,7 @@ func NewStartTLSFeature(required bool) *StartTLSFeatureElement {
 	return &StartTLSFeatureElement{Required: required}
 }
 
-func (s *StartTLSFeatureElement) CopyIfAvailable(st *stream.Stream) elements.Element {
+func (s *StartTLSFeatureElement) CopyIfAvailable(st *stream.Stream) xtream.Element {
 	// Check if it is enabled and not started
 	var state *StartTLSState
 	if err := st.State.Get(&state); err != nil || state.Started {

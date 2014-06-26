@@ -4,8 +4,8 @@ import (
 	"encoding/xml"
 
 	"github.com/goxmpp/goxmpp/stream"
-	"github.com/goxmpp/goxmpp/stream/elements"
-	"github.com/goxmpp/goxmpp/stream/elements/features"
+	"github.com/goxmpp/goxmpp/stream/features"
+	"github.com/goxmpp/xtream"
 )
 
 type mechanismsElement struct {
@@ -25,7 +25,7 @@ func (self *mechanismsElement) IsRequiredFor(stream *stream.Stream) bool {
 	return err != nil || state.UserName == ""
 }
 
-func (self *mechanismsElement) CopyIfAvailable(stream *stream.Stream) elements.Element {
+func (self *mechanismsElement) CopyIfAvailable(stream *stream.Stream) xtream.Element {
 	if self.IsRequiredFor(stream) {
 		x := newMechanismsElement()
 		self.CopyAvailableFeatures(stream, x.Container)

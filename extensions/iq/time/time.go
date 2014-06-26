@@ -1,11 +1,10 @@
 package time
 
 import "encoding/xml"
-import "github.com/goxmpp/goxmpp/stream/elements"
-import "github.com/goxmpp/goxmpp/stream/elements/stanzas/iq"
+import "github.com/goxmpp/xtream"
 
 func init() {
-	iq.IQFactory.AddConstructor(func() elements.Element { return &TimeQuery{} })
+	xtream.NodeFactory.Add(func() xtream.Element { return &TimeQuery{} }, xml.Name{Local: "iq"}, xml.Name{Local: "time"})
 }
 
 type TimeQuery struct {
