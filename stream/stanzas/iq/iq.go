@@ -4,30 +4,28 @@ import (
 	"encoding/xml"
 	"errors"
 	"log"
+
+	"github.com/goxmpp/goxmpp/stream"
+	"github.com/goxmpp/goxmpp/stream/stanzas"
+	"github.com/goxmpp/xtream"
 )
 
-import (
-	"github.com/goxmpp/goxmpp/stream"
-	"github.com/goxmpp/goxmpp/stream/elements"
-	"github.com/goxmpp/goxmpp/stream/elements/stanzas"
-)
+var IQXMLName = xml.Name{Local: "iq"}
 
 func init() {
-	stream.StreamFactory.AddConstructor(func() elements.Element {
+	xtream.NodeFactory.Add(func() xtream.Element {
 		return NewIQElement()
-	})
+	}, stream.StreamXMLName, IQXMLName)
 }
 
 func NewIQElement() *IQElement {
-	return &IQElement{InnerElements: elements.NewInnerElements(IQFactory)}
+	return &IQElement{InnerElements: xtream.NewElements(&IQXMLName)}
 }
-
-var IQFactory = elements.NewFactory()
 
 type IQElement struct {
 	XMLName xml.Name `xml:"iq"`
 	stanzas.Base
-	*elements.InnerElements
+	xtream.InnerElements `xml:",any"`
 }
 
 type Handler interface {

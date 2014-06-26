@@ -24,7 +24,7 @@ import (
 	_ "github.com/goxmpp/goxmpp/extensions/iq/time"
 	_ "github.com/goxmpp/goxmpp/extensions/iq/version"
 	_ "github.com/goxmpp/goxmpp/extensions/presence/c"
-	_ "github.com/goxmpp/goxmpp/stream/elements/stanzas/iq"
-	_ "github.com/goxmpp/goxmpp/stream/elements/stanzas/message"
-	_ "github.com/goxmpp/goxmpp/stream/elements/stanzas/presence"
+	_ "github.com/goxmpp/goxmpp/stream/stanzas/iq"
+	_ "github.com/goxmpp/goxmpp/stream/stanzas/message"
+	_ "github.com/goxmpp/goxmpp/stream/stanzas/presence"
 )

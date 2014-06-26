@@ -3,14 +3,13 @@ package item
 import (
 	"encoding/xml"
 
-	"github.com/goxmpp/goxmpp/extensions/iq/query"
-	"github.com/goxmpp/goxmpp/stream/elements"
+	"github.com/goxmpp/xtream"
 )
 
 func init() {
-	query.QueryFactory.AddConstructor(func() elements.Element {
+	xtream.NodeFactory.Add(func() xtream.Element {
 		return &Item{}
-	})
+	}, xml.Name{Local: "query"}, xml.Name{Local: "item"})
 }
 
 type Item struct {

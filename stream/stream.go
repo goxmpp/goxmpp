@@ -2,13 +2,16 @@ package stream
 
 import (
 	"encoding/xml"
+	"fmt"
 	"io"
 	"log"
 
-	"github.com/goxmpp/goxmpp/stream/elements"
+	"github.com/goxmpp/xtream"
 )
 
 type StreamHandler func(*Stream) error
+
+var StreamXMLName = xml.Name{Local: "stream:stream"}
 
 type Stream struct {
 	XMLName xml.Name
@@ -120,7 +123,7 @@ func (self *Stream) Close() error {
 	return self.Connection.Close()
 }
 
-func (self *Stream) WriteElement(element elements.Element) error {
+func (self *Stream) WriteElement(element xtream.Element) error {
 	err := self.streamEncoder.Encode(element)
 	if err != nil {
 		log.Println("Error sending rely:", err)
@@ -128,18 +131,24 @@ func (self *Stream) WriteElement(element elements.Element) error {
 	return err
 }
 
-func (self *Stream) ReadElement() (elements.Element, error) {
+func (self *Stream) ReadElement() (xtream.Element, error) {
 	var err error
 	var token xml.Token
 
 	for token, err = self.streamDecoder.Token(); err == nil; token, err = self.streamDecoder.Token() {
 		if start, ok := token.(xml.StartElement); ok {
 			log.Printf("got element: %v (ns %v)\n", start.Name.Local, start.Name.Space)
-			return StreamFactory.DecodeElement(self.streamDecoder, &start)
+
+			fmt.Println(xtream.NodeFactory)
+			element := xtream.NodeFactory.Get(&StreamXMLName, &start.Name)
+			if element == nil {
+				return nil, fmt.Errorf("Unknown node encountered: %s", start.Name.Local)
+			}
+
+			err := self.streamDecoder.DecodeElement(element, &start)
+			return element, err
 		}
 	}
 
 	return nil, err
 }
-
-var StreamFactory = elements.NewFactory()

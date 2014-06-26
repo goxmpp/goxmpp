@@ -5,8 +5,8 @@ import (
 	"log"
 
 	"github.com/goxmpp/goxmpp/stream"
-	"github.com/goxmpp/goxmpp/stream/elements"
-	"github.com/goxmpp/goxmpp/stream/elements/stanzas/iq"
+	"github.com/goxmpp/goxmpp/stream/stanzas/iq"
+	"github.com/goxmpp/xtream"
 )
 
 type RosterState struct {
@@ -58,7 +58,7 @@ func (self *RosterElement) Handle(request_id *iq.IQElement, stream *stream.Strea
 }
 
 func init() {
-	iq.IQFactory.AddConstructor(func() elements.Element {
+	xtream.NodeFactory.Add(func() xtream.Element {
 		return &RosterElement{}
-	})
+	}, xml.Name{Local: "iq"}, xml.Name{Local: "roster"})
 }

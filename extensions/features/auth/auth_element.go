@@ -6,7 +6,7 @@ import (
 	"log"
 
 	"github.com/goxmpp/goxmpp/stream"
-	"github.com/goxmpp/goxmpp/stream/elements"
+	"github.com/goxmpp/xtream"
 )
 
 type AuthElement struct {
@@ -37,7 +37,7 @@ func (self *AuthElement) Handle(stream *stream.Stream) error {
 }
 
 func init() {
-	stream.StreamFactory.AddConstructor(func() elements.Element {
+	xtream.NodeFactory.Add(func() xtream.Element {
 		return &AuthElement{}
-	})
+	}, xml.Name{Local: "stream:stream"}, xml.Name{Local: "auth"})
 }

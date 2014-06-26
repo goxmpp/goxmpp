@@ -8,16 +8,16 @@ import (
 
 	"github.com/goxmpp/goxmpp/extensions/features/auth"
 	"github.com/goxmpp/goxmpp/stream"
-	"github.com/goxmpp/goxmpp/stream/elements"
+	"github.com/goxmpp/xtream"
 )
 
 func init() {
-	stream.StreamFactory.AddConstructor(func() elements.Element {
+	xtream.NodeFactory.Add(func() xtream.Element {
 		return &ResponseElement{}
-	})
-	stream.StreamFactory.AddConstructor(func() elements.Element {
+	}, stream.StreamXMLName, xml.Name{Local: "response", Space: "urn:ietf:params:xml:ns:xmpp-sasl"})
+	xtream.NodeFactory.Add(func() xtream.Element {
 		return &Abort{}
-	})
+	}, stream.StreamXMLName, xml.Name{Local: "abort"})
 }
 
 type ChallengeElement struct {
@@ -95,7 +95,7 @@ func NewMechanismElement(method Method) *MechanismElement {
 	return &MechanismElement{Method: method}
 }
 
-func (self *MechanismElement) CopyIfAvailable(strm *stream.Stream) elements.Element {
+func (self *MechanismElement) CopyIfAvailable(strm *stream.Stream) xtream.Element {
 	if self.Method.IsAvailable(strm) {
 		return self
 	}

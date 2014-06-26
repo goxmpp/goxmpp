@@ -1,16 +1,18 @@
 package features
 
 import (
+	"encoding/xml"
+
 	"github.com/goxmpp/goxmpp/stream"
-	"github.com/goxmpp/goxmpp/stream/elements"
+	"github.com/goxmpp/xtream"
 )
 
 type Container struct {
-	*elements.InnerElements
+	xtream.InnerElements
 }
 
 type AccessControllable interface {
-	CopyIfAvailable(*stream.Stream) elements.Element
+	CopyIfAvailable(*stream.Stream) xtream.Element
 }
 
 type AccessController interface {
@@ -19,7 +21,7 @@ type AccessController interface {
 
 func NewContainer() *Container {
 	return &Container{
-		InnerElements: elements.NewInnerElements(nil),
+		InnerElements: xtream.NewElements(&xml.Name{Local: "stream"}),
 	}
 }
 
