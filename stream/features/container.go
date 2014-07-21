@@ -1,49 +1,35 @@
 package features
 
-import (
-	"encoding/xml"
+import "encoding/xml"
 
-	"github.com/goxmpp/goxmpp/stream"
-	"github.com/goxmpp/xtream"
-)
-
-type Container struct {
-	xtream.InnerElements
+type FeatureContainable interface {
+	AddFeature(Feature)
+	RemoveFeature(string)
 }
 
-type AccessControllable interface {
-	CopyIfAvailable(*stream.Stream) xtream.Element
+type FeatureContainer struct {
+	features map[string]Feature
 }
 
-type AccessController interface {
-	IsRequiredFor(*stream.Stream) bool
+func NewFeatureContainer() *FeatureContainer {
+	return &FeatureContainer{features: make(map[string]Feature)}
 }
 
-func NewContainer() *Container {
-	return &Container{
-		InnerElements: xtream.NewElements(&xml.Name{Local: "stream"}),
+func (fc *FeatureContainer) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+	fs := make([]Feature, 0, len(fc.features))
+	for _, v := range fc.features {
+		fs = append(fs, v)
+	}
+
+	return e.EncodeElement(fs, xml.StartElement{Name: xml.Name{Local: "stream:features"}})
+}
+
+func (fc *FeatureContainer) AddFeature(f Feature) {
+	if _, ok := fc.features[f.Name]; !ok {
+		fc.features[f.Name] = f
 	}
 }
 
-func (self *Container) CopyAvailableFeatures(stream *stream.Stream, dest *Container) {
-	for _, feature := range self.Elements() {
-		if feature_element, ok := feature.(AccessControllable); ok {
-			dest.AddElement(feature_element.CopyIfAvailable(stream))
-		} else {
-			dest.AddElement(feature)
-		}
-	}
-}
-
-func (self *Container) HasFeaturesRequiredFor(stream *stream.Stream) bool {
-	for _, feature := range self.Elements() {
-		if feature_element, ok := feature.(AccessController); ok && feature_element.IsRequiredFor(stream) {
-			return true
-		}
-	}
-	return false
-}
-
-func (self *Container) IsRequiredFor(stream *stream.Stream) bool {
-	return self.HasFeaturesRequiredFor(stream)
+func (fc *FeatureContainer) RemoveFeature(name string) {
+	delete(fc.features, name)
 }

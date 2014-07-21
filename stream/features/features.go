@@ -2,60 +2,44 @@ package features
 
 import (
 	"encoding/xml"
-	"errors"
-	"log"
 
-	"github.com/goxmpp/goxmpp/stream"
 	"github.com/goxmpp/xtream"
 )
 
-type FeaturesElement struct {
-	XMLName xml.Name `xml:"stream:features"`
-	*Container
+type FeatureHandler interface {
+	Handle(FeatureContainable) error
 }
 
-func NewFeaturesElement() *FeaturesElement {
-	return &FeaturesElement{
-		Container: NewContainer(),
+type Feature struct {
+	Name           string
+	featureElement xtream.Element
+	handlerElement FeatureHandler
+}
+
+func NewFeature(name string, felement xtream.Element) *Feature {
+	return &Feature{Name: name, featureElement: felement}
+}
+
+func (fw *Feature) MarshalXML(e *xml.Encoder, _ xml.StartElement) error {
+	return e.Encode(fw.featureElement)
+}
+
+func (fw *Feature) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	return d.DecodeElement(fw.handlerElement, &start)
+}
+
+func (fw *Feature) Handle(strm FeatureContainable) error {
+	if err := fw.handlerElement.Handle(strm); err != nil {
+		return err
 	}
-}
 
-var Tree = NewFeaturesElement()
+	/*for _, dep := range depgraph.ListNodes(fw.Name) {
+		if feature := Features.Get(dep); feature != nil {
+			strm.AddFeature(feature)
+		}
+	}*/
 
-type Handler interface {
-	Handle(*stream.Stream) error
-}
+	strm.RemoveFeature(fw.Name)
 
-func Loop(stream *stream.Stream) error {
-	log.Println("entering features loop")
-	for stream.Opened && Tree.IsRequiredFor(stream) {
-		if err := stream.WriteElement(Tree.CopyIfAvailable(stream)); err != nil {
-			return err
-		}
-		e, err := stream.ReadElement()
-		if err != nil {
-			return err
-		}
-		if feature_handler, ok := e.(Handler); ok {
-			log.Println("calling feature handler")
-			if err := feature_handler.Handle(stream); err != nil {
-				return err
-			}
-			log.Println("feature handler completed")
-		} else {
-			return errors.New("Non-handler element received.")
-		}
-
-		if stream.ReOpen {
-			stream.ReadSentOpen()
-		}
-	}
-	log.Println("stream closed or no required features")
 	return nil
-}
-
-func (self *FeaturesElement) CopyIfAvailable(stream *stream.Stream) xtream.Element {
-	e := NewFeaturesElement()
-	self.CopyAvailableFeatures(stream, e.Container)
-	return e
 }

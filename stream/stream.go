@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 
+	"github.com/goxmpp/goxmpp/stream/features"
 	"github.com/goxmpp/xtream"
 )
 
@@ -14,9 +15,8 @@ type StreamHandler func(*Stream) error
 var StreamXMLName = xml.Name{Local: "stream:stream"}
 
 type Stream struct {
-	XMLName xml.Name
-	ID      string `xml:"id,attr"`
-	// TODO(goxmpp): 2014-04-03: should we really reverse the next two in gojabberd?
+	XMLName          xml.Name
+	ID               string `xml:"id,attr"`
 	From             string `xml:"from,attr,omitempty"` // This holds server domain name.
 	To               string `xml:"to,attr,omitempty"`   // This holds user JID after bind.
 	Version          string `xml:"version,attr"`
@@ -24,11 +24,42 @@ type Stream struct {
 	Opened           bool   `xml:"-"`
 	ReOpen           bool   `xml:"-"`
 	State            State
+	ElementFactory   xtream.Factory
 	Connection
+	features.FeatureContainable
+}
+
+type streamElementFactory struct {
+	featuresFactory xtream.Factory
+	elementsFactory xtream.Factory
+}
+
+func NewStreamElementFactory() *streamElementFactory {
+	return &streamElementFactory{xtream.NewFactory(), xtream.NodeFactory}
+}
+
+func (sef streamElementFactory) Add(cons xtream.Constructor, outer, inner xml.Name) {
+	sef.featuresFactory.Add(cons, outer, inner)
+}
+
+func (sef streamElementFactory) Get(outer, inner *xml.Name) xtream.Element {
+	if e := sef.featuresFactory.Get(outer, inner); e != nil {
+		return e
+	}
+
+	e := sef.elementsFactory.Get(outer, inner)
+	if innerEl, ok := e.(xtream.Registrable); ok {
+		innerEl.SetFactory(sef)
+	}
+
+	return e
 }
 
 func NewStream(rw io.ReadWriteCloser) *Stream {
-	st := &Stream{}
+	st := &Stream{
+		FeatureContainable: features.NewFeatureContainer(),
+		ElementFactory:     NewStreamElementFactory(),
+	}
 	st.SetRW(rw)
 	return st
 }
@@ -139,8 +170,7 @@ func (self *Stream) ReadElement() (xtream.Element, error) {
 		if start, ok := token.(xml.StartElement); ok {
 			log.Printf("got element: %v (ns %v)\n", start.Name.Local, start.Name.Space)
 
-			fmt.Println(xtream.NodeFactory)
-			element := xtream.NodeFactory.Get(&StreamXMLName, &start.Name)
+			element := self.ElementFactory.Get(&StreamXMLName, &start.Name)
 			if element == nil {
 				return nil, fmt.Errorf("Unknown node encountered: %s", start.Name.Local)
 			}
