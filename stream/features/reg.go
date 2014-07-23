@@ -11,6 +11,7 @@ type FeatureFactoryElement struct {
 type FF interface {
 	Add(string, *FeatureFactoryElement)
 	Get(string) *FeatureFactoryElement
+	List() map[string]*FeatureFactoryElement
 }
 
 type featureFactory struct {

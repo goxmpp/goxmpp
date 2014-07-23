@@ -1,6 +1,10 @@
 package features
 
-import "encoding/xml"
+import (
+	"encoding/xml"
+
+	"github.com/goxmpp/xtream"
+)
 
 type Options interface{}
 type FeatureHandler interface {
@@ -21,7 +25,7 @@ func NewFeature(name string, felement BasicFeature) *Feature {
 	return &Feature{Name: name, featureElement: felement}
 }
 
-func (fw *Feature) InitHandler() *Feature {
+func (fw *Feature) InitHandler() xtream.Element {
 	fw.handlerElement = fw.featureElement.NewHandler()
 	return fw
 }
