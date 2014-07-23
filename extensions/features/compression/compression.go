@@ -8,25 +8,26 @@ import (
 
 	"github.com/goxmpp/goxmpp/stream"
 	"github.com/goxmpp/goxmpp/stream/features"
-	"github.com/goxmpp/xtream"
 )
 
 func init() {
-	features.Tree.AddElement(CompressTemplate)
-	xtream.NodeFactory.Add(func() xtream.Element {
-		return NewCompressHandler()
-	}, stream.StreamXMLName, xml.Name{Local: "compress"})
+	features.FeatureFactory.Add("compression", &features.FeatureFactoryElement{
+		Constructor: NewCompression,
+		Name:        xml.Name{Local: "compress"},
+		Parent:      stream.StreamXMLName,
+	})
 }
 
 type Compressor interface {
 	GetReader(io.Reader) (io.ReadCloser, error)
 	GetWriter(io.Writer) io.WriteCloser
 	Name() string
-	IsAvailable(*stream.Stream) bool
 }
+
 type CompressorConfig struct {
 	Level int
 }
+
 type CompressState struct {
 	Compressed bool
 	Config     map[string]CompressorConfig
@@ -37,49 +38,37 @@ func NewCompressState() *CompressState {
 }
 
 type BaseCompressor struct {
-	XMLName        xml.Name `xml:"method"`
-	CompressorName string   `xml:",chardata"`
-}
-
-func NewBaseCompressor(name string) BaseCompressor {
-	return BaseCompressor{CompressorName: name}
+	XMLName    xml.Name `xml:"method"`
+	MethodName string   `xml:",chardata"`
 }
 
 func (bc BaseCompressor) Name() string {
-	return bc.CompressorName
-}
-
-func (bc BaseCompressor) IsAvailable(stream *stream.Stream) bool {
-	// TODO Add some logic to check if this method is available
-	return true
+	return bc.MethodName
 }
 
 // This struct is used for marshaling
 type compression struct {
-	XMLName xml.Name `xml:"http://jabber.org/features/compress compression"`
-	*features.Container
+	XMLName     xml.Name `xml:"http://jabber.org/features/compress compression"`
+	Compressors []*Compressor
 }
 
-func NewCompression() *compression {
-	return &compression{
-		Container: features.NewContainer(),
-	}
-}
-
-var CompressTemplate = NewCompression()
-
-func (c *compression) CopyIfAvailable(stream *stream.Stream) xtream.Element {
-	var state *CompressState
-	err := stream.State.Get(&state)
-
-	if err != nil || state.Compressed {
-		return nil
+func NewCompression(opts features.Options) features.BasicFeature {
+	comp := &compression{
+		Compressors: make([]*Compressor, 0),
 	}
 
-	compress := NewCompression()
-	c.CopyAvailableFeatures(stream, compress.Container)
-	return compress
+	for _, method := range Methods {
+		comp.Compressors = append(comp.Compressors, &method)
+	}
+
+	return comp
 }
+
+func (c *compression) NewHandler() features.FeatureHandler {
+	return &compressElement{}
+}
+
+var Methods = make([]Compressor, 0, 3)
 
 type compressElement struct {
 	XMLName xml.Name `xml:"http://jabber.org/protocol/compress compress"`
@@ -90,11 +79,13 @@ func NewCompressHandler() *compressElement {
 	return &compressElement{}
 }
 
-func (c *compressElement) Handle(s *stream.Stream) error {
+func (c *compressElement) Handle(strm features.FeatureContainable, opts features.Options) error {
 	var compressor Compressor
 
-	for _, element := range CompressTemplate.Elements() {
-		if compr, ok := element.(Compressor); ok && compr.Name() == c.Method && compr.IsAvailable(s) {
+	s := strm.(*stream.Stream)
+
+	for _, element := range Methods {
+		if compr, ok := element.(Compressor); ok && compr.Name() == c.Method {
 			compressor = compr
 			break
 		}

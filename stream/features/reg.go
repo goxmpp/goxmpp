@@ -2,11 +2,11 @@ package features
 
 import "encoding/xml"
 
-type FeatureConstructor func() Feature
+type FeatureConstructor func(Options) BasicFeature
 type FeatureFactoryElement struct {
-	cons   FeatureConstructor
-	name   xml.Name
-	parent xml.Name
+	Constructor FeatureConstructor
+	Name        xml.Name
+	Parent      xml.Name
 }
 type FF interface {
 	Add(string, *FeatureFactoryElement)
@@ -33,4 +33,8 @@ func (ff *featureFactory) Add(name string, ffe *FeatureFactoryElement) {
 
 func (ff *featureFactory) Get(name string) *FeatureFactoryElement {
 	return ff.feature_cons[name]
+}
+
+func (ff *featureFactory) List() map[string]*FeatureFactoryElement {
+	return ff.feature_cons
 }

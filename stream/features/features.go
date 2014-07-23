@@ -1,23 +1,29 @@
 package features
 
-import (
-	"encoding/xml"
+import "encoding/xml"
 
-	"github.com/goxmpp/xtream"
-)
-
+type Options interface{}
 type FeatureHandler interface {
-	Handle(FeatureContainable) error
+	Handle(FeatureContainable, Options) error
+}
+
+type BasicFeature interface {
+	NewHandler() FeatureHandler
 }
 
 type Feature struct {
 	Name           string
-	featureElement xtream.Element
+	featureElement BasicFeature
 	handlerElement FeatureHandler
 }
 
-func NewFeature(name string, felement xtream.Element) *Feature {
+func NewFeature(name string, felement BasicFeature) *Feature {
 	return &Feature{Name: name, featureElement: felement}
+}
+
+func (fw *Feature) InitHandler() *Feature {
+	fw.handlerElement = fw.featureElement.NewHandler()
+	return fw
 }
 
 func (fw *Feature) MarshalXML(e *xml.Encoder, _ xml.StartElement) error {
@@ -28,8 +34,8 @@ func (fw *Feature) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 	return d.DecodeElement(fw.handlerElement, &start)
 }
 
-func (fw *Feature) Handle(strm FeatureContainable) error {
-	if err := fw.handlerElement.Handle(strm); err != nil {
+func (fw *Feature) Handle(strm FeatureContainable, opts Options) error {
+	if err := fw.handlerElement.Handle(strm, opts); err != nil {
 		return err
 	}
 

@@ -11,14 +11,6 @@ import (
 
 type DigestMD5Element string
 
-func (md5 DigestMD5Element) IsAvailable(strm *stream.Stream) bool {
-	var state *DigestMD5State
-	if err := strm.State.Get(&state); err == nil {
-		return true
-	}
-	return false
-}
-
 type DigestMD5State struct {
 	Realm []string
 	Host  string
@@ -53,7 +45,7 @@ func (h *digestMD5Handler) Handle() error {
 	}
 
 	// Check MD5
-	raw_resp_data, err := mechanisms.DecodeBase64(resp_el.Data, h.strm)
+	raw_resp_data, err := auth.DecodeBase64(resp_el.Data, h.strm)
 	if err != nil {
 		return err
 	}
@@ -91,18 +83,17 @@ func (h *digestMD5Handler) Handle() error {
 }
 
 func init() {
-	auth.AddMechanism("DIGEST-MD5", func(e *auth.AuthElement, strm *stream.Stream) error {
-		var state *DigestMD5State
-		if err := strm.State.Get(&state); err != nil {
-			return err
-		}
-		handler, err := newDigestMD5Handler(state, strm)
-		if err != nil {
-			return err
-		}
+	auth.AddMechanism(mechanisms.NewMechanismElement(DigestMD5Element("DIGEST-MD5")),
+		func(e *auth.AuthElement, strm *stream.Stream) error {
+			var state *DigestMD5State
+			if err := strm.State.Get(&state); err != nil {
+				return err
+			}
+			handler, err := newDigestMD5Handler(state, strm)
+			if err != nil {
+				return err
+			}
 
-		return handler.Handle()
-	})
-
-	auth.MechanismsElement.AddElement(mechanisms.NewMechanismElement(DigestMD5Element("DIGEST-MD5")))
+			return handler.Handle()
+		})
 }

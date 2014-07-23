@@ -14,14 +14,6 @@ const MIN_ITERS = 4096
 
 type SHAElement string
 
-func (sha SHAElement) IsAvailable(strm *stream.Stream) bool {
-	var state *SHAState
-	if err := strm.State.Get(&state); err == nil && !state.Authenticated {
-		return true
-	}
-	return false
-}
-
 type SHAState struct {
 	Authenticated bool
 }
@@ -49,7 +41,7 @@ func (h *shaHandler) Handle() error {
 	}
 
 	// Check SHA
-	raw_resp_data, err := mechanisms.DecodeBase64(resp_el.Data, h.strm)
+	raw_resp_data, err := auth.DecodeBase64(resp_el.Data, h.strm)
 	if err != nil {
 		return err
 	}
@@ -74,34 +66,33 @@ func (h *shaHandler) Handle() error {
 }
 
 func init() {
-	auth.AddMechanism("SCRAM-SHA-1", func(e *auth.AuthElement, strm *stream.Stream) error {
-		var state *SHAState
-		if err := strm.State.Get(&state); err != nil {
-			log.Println("SCRAM-SHA-1 is not available but tried to be used")
-			return err
-		}
+	auth.AddMechanism(mechanisms.NewMechanismElement(SHAElement("SCRAM-SHA-1")),
+		func(e *auth.AuthElement, strm *stream.Stream) error {
+			var state *SHAState
+			if err := strm.State.Get(&state); err != nil {
+				log.Println("SCRAM-SHA-1 is not available but tried to be used")
+				return err
+			}
 
-		var auth_state *auth.AuthState
-		if err := strm.State.Get(&auth_state); err != nil {
-			log.Println("SHAM-SHA-1 AuthState is not set can't get auth data")
-			return err
-		}
+			var auth_state *auth.AuthState
+			if err := strm.State.Get(&auth_state); err != nil {
+				log.Println("SHAM-SHA-1 AuthState is not set can't get auth data")
+				return err
+			}
 
-		auth_data, err := mechanisms.DecodeBase64(e.Data, strm)
-		if err != nil {
-			return err
-		}
+			auth_data, err := auth.DecodeBase64(e.Data, strm)
+			if err != nil {
+				return err
+			}
 
-		scram := scram.NewServer(sha1.New, nil)
-		if err := scram.ParseClientFirst(auth_data); err != nil {
-			return err
-		}
-		scram.SaltPassword([]byte(auth_state.GetPasswordByUserName(scram.UserName())))
+			scram := scram.NewServer(sha1.New, nil)
+			if err := scram.ParseClientFirst(auth_data); err != nil {
+				return err
+			}
+			scram.SaltPassword([]byte(auth_state.GetPasswordByUserName(scram.UserName())))
 
-		handler := newSHAHandler(strm, scram, auth_state, state)
+			handler := newSHAHandler(strm, scram, auth_state, state)
 
-		return handler.Handle()
-	})
-
-	auth.MechanismsElement.AddElement(mechanisms.NewMechanismElement(SHAElement("SCRAM-SHA-1")))
+			return handler.Handle()
+		})
 }

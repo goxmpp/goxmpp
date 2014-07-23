@@ -4,9 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/xml"
 	"errors"
-	"log"
 
-	"github.com/goxmpp/goxmpp/extensions/features/auth"
 	"github.com/goxmpp/goxmpp/stream"
 	"github.com/goxmpp/xtream"
 )
@@ -83,34 +81,12 @@ type Abort struct {
 }
 
 type MechanismElement struct {
-	XMLName xml.Name `xml:"mechanism"`
-	Method  Method   `xml:",chardata"`
+	XMLName xml.Name  `xml:"mechanism"`
+	Method  Mechanism `xml:",chardata"`
 }
 
-type Method interface {
-	IsAvailable(*stream.Stream) bool
-}
+type Mechanism interface{}
 
-func NewMechanismElement(method Method) *MechanismElement {
+func NewMechanismElement(method Mechanism) *MechanismElement {
 	return &MechanismElement{Method: method}
-}
-
-func (self *MechanismElement) CopyIfAvailable(strm *stream.Stream) xtream.Element {
-	if self.Method.IsAvailable(strm) {
-		return self
-	}
-	return nil
-}
-
-func DecodeBase64(data string, strm *stream.Stream) ([]byte, error) {
-	raw_data, err := base64.StdEncoding.DecodeString(data)
-
-	if err != nil {
-		log.Println("Could not decode Base64 in DigestMD5 handler:", err)
-		if err := strm.WriteElement(auth.NewFailute(IncorrectEncoding{})); err != nil {
-			return raw_data, err
-		}
-	}
-
-	return raw_data, err
 }
