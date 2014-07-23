@@ -7,7 +7,7 @@ import (
 )
 
 type CElement struct {
-	XMLName xml.Name `xml:"http://jabber.org/protocol/caps c"`
+	XMLName xml.Name `xml:"http://jabber.org/protocol/caps c" parent:"presence"`
 	Node    string   `xml:"node,attr"`
 	Ver     string   `xml:"ver,attr"`
 	Hash    string   `xml:"hash,attr"`
@@ -15,7 +15,7 @@ type CElement struct {
 }
 
 func init() {
-	xtream.NodeFactory.Add(func() xtream.Element {
+	xtream.NodeFactory.Add(func(*xml.Name) xtream.Element {
 		return &CElement{}
-	}, xml.Name{Local: "presence"}, xml.Name{Local: "c"})
+	})
 }

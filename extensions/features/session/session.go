@@ -54,7 +54,7 @@ func (self *SessionElement) Handle(fc features.FeatureContainable, opts features
 	log.Printf("Session opened")
 
 	// TODO(goxmpp): 2014-04-03: might be easier to just use original IQ?
-	response_iq := iq.NewIQElement()
+	response_iq := iq.NewIQElement(nil)
 	response_iq.Type = "result"
 	response_iq.ID = request_id.ID
 	if err := strm.WriteElement(response_iq); err != nil {
@@ -70,8 +70,10 @@ func (s *sessionFeatureElement) NewHandler() features.FeatureHandler {
 
 func init() {
 	features.FeatureFactory.Add("session", &features.FeatureFactoryElement{
-		Constructor: func(opts features.Options) features.BasicFeature { return &sessionFeatureElement{} },
-		Name:        xml.Name{Local: "session", Space: "urn:ietf:params:xml:ns:xmpp-session"},
-		Parent:      iq.IQXMLName,
+		Constructor: func(opts features.Options) *features.Feature {
+			return features.NewFeature("session", &sessionFeatureElement{}, false)
+		},
+		Name:   xml.Name{Local: "session", Space: "urn:ietf:params:xml:ns:xmpp-session"},
+		Parent: iq.IQXMLName,
 	})
 }

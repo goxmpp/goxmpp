@@ -10,12 +10,12 @@ import (
 )
 
 func init() {
-	xtream.NodeFactory.Add(func() xtream.Element {
+	xtream.NodeFactory.Add(func(*xml.Name) xtream.Element {
 		return &ResponseElement{}
-	}, stream.StreamXMLName, xml.Name{Local: "response", Space: "urn:ietf:params:xml:ns:xmpp-sasl"})
-	xtream.NodeFactory.Add(func() xtream.Element {
+	})
+	xtream.NodeFactory.Add(func(*xml.Name) xtream.Element {
 		return &Abort{}
-	}, stream.StreamXMLName, xml.Name{Local: "abort"})
+	})
 }
 
 type ChallengeElement struct {
@@ -37,7 +37,7 @@ func NewSuccessElement(data []byte) SuccessElement {
 }
 
 type ResponseElement struct {
-	XMLName xml.Name `xml:"urn:ietf:params:xml:ns:xmpp-sasl response"`
+	XMLName xml.Name `xml:"urn:ietf:params:xml:ns:xmpp-sasl response" parent:"stream:stream"`
 	Data    string   `xml:",chardata"`
 }
 
@@ -77,7 +77,7 @@ type Aborted struct {
 }
 
 type Abort struct {
-	XMLName xml.Name `xml:"abort"`
+	XMLName xml.Name `xml:"abort" parent:"stream:stream"`
 }
 
 type MechanismElement struct {

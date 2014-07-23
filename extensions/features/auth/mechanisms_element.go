@@ -82,8 +82,10 @@ func DecodeBase64(data string, strm *stream.Stream) ([]byte, error) {
 
 func init() {
 	features.FeatureFactory.Add("auth", &features.FeatureFactoryElement{
-		Constructor: newMechanismsElement,
-		Name:        xml.Name{Local: "mechanisms", Space: "urn:ietf:params:xml:ns:xmpp-sasl"},
-		Parent:      stream.StreamXMLName,
+		Constructor: func(opts features.Options) *features.Feature {
+			return features.NewFeature("auth", newMechanismsElement(opts), true)
+		},
+		Name:   xml.Name{Local: "mechanisms", Space: "urn:ietf:params:xml:ns:xmpp-sasl"},
+		Parent: stream.StreamXMLName,
 	})
 }

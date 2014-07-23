@@ -12,14 +12,14 @@ import (
 var privateXMLName = xml.Name{Local: "query", Space: "jabber:iq:private"}
 
 type PrivateElement struct {
-	XMLName              xml.Name `xml:"jabber:iq:private query"`
+	XMLName              xml.Name `xml:"jabber:iq:private query" parent:"iq"`
 	xtream.InnerElements `xml:",any"`
 }
 
 func (self *PrivateElement) Handle(request_id *iq.IQElement, stream *stream.Stream) error {
 	log.Printf("Private storage request received")
 
-	response_iq := iq.NewIQElement()
+	response_iq := iq.NewIQElement(nil)
 	response_iq.Type = "error"
 	response_iq.ID = request_id.ID
 	if err := stream.WriteElement(response_iq); err != nil {
@@ -29,12 +29,12 @@ func (self *PrivateElement) Handle(request_id *iq.IQElement, stream *stream.Stre
 	return nil
 }
 
-func NewPrivateElement() *PrivateElement {
-	return &PrivateElement{InnerElements: xtream.NewElements(&privateXMLName)}
+func NewPrivateElement(name *xml.Name) *PrivateElement {
+	return &PrivateElement{InnerElements: xtream.NewElements(name)}
 }
 
 func init() {
-	xtream.NodeFactory.Add(func() xtream.Element {
-		return NewPrivateElement()
-	}, iq.IQXMLName, privateXMLName)
+	xtream.NodeFactory.Add(func(name *xml.Name) xtream.Element {
+		return NewPrivateElement(name)
+	})
 }

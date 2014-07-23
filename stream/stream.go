@@ -24,7 +24,7 @@ type Stream struct {
 	Opened           bool   `xml:"-"`
 	ReOpen           bool   `xml:"-"`
 	State            State
-	ElementFactory   xtream.Factory
+	ElementFactory   xtream.Factory `xml:"-"`
 	Connection
 	features.FeatureContainable
 }
@@ -34,12 +34,16 @@ type streamElementFactory struct {
 	elementsFactory xtream.Factory
 }
 
-func NewStreamElementFactory() *streamElementFactory {
+func newStreamElementFactory() *streamElementFactory {
 	return &streamElementFactory{xtream.NewFactory(), xtream.NodeFactory}
 }
 
-func (sef streamElementFactory) Add(cons xtream.Constructor, outer, inner xml.Name) {
-	sef.featuresFactory.Add(cons, outer, inner)
+func (sef streamElementFactory) Add(cons xtream.Constructor) {
+	sef.featuresFactory.Add(cons)
+}
+
+func (sef streamElementFactory) AddNamed(cons xtream.Constructor, outer, inner xml.Name) {
+	sef.featuresFactory.AddNamed(cons, outer, inner)
 }
 
 func (sef streamElementFactory) Get(outer, inner *xml.Name) xtream.Element {
@@ -58,7 +62,7 @@ func (sef streamElementFactory) Get(outer, inner *xml.Name) xtream.Element {
 func NewStream(rw io.ReadWriteCloser) *Stream {
 	st := &Stream{
 		FeatureContainable: features.NewFeatureContainer(),
-		ElementFactory:     NewStreamElementFactory(),
+		ElementFactory:     newStreamElementFactory(),
 	}
 	st.SetRW(rw)
 	return st

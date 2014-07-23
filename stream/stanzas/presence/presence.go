@@ -3,25 +3,22 @@ package presence
 import (
 	"encoding/xml"
 
-	"github.com/goxmpp/goxmpp/stream"
 	"github.com/goxmpp/goxmpp/stream/stanzas"
 	"github.com/goxmpp/xtream"
 )
 
-var presenseXMLName = xml.Name{Local: "presence"}
-
 func init() {
-	xtream.NodeFactory.Add(func() xtream.Element {
-		return NewPresenceElement()
-	}, stream.StreamXMLName, presenseXMLName)
+	xtream.NodeFactory.Add(func(name *xml.Name) xtream.Element {
+		return NewPresenceElement(name)
+	})
 }
 
-func NewPresenceElement() *PresenceElement {
-	return &PresenceElement{InnerElements: xtream.NewElements(&presenseXMLName)}
+func NewPresenceElement(name *xml.Name) *PresenceElement {
+	return &PresenceElement{InnerElements: xtream.NewElements(name)}
 }
 
 type PresenceElement struct {
-	XMLName xml.Name `xml:"presence"`
+	XMLName xml.Name `xml:"presence" parent:"stream:stream"`
 	Show    string   `xml:"show,omitempty"`
 	Status  string   `xml:"status"`
 	stanzas.Base

@@ -2,7 +2,7 @@ package features
 
 import "encoding/xml"
 
-type FeatureConstructor func(Options) BasicFeature
+type FeatureConstructor func(Options) *Feature
 type FeatureFactoryElement struct {
 	Constructor FeatureConstructor
 	Name        xml.Name

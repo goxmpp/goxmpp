@@ -12,9 +12,11 @@ import (
 
 func init() {
 	features.FeatureFactory.Add("compression", &features.FeatureFactoryElement{
-		Constructor: NewCompression,
-		Name:        xml.Name{Local: "compress"},
-		Parent:      stream.StreamXMLName,
+		Constructor: func(opts features.Options) *features.Feature {
+			return features.NewFeature("compression", NewCompression(opts), false)
+		},
+		Name:   xml.Name{Local: "compress"},
+		Parent: stream.StreamXMLName,
 	})
 }
 

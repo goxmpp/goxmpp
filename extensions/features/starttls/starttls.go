@@ -17,9 +17,11 @@ func init() {
 	features.FeatureFactory.Add(
 		"starttls",
 		&features.FeatureFactoryElement{
-			Constructor: func(opts features.Options) features.BasicFeature { return NewStartTLSFeature(false) },
-			Name:        xml.Name{Local: "starttls", Space: "urn:ietf:params:xml:ns:xmpp-tls"},
-			Parent:      stream.StreamXMLName,
+			Constructor: func(opts features.Options) *features.Feature {
+				return features.NewFeature("starttls", NewStartTLSFeature(false), false)
+			},
+			Name:   xml.Name{Local: "starttls", Space: "urn:ietf:params:xml:ns:xmpp-tls"},
+			Parent: stream.StreamXMLName,
 		},
 	)
 }

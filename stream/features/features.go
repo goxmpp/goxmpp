@@ -19,10 +19,11 @@ type Feature struct {
 	Name           string
 	featureElement BasicFeature
 	handlerElement FeatureHandler
+	Required       bool
 }
 
-func NewFeature(name string, felement BasicFeature) *Feature {
-	return &Feature{Name: name, featureElement: felement}
+func NewFeature(name string, felement BasicFeature, required bool) *Feature {
+	return &Feature{Name: name, featureElement: felement, Required: required}
 }
 
 func (fw *Feature) InitHandler() xtream.Element {

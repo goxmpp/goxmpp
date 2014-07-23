@@ -49,7 +49,7 @@ func (self *BindElement) Handle(fc features.FeatureContainable, opts features.Op
 	log.Printf("Bound to JID: %#v", strm.To)
 
 	// TODO(goxmpp): 2014-04-03: might be easier to just use original IQ?
-	response_iq := iq.NewIQElement()
+	response_iq := iq.NewIQElement(nil)
 	response_iq.Type = "result"
 	response_iq.ID = request_id.ID
 	response_iq.AddElement(&BindElement{JID: strm.To})
@@ -62,8 +62,10 @@ func (self *BindElement) Handle(fc features.FeatureContainable, opts features.Op
 
 func init() {
 	features.FeatureFactory.Add("bind", &features.FeatureFactoryElement{
-		Constructor: func(opts features.Options) features.BasicFeature { return &bindElement{} },
-		Name:        xml.Name{Local: "bind", Space: "urn:ietf:params:xml:ns:xmpp-bind"},
-		Parent:      iq.IQXMLName,
+		Constructor: func(opts features.Options) *features.Feature {
+			return features.NewFeature("bind", &bindElement{}, true)
+		},
+		Name:   xml.Name{Local: "bind", Space: "urn:ietf:params:xml:ns:xmpp-bind"},
+		Parent: iq.IQXMLName,
 	})
 }
