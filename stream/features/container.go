@@ -1,49 +1,60 @@
 package features
 
-import (
-	"encoding/xml"
+import "encoding/xml"
 
-	"github.com/goxmpp/goxmpp/stream"
-	"github.com/goxmpp/xtream"
-)
-
-type Container struct {
-	xtream.InnerElements
+type FeatureContainable interface {
+	AddFeature(*Feature)
+	RemoveFeature(string)
+	HasRequired() bool
 }
 
-type AccessControllable interface {
-	CopyIfAvailable(*stream.Stream) xtream.Element
+type FeatureContainer struct {
+	features     map[string]*Feature
+	num_required int
 }
 
-type AccessController interface {
-	IsRequiredFor(*stream.Stream) bool
+func NewFeatureContainer() *FeatureContainer {
+	return &FeatureContainer{features: make(map[string]*Feature)}
 }
 
-func NewContainer() *Container {
-	return &Container{
-		InnerElements: xtream.NewElements(&xml.Name{Local: "stream"}),
+func (fc *FeatureContainer) HasRequired() bool {
+	return fc.num_required > 0
+}
+
+func (fc *FeatureContainer) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+	start = xml.StartElement{Name: xml.Name{Local: "stream:features"}}
+	if err := e.EncodeToken(start); err != nil {
+		return err
 	}
+
+	fs := make([]*Feature, 0, len(fc.features))
+	for _, v := range fc.features {
+		fs = append(fs, v)
+	}
+
+	if err := e.Encode(fs); err != nil {
+		return err
+	}
+
+	if err := e.EncodeToken(start.End()); err != nil {
+		return err
+	}
+
+	return e.Flush()
 }
 
-func (self *Container) CopyAvailableFeatures(stream *stream.Stream, dest *Container) {
-	for _, feature := range self.Elements() {
-		if feature_element, ok := feature.(AccessControllable); ok {
-			dest.AddElement(feature_element.CopyIfAvailable(stream))
-		} else {
-			dest.AddElement(feature)
+func (fc *FeatureContainer) AddFeature(f *Feature) {
+	if _, ok := fc.features[f.Name]; !ok {
+		fc.features[f.Name] = f
+		if f.Required {
+			fc.num_required += 1
 		}
 	}
 }
 
-func (self *Container) HasFeaturesRequiredFor(stream *stream.Stream) bool {
-	for _, feature := range self.Elements() {
-		if feature_element, ok := feature.(AccessController); ok && feature_element.IsRequiredFor(stream) {
-			return true
-		}
+func (fc *FeatureContainer) RemoveFeature(name string) {
+	if feature, ok := fc.features[name]; ok && feature.Required {
+		fc.num_required -= 1
 	}
-	return false
-}
-
-func (self *Container) IsRequiredFor(stream *stream.Stream) bool {
-	return self.HasFeaturesRequiredFor(stream)
+	delete(fc.features, name)
 }

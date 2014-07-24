@@ -7,13 +7,13 @@ import (
 )
 
 func init() {
-	xtream.NodeFactory.Add(func() xtream.Element {
+	xtream.NodeFactory.Add(func(*xml.Name) xtream.Element {
 		return &Item{}
-	}, xml.Name{Local: "query"}, xml.Name{Local: "item"})
+	})
 }
 
 type Item struct {
-	XMLName     xml.Name `xml:"item"`
+	XMLName     xml.Name `xml:"item" parent:"query"`
 	Affiliation string   `xml:"affiliation,attr"`
 	JID         string   `xml:"jid,attr"`
 	Text        string   `xml:",chardata"`

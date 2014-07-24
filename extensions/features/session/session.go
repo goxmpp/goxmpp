@@ -40,31 +40,40 @@ func (self *sessionFeatureElement) CopyIfAvailable(stream *stream.Stream) xtream
 	return nil
 }
 
-func (self *SessionElement) Handle(request_id *iq.IQElement, stream *stream.Stream) error {
+func (self *SessionElement) Handle(fc features.FeatureContainable, opts features.Options) error {
+	request_id := opts.(*iq.IQElement)
+	strm := fc.(*stream.Stream)
 	// FIXME(goxmpp): 2014-04-04: auth check, state presence check, resource check required
 	var state *SessionState
-	if err := stream.State.Get(&state); err != nil {
+	if err := strm.State.Get(&state); err != nil {
 		state = &SessionState{}
-		stream.State.Push(state)
+		strm.State.Push(state)
 	}
 	state.Active = true
 
 	log.Printf("Session opened")
 
 	// TODO(goxmpp): 2014-04-03: might be easier to just use original IQ?
-	response_iq := iq.NewIQElement()
+	response_iq := iq.NewIQElement(nil)
 	response_iq.Type = "result"
 	response_iq.ID = request_id.ID
-	if err := stream.WriteElement(response_iq); err != nil {
+	if err := strm.WriteElement(response_iq); err != nil {
 		return err
 	}
 
 	return nil
 }
 
+func (s *sessionFeatureElement) NewHandler() features.FeatureHandler {
+	return &SessionElement{}
+}
+
 func init() {
-	xtream.NodeFactory.Add(func() xtream.Element {
-		return &SessionElement{}
-	}, iq.IQXMLName, xml.Name{Local: "session", Space: "urn:ietf:params:xml:ns:xmpp-session"})
-	features.Tree.AddElement(&sessionFeatureElement{})
+	features.FeatureFactory.Add("session", &features.FeatureFactoryElement{
+		Constructor: func(opts features.Options) *features.Feature {
+			return features.NewFeature("session", &sessionFeatureElement{}, false)
+		},
+		Name:   xml.Name{Local: "session", Space: "urn:ietf:params:xml:ns:xmpp-session"},
+		Parent: iq.IQXMLName,
+	})
 }

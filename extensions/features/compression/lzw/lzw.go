@@ -3,15 +3,12 @@ package lzw
 import (
 	"compress/lzw"
 	"io"
-	"log"
 
 	"github.com/goxmpp/goxmpp/extensions/features/compression"
-	"github.com/goxmpp/goxmpp/stream"
-	"github.com/goxmpp/xtream"
 )
 
 func init() {
-	compression.CompressTemplate.AddElement(&compressor{BaseCompressor: compression.NewBaseCompressor("lzw")})
+	compression.Methods = append(compression.Methods, compressor{compression.BaseCompressor{MethodName: "lzw"}})
 }
 
 type State struct {
@@ -22,18 +19,10 @@ type compressor struct {
 	compression.BaseCompressor
 }
 
-func (c *compressor) CopyIfAvailable(s *stream.Stream) xtream.Element {
-	log.Println("Enabling compressor", c.Name())
-	if c.IsAvailable(s) {
-		return &compressor{BaseCompressor: compression.NewBaseCompressor(c.Name())}
-	}
-	return nil
-}
-
-func (c *compressor) GetReader(r io.Reader) (io.ReadCloser, error) {
+func (c compressor) GetReader(r io.Reader) (io.ReadCloser, error) {
 	return lzw.NewReader(r, lzw.LSB, 8), nil
 }
 
-func (c *compressor) GetWriter(w io.Writer) io.WriteCloser {
+func (c compressor) GetWriter(w io.Writer) io.WriteCloser {
 	return lzw.NewWriter(w, lzw.LSB, 8)
 }

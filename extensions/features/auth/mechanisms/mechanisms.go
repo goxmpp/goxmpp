@@ -4,20 +4,18 @@ import (
 	"encoding/base64"
 	"encoding/xml"
 	"errors"
-	"log"
 
-	"github.com/goxmpp/goxmpp/extensions/features/auth"
 	"github.com/goxmpp/goxmpp/stream"
 	"github.com/goxmpp/xtream"
 )
 
 func init() {
-	xtream.NodeFactory.Add(func() xtream.Element {
+	xtream.NodeFactory.Add(func(*xml.Name) xtream.Element {
 		return &ResponseElement{}
-	}, stream.StreamXMLName, xml.Name{Local: "response", Space: "urn:ietf:params:xml:ns:xmpp-sasl"})
-	xtream.NodeFactory.Add(func() xtream.Element {
+	})
+	xtream.NodeFactory.Add(func(*xml.Name) xtream.Element {
 		return &Abort{}
-	}, stream.StreamXMLName, xml.Name{Local: "abort"})
+	})
 }
 
 type ChallengeElement struct {
@@ -39,7 +37,7 @@ func NewSuccessElement(data []byte) SuccessElement {
 }
 
 type ResponseElement struct {
-	XMLName xml.Name `xml:"urn:ietf:params:xml:ns:xmpp-sasl response"`
+	XMLName xml.Name `xml:"urn:ietf:params:xml:ns:xmpp-sasl response" parent:"stream:stream"`
 	Data    string   `xml:",chardata"`
 }
 
@@ -79,38 +77,14 @@ type Aborted struct {
 }
 
 type Abort struct {
-	XMLName xml.Name `xml:"abort"`
+	XMLName xml.Name `xml:"abort" parent:"stream:stream"`
 }
 
 type MechanismElement struct {
-	XMLName xml.Name `xml:"mechanism"`
-	Method  Method   `xml:",chardata"`
+	XMLName   xml.Name `xml:"mechanism"`
+	Mechanism string   `xml:",chardata"`
 }
 
-type Method interface {
-	IsAvailable(*stream.Stream) bool
-}
-
-func NewMechanismElement(method Method) *MechanismElement {
-	return &MechanismElement{Method: method}
-}
-
-func (self *MechanismElement) CopyIfAvailable(strm *stream.Stream) xtream.Element {
-	if self.Method.IsAvailable(strm) {
-		return self
-	}
-	return nil
-}
-
-func DecodeBase64(data string, strm *stream.Stream) ([]byte, error) {
-	raw_data, err := base64.StdEncoding.DecodeString(data)
-
-	if err != nil {
-		log.Println("Could not decode Base64 in DigestMD5 handler:", err)
-		if err := strm.WriteElement(auth.NewFailute(IncorrectEncoding{})); err != nil {
-			return raw_data, err
-		}
-	}
-
-	return raw_data, err
+func NewMechanismElement(mech string) *MechanismElement {
+	return &MechanismElement{Mechanism: mech}
 }

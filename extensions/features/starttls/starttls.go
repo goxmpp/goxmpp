@@ -11,14 +11,19 @@ import (
 
 	"github.com/goxmpp/goxmpp/stream"
 	"github.com/goxmpp/goxmpp/stream/features"
-	"github.com/goxmpp/xtream"
 )
 
 func init() {
-	features.Tree.AddElement(NewStartTLSFeature(false))
-	xtream.NodeFactory.Add(func() xtream.Element {
-		return &StartTLSElement{}
-	}, stream.StreamXMLName, xml.Name{Local: "starttls", Space: "urn:ietf:params:xml:ns:xmpp-tls"})
+	features.FeatureFactory.Add(
+		"starttls",
+		&features.FeatureFactoryElement{
+			Constructor: func(opts features.Options) *features.Feature {
+				return features.NewFeature("starttls", NewStartTLSFeature(false), false)
+			},
+			Name:   xml.Name{Local: "starttls", Space: "urn:ietf:params:xml:ns:xmpp-tls"},
+			Parent: stream.StreamXMLName,
+		},
+	)
 }
 
 type StartTLSFeatureElement struct {
@@ -30,13 +35,8 @@ func NewStartTLSFeature(required bool) *StartTLSFeatureElement {
 	return &StartTLSFeatureElement{Required: required}
 }
 
-func (s *StartTLSFeatureElement) CopyIfAvailable(st *stream.Stream) xtream.Element {
-	// Check if it is enabled and not started
-	var state *StartTLSState
-	if err := st.State.Get(&state); err != nil || state.Started {
-		return nil
-	}
-	return NewStartTLSFeature(state.Required)
+func (tls *StartTLSFeatureElement) NewHandler() features.FeatureHandler {
+	return &StartTLSElement{}
 }
 
 type StartTLSElement struct {
@@ -66,8 +66,9 @@ func NewStartTLSState(required bool, conf *TLSConfig) *StartTLSState {
 	}
 }
 
-func (s *StartTLSElement) Handle(st *stream.Stream) error {
+func (s *StartTLSElement) Handle(strm features.FeatureContainable, opts features.Options) error {
 	var state *StartTLSState
+	st := strm.(*stream.Stream)
 	if err := st.State.Get(&state); err != nil {
 		return err
 	}

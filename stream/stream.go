@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 
+	"github.com/goxmpp/goxmpp/stream/features"
 	"github.com/goxmpp/xtream"
 )
 
@@ -14,9 +15,8 @@ type StreamHandler func(*Stream) error
 var StreamXMLName = xml.Name{Local: "stream:stream"}
 
 type Stream struct {
-	XMLName xml.Name
-	ID      string `xml:"id,attr"`
-	// TODO(goxmpp): 2014-04-03: should we really reverse the next two in gojabberd?
+	XMLName          xml.Name
+	ID               string `xml:"id,attr"`
 	From             string `xml:"from,attr,omitempty"` // This holds server domain name.
 	To               string `xml:"to,attr,omitempty"`   // This holds user JID after bind.
 	Version          string `xml:"version,attr"`
@@ -24,11 +24,48 @@ type Stream struct {
 	Opened           bool   `xml:"-"`
 	ReOpen           bool   `xml:"-"`
 	State            State
+	ElementFactory   xtream.Factory `xml:"-"`
 	Connection
+	*features.FeatureContainer
+}
+
+type streamElementFactory struct {
+	featuresFactory xtream.Factory
+	elementsFactory xtream.Factory
+}
+
+func newStreamElementFactory() *streamElementFactory {
+	return &streamElementFactory{xtream.NewFactory(), xtream.NodeFactory}
+}
+
+func (sef streamElementFactory) Add(cons xtream.Constructor) {
+	sef.featuresFactory.Add(cons)
+}
+
+func (sef streamElementFactory) AddNamed(cons xtream.Constructor, outer, inner xml.Name) {
+	sef.featuresFactory.AddNamed(cons, outer, inner)
+}
+
+func (sef streamElementFactory) Get(outer, inner *xml.Name) xtream.Element {
+	setFactory := func(el xtream.Element) xtream.Element {
+		if innerEl, ok := el.(xtream.Registrable); ok {
+			innerEl.SetFactory(sef)
+		}
+		return el
+	}
+
+	if e := sef.featuresFactory.Get(outer, inner); e != nil {
+		return setFactory(e)
+	}
+
+	return setFactory(sef.elementsFactory.Get(outer, inner))
 }
 
 func NewStream(rw io.ReadWriteCloser) *Stream {
-	st := &Stream{}
+	st := &Stream{
+		FeatureContainer: features.NewFeatureContainer(),
+		ElementFactory:   newStreamElementFactory(),
+	}
 	st.SetRW(rw)
 	return st
 }
@@ -77,6 +114,11 @@ func (s *Stream) ReadSentOpen() error {
 	if err := s.streamEncoder.EncodeToken(start); err != nil {
 		return err
 	}
+
+	if err := s.SendFeatures(); err != nil {
+		return err
+	}
+
 	// xml.Encoder doesn't flush until it generated end tag
 	// so we flush here to make it send stream's open tag
 	if err := s.streamEncoder.Flush(); err != nil {
@@ -86,6 +128,10 @@ func (s *Stream) ReadSentOpen() error {
 	s.Opened = true
 	s.ReOpen = false
 	return nil
+}
+
+func (s *Stream) SendFeatures() error {
+	return s.streamEncoder.Encode(s.FeatureContainer)
 }
 
 func (self *Stream) ReadOpen() error {
@@ -139,8 +185,7 @@ func (self *Stream) ReadElement() (xtream.Element, error) {
 		if start, ok := token.(xml.StartElement); ok {
 			log.Printf("got element: %v (ns %v)\n", start.Name.Local, start.Name.Space)
 
-			fmt.Println(xtream.NodeFactory)
-			element := xtream.NodeFactory.Get(&StreamXMLName, &start.Name)
+			element := self.ElementFactory.Get(&StreamXMLName, &start.Name)
 			if element == nil {
 				return nil, fmt.Errorf("Unknown node encountered: %s", start.Name.Local)
 			}
