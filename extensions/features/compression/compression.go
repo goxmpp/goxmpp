@@ -51,16 +51,16 @@ func (bc BaseCompressor) Name() string {
 // This struct is used for marshaling
 type compression struct {
 	XMLName     xml.Name `xml:"http://jabber.org/features/compress compression"`
-	Compressors []*Compressor
+	Compressors []Compressor
 }
 
 func NewCompression(opts features.Options) features.BasicFeature {
 	comp := &compression{
-		Compressors: make([]*Compressor, 0),
+		Compressors: make([]Compressor, 0),
 	}
 
 	for _, method := range Methods {
-		comp.Compressors = append(comp.Compressors, &method)
+		comp.Compressors = append(comp.Compressors, method)
 	}
 
 	return comp

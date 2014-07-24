@@ -81,12 +81,10 @@ type Abort struct {
 }
 
 type MechanismElement struct {
-	XMLName xml.Name  `xml:"mechanism"`
-	Method  Mechanism `xml:",chardata"`
+	XMLName   xml.Name `xml:"mechanism"`
+	Mechanism string   `xml:",chardata"`
 }
 
-type Mechanism interface{}
-
-func NewMechanismElement(method Mechanism) *MechanismElement {
-	return &MechanismElement{Method: method}
+func NewMechanismElement(mech string) *MechanismElement {
+	return &MechanismElement{Mechanism: mech}
 }

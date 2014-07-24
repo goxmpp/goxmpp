@@ -37,13 +37,16 @@ func (self *IQElement) Handle(strm features.FeatureContainable, opts features.Op
 	log.Printf("Handling IQ: from = %#v, to = %#v\n", self.From, self.To)
 
 	match := false
+	log.Println("Number of inner elements", len(self.Elements()))
 	for _, element := range self.Elements() {
+		log.Printf("--------------- %#v", element)
 		if handler, ok := element.(Handler); ok {
 			match = true
 			if err := handler.Handle(self, strm.(*stream.Stream)); err != nil {
 				return err
 			}
 		} else if handler, ok := element.(features.FeatureHandler); ok {
+			match = true
 			if err := handler.Handle(strm, self); err != nil {
 				return err
 			}

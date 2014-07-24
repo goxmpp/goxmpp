@@ -26,7 +26,7 @@ type Stream struct {
 	State            State
 	ElementFactory   xtream.Factory `xml:"-"`
 	Connection
-	features.FeatureContainable
+	*features.FeatureContainer
 }
 
 type streamElementFactory struct {
@@ -47,22 +47,24 @@ func (sef streamElementFactory) AddNamed(cons xtream.Constructor, outer, inner x
 }
 
 func (sef streamElementFactory) Get(outer, inner *xml.Name) xtream.Element {
+	setFactory := func(el xtream.Element) xtream.Element {
+		if innerEl, ok := el.(xtream.Registrable); ok {
+			innerEl.SetFactory(sef)
+		}
+		return el
+	}
+
 	if e := sef.featuresFactory.Get(outer, inner); e != nil {
-		return e
+		return setFactory(e)
 	}
 
-	e := sef.elementsFactory.Get(outer, inner)
-	if innerEl, ok := e.(xtream.Registrable); ok {
-		innerEl.SetFactory(sef)
-	}
-
-	return e
+	return setFactory(sef.elementsFactory.Get(outer, inner))
 }
 
 func NewStream(rw io.ReadWriteCloser) *Stream {
 	st := &Stream{
-		FeatureContainable: features.NewFeatureContainer(),
-		ElementFactory:     newStreamElementFactory(),
+		FeatureContainer: features.NewFeatureContainer(),
+		ElementFactory:   newStreamElementFactory(),
 	}
 	st.SetRW(rw)
 	return st
@@ -112,6 +114,11 @@ func (s *Stream) ReadSentOpen() error {
 	if err := s.streamEncoder.EncodeToken(start); err != nil {
 		return err
 	}
+
+	if err := s.SendFeatures(); err != nil {
+		return err
+	}
+
 	// xml.Encoder doesn't flush until it generated end tag
 	// so we flush here to make it send stream's open tag
 	if err := s.streamEncoder.Flush(); err != nil {
@@ -121,6 +128,10 @@ func (s *Stream) ReadSentOpen() error {
 	s.Opened = true
 	s.ReOpen = false
 	return nil
+}
+
+func (s *Stream) SendFeatures() error {
+	return s.streamEncoder.Encode(s.FeatureContainer)
 }
 
 func (self *Stream) ReadOpen() error {

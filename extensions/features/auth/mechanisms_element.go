@@ -13,16 +13,16 @@ import (
 
 type MechanismsElement struct {
 	XMLName    xml.Name `xml:"urn:ietf:params:xml:ns:xmpp-sasl mechanisms"`
-	Mechanisms []mechanisms.Mechanism
+	Mechanisms []*mechanisms.MechanismElement
 }
 
 func newMechanismsElement(opts features.Options) features.BasicFeature {
 	auth := &MechanismsElement{
-		Mechanisms: make([]mechanisms.Mechanism, 0),
+		Mechanisms: make([]*mechanisms.MechanismElement, 0),
 	}
 
 	for mech := range mechanism_handlers {
-		auth.Mechanisms = append(auth.Mechanisms, mech)
+		auth.Mechanisms = append(auth.Mechanisms, mechanisms.NewMechanismElement(mech))
 	}
 
 	return auth
@@ -32,9 +32,9 @@ func (me *MechanismsElement) NewHandler() features.FeatureHandler {
 	return &AuthElement{}
 }
 
-var mechanism_handlers map[mechanisms.Mechanism]Handler = make(map[mechanisms.Mechanism]Handler)
+var mechanism_handlers map[string]Handler = make(map[string]Handler)
 
-func AddMechanism(name mechanisms.Mechanism, handler Handler) {
+func AddMechanism(name string, handler Handler) {
 	mechanism_handlers[name] = handler
 }
 
@@ -85,7 +85,7 @@ func init() {
 		Constructor: func(opts features.Options) *features.Feature {
 			return features.NewFeature("auth", newMechanismsElement(opts), true)
 		},
-		Name:   xml.Name{Local: "mechanisms", Space: "urn:ietf:params:xml:ns:xmpp-sasl"},
+		Name:   xml.Name{Local: "auth"},
 		Parent: stream.StreamXMLName,
 	})
 }

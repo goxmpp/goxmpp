@@ -16,7 +16,7 @@ type BindState struct {
 }
 
 type BindElement struct {
-	XMLName  xml.Name `xml:"urn:ietf:params:xml:ns:xmpp-bind bind"`
+	XMLName  xml.Name `xml:"urn:ietf:params:xml:ns:xmpp-bind bind" parent:"iq"`
 	Resource string   `xml:"resource,omitempty"`
 	JID      string   `xml:"jid,omitempty"`
 }

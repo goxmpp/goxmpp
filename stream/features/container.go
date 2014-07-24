@@ -22,12 +22,25 @@ func (fc *FeatureContainer) HasRequired() bool {
 }
 
 func (fc *FeatureContainer) MarshalXML(e *xml.Encoder, start xml.StartElement) error {
+	start = xml.StartElement{Name: xml.Name{Local: "stream:features"}}
+	if err := e.EncodeToken(start); err != nil {
+		return err
+	}
+
 	fs := make([]*Feature, 0, len(fc.features))
 	for _, v := range fc.features {
 		fs = append(fs, v)
 	}
 
-	return e.EncodeElement(fs, xml.StartElement{Name: xml.Name{Local: "stream:features"}})
+	if err := e.Encode(fs); err != nil {
+		return err
+	}
+
+	if err := e.EncodeToken(start.End()); err != nil {
+		return err
+	}
+
+	return e.Flush()
 }
 
 func (fc *FeatureContainer) AddFeature(f *Feature) {

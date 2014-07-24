@@ -9,8 +9,6 @@ import (
 	"github.com/goxmpp/sasl/digest"
 )
 
-type DigestMD5Element string
-
 type DigestMD5State struct {
 	Realm []string
 	Host  string
@@ -83,7 +81,7 @@ func (h *digestMD5Handler) Handle() error {
 }
 
 func init() {
-	auth.AddMechanism(mechanisms.NewMechanismElement(DigestMD5Element("DIGEST-MD5")),
+	auth.AddMechanism("DIGEST-MD5",
 		func(e *auth.AuthElement, strm *stream.Stream) error {
 			var state *DigestMD5State
 			if err := strm.State.Get(&state); err != nil {

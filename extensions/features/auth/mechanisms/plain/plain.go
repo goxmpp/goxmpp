@@ -9,8 +9,6 @@ import (
 	"github.com/goxmpp/goxmpp/stream"
 )
 
-type PlainElement string
-
 type PlainState struct {
 	VerifyUserAndPassword func(string, string) bool
 	RequireEncryption     bool
@@ -19,7 +17,7 @@ type PlainState struct {
 var usernamePasswordSeparator = []byte{0}
 
 func init() {
-	auth.AddMechanism(mechanisms.NewMechanismElement(PlainElement("PLAIN")),
+	auth.AddMechanism("PLAIN",
 		func(e *auth.AuthElement, stream *stream.Stream) error {
 			b, err := auth.DecodeBase64(e.Data, stream)
 			if err != nil {

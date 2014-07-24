@@ -12,8 +12,6 @@ import (
 
 const MIN_ITERS = 4096
 
-type SHAElement string
-
 type SHAState struct {
 	Authenticated bool
 }
@@ -66,7 +64,7 @@ func (h *shaHandler) Handle() error {
 }
 
 func init() {
-	auth.AddMechanism(mechanisms.NewMechanismElement(SHAElement("SCRAM-SHA-1")),
+	auth.AddMechanism("SCRAM-SHA-1",
 		func(e *auth.AuthElement, strm *stream.Stream) error {
 			var state *SHAState
 			if err := strm.State.Get(&state); err != nil {
