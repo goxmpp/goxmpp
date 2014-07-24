@@ -25,12 +25,12 @@ func NewMessageElement(name *xml.Name) *MessageElement {
 }
 
 type Body struct {
-	XMLName xml.Name `xml:"body"`
+	XMLName xml.Name `xml:"body" parent:"message"`
 	Body    string   `xml:",innerxml"`
 }
 
 type MessageElement struct {
-	XMLName xml.Name `xml:"message"`
+	XMLName xml.Name `xml:"message" parent:"stream:stream"`
 	stanzas.Base
 	xtream.InnerElements `xml:",any"`
 }
