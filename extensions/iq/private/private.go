@@ -19,7 +19,7 @@ type PrivateElement struct {
 func (self *PrivateElement) Handle(request_id *iq.IQElement, stream *stream.Stream) error {
 	log.Printf("Private storage request received")
 
-	response_iq := iq.NewIQElement(nil)
+	response_iq := iq.NewIQElement()
 	response_iq.Type = "error"
 	response_iq.ID = request_id.ID
 	if err := stream.WriteElement(response_iq); err != nil {
@@ -29,12 +29,12 @@ func (self *PrivateElement) Handle(request_id *iq.IQElement, stream *stream.Stre
 	return nil
 }
 
-func NewPrivateElement(name *xml.Name) *PrivateElement {
-	return &PrivateElement{InnerElements: xtream.NewElements(name)}
+func NewPrivateElement() *PrivateElement {
+	return &PrivateElement{InnerElements: xtream.NewElements()}
 }
 
 func init() {
-	xtream.NodeFactory.Add(func(name *xml.Name) xtream.Element {
-		return NewPrivateElement(name)
+	xtream.NodeFactory.Add(func() xtream.Element {
+		return NewPrivateElement()
 	})
 }

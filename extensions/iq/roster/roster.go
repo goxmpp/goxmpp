@@ -46,7 +46,7 @@ func (self *RosterElement) Handle(request_id *iq.IQElement, stream *stream.Strea
 	ri.Items[0].Groups = append(ri.Items[0].Groups, "TestGroup")
 
 	// TODO(goxmpp): 2014-04-03: might be easier to just use original IQ?
-	response_iq := iq.NewIQElement(nil)
+	response_iq := iq.NewIQElement()
 	response_iq.Type = "result"
 	response_iq.ID = request_id.ID
 	response_iq.AddElement(&ri)
@@ -58,7 +58,7 @@ func (self *RosterElement) Handle(request_id *iq.IQElement, stream *stream.Strea
 }
 
 func init() {
-	xtream.NodeFactory.Add(func(*xml.Name) xtream.Element {
+	xtream.NodeFactory.Add(func() xtream.Element {
 		return &RosterElement{}
 	})
 }

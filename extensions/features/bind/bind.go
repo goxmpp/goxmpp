@@ -49,7 +49,7 @@ func (self *BindElement) Handle(fc features.FeatureContainable, opts features.Op
 	log.Printf("Bound to JID: %#v", strm.To)
 
 	// TODO(goxmpp): 2014-04-03: might be easier to just use original IQ?
-	response_iq := iq.NewIQElement(nil)
+	response_iq := iq.NewIQElement()
 	response_iq.Type = "result"
 	response_iq.ID = request_id.ID
 	response_iq.AddElement(&BindElement{JID: strm.To})

@@ -11,17 +11,17 @@ var messageXMLName = xml.Name{Local: "message"}
 var bodyXMLName = xml.Name{Local: "body"}
 
 func init() {
-	xtream.NodeFactory.Add(func(name *xml.Name) xtream.Element {
-		return NewMessageElement(name)
+	xtream.NodeFactory.Add(func() xtream.Element {
+		return NewMessageElement()
 	})
 
-	xtream.NodeFactory.Add(func(*xml.Name) xtream.Element {
+	xtream.NodeFactory.Add(func() xtream.Element {
 		return &Body{}
 	})
 }
 
-func NewMessageElement(name *xml.Name) *MessageElement {
-	return &MessageElement{InnerElements: xtream.NewElements(name)}
+func NewMessageElement() *MessageElement {
+	return &MessageElement{InnerElements: xtream.NewElements()}
 }
 
 type Body struct {

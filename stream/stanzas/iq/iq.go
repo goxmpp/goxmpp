@@ -14,13 +14,13 @@ import (
 var IQXMLName = xml.Name{Local: "iq"}
 
 func init() {
-	xtream.NodeFactory.Add(func(name *xml.Name) xtream.Element {
-		return NewIQElement(name)
+	xtream.NodeFactory.Add(func() xtream.Element {
+		return NewIQElement()
 	})
 }
 
-func NewIQElement(name *xml.Name) *IQElement {
-	return &IQElement{InnerElements: xtream.NewElements(name)}
+func NewIQElement() *IQElement {
+	return &IQElement{InnerElements: xtream.NewElements()}
 }
 
 type IQElement struct {

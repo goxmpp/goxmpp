@@ -15,7 +15,7 @@ type CElement struct {
 }
 
 func init() {
-	xtream.NodeFactory.Add(func(*xml.Name) xtream.Element {
+	xtream.NodeFactory.Add(func() xtream.Element {
 		return &CElement{}
 	})
 }
