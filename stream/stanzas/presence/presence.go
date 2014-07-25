@@ -8,13 +8,13 @@ import (
 )
 
 func init() {
-	xtream.NodeFactory.Add(func(name *xml.Name) xtream.Element {
-		return NewPresenceElement(name)
+	xtream.NodeFactory.Add(func() xtream.Element {
+		return NewPresenceElement()
 	})
 }
 
-func NewPresenceElement(name *xml.Name) *PresenceElement {
-	return &PresenceElement{InnerElements: xtream.NewElements(name)}
+func NewPresenceElement() *PresenceElement {
+	return &PresenceElement{InnerElements: xtream.NewElements()}
 }
 
 type PresenceElement struct {

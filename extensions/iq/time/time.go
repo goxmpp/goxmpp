@@ -4,7 +4,7 @@ import "encoding/xml"
 import "github.com/goxmpp/xtream"
 
 func init() {
-	xtream.NodeFactory.Add(func(name *xml.Name) xtream.Element { return &TimeQuery{} })
+	xtream.NodeFactory.Add(func() xtream.Element { return &TimeQuery{} })
 }
 
 type TimeQuery struct {
