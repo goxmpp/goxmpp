@@ -81,10 +81,8 @@ func NewCompressHandler() *compressElement {
 	return &compressElement{}
 }
 
-func (c *compressElement) Handle(strm features.FeatureContainable, opts features.Options) error {
+func (c *compressElement) Handle(s *stream.Stream, opts features.Options) error {
 	var compressor Compressor
-
-	s := strm.(*stream.Stream)
 
 	for _, element := range Methods {
 		if compr, ok := element.(Compressor); ok && compr.Name() == c.Method {

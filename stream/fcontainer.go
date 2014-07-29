@@ -1,20 +1,36 @@
-package features
+package stream
 
 import "encoding/xml"
 
+type DependancyManageable interface {
+	Add(name string, depends ...string)
+	Get(name string) []string
+}
+
+type Feature interface {
+	Name() string
+	Required() bool
+}
+
 type FeatureContainable interface {
-	AddFeature(*Feature)
+	AddFeature(Feature)
 	RemoveFeature(string)
 	HasRequired() bool
+	DependancyGraph() DependancyManageable
 }
 
 type FeatureContainer struct {
-	features     map[string]*Feature
+	features     map[string]Feature
 	num_required int
+	dg           DependancyManageable
 }
 
-func NewFeatureContainer() *FeatureContainer {
-	return &FeatureContainer{features: make(map[string]*Feature)}
+func NewFeatureContainer(dg DependancyManageable) *FeatureContainer {
+	return &FeatureContainer{features: make(map[string]Feature), dg: dg}
+}
+
+func (fc *FeatureContainer) DependancyGraph() DependancyManageable {
+	return fc.dg
 }
 
 func (fc *FeatureContainer) HasRequired() bool {
@@ -27,7 +43,7 @@ func (fc *FeatureContainer) MarshalXML(e *xml.Encoder, start xml.StartElement) e
 		return err
 	}
 
-	fs := make([]*Feature, 0, len(fc.features))
+	fs := make([]Feature, 0, len(fc.features))
 	for _, v := range fc.features {
 		fs = append(fs, v)
 	}
@@ -43,17 +59,17 @@ func (fc *FeatureContainer) MarshalXML(e *xml.Encoder, start xml.StartElement) e
 	return e.Flush()
 }
 
-func (fc *FeatureContainer) AddFeature(f *Feature) {
-	if _, ok := fc.features[f.Name]; !ok {
-		fc.features[f.Name] = f
-		if f.Required {
+func (fc *FeatureContainer) AddFeature(f Feature) {
+	if _, ok := fc.features[f.Name()]; !ok {
+		fc.features[f.Name()] = f
+		if f.Required() {
 			fc.num_required += 1
 		}
 	}
 }
 
 func (fc *FeatureContainer) RemoveFeature(name string) {
-	if feature, ok := fc.features[name]; ok && feature.Required {
+	if feature, ok := fc.features[name]; ok && feature.Required() {
 		fc.num_required -= 1
 	}
 	delete(fc.features, name)

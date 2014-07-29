@@ -33,16 +33,14 @@ type Handler interface {
 	Handle(*IQElement, *stream.Stream) error
 }
 
-func (self *IQElement) Handle(strm features.FeatureContainable, opts features.Options) error {
+func (self *IQElement) Handle(strm *stream.Stream, opts features.Options) error {
 	log.Printf("Handling IQ: from = %#v, to = %#v\n", self.From, self.To)
 
 	match := false
-	log.Println("Number of inner elements", len(self.Elements()))
 	for _, element := range self.Elements() {
-		log.Printf("--------------- %#v", element)
 		if handler, ok := element.(Handler); ok {
 			match = true
-			if err := handler.Handle(self, strm.(*stream.Stream)); err != nil {
+			if err := handler.Handle(self, strm); err != nil {
 				return err
 			}
 		} else if handler, ok := element.(features.FeatureHandler); ok {

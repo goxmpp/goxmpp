@@ -66,9 +66,8 @@ func NewStartTLSState(required bool, conf *TLSConfig) *StartTLSState {
 	}
 }
 
-func (s *StartTLSElement) Handle(strm features.FeatureContainable, opts features.Options) error {
+func (s *StartTLSElement) Handle(st *stream.Stream, opts features.Options) error {
 	var state *StartTLSState
-	st := strm.(*stream.Stream)
 	if err := st.State.Get(&state); err != nil {
 		return err
 	}

@@ -46,9 +46,7 @@ type AuthElement struct {
 	Data      string   `xml:",chardata"`
 }
 
-func (self *AuthElement) Handle(strm features.FeatureContainable, opts features.Options) error {
-	st := strm.(*stream.Stream)
-
+func (self *AuthElement) Handle(st *stream.Stream, opts features.Options) error {
 	if handler := mechanism_handlers[self.Mechanism]; handler != nil {
 		if err := handler(self, st); err != nil {
 			log.Println("Authorization failed:", err)

@@ -3,12 +3,13 @@ package features
 import (
 	"encoding/xml"
 
+	"github.com/goxmpp/goxmpp/stream"
 	"github.com/goxmpp/xtream"
 )
 
 type Options interface{}
 type FeatureHandler interface {
-	Handle(FeatureContainable, Options) error
+	Handle(*stream.Stream, Options) error
 }
 
 type BasicFeature interface {
@@ -16,14 +17,22 @@ type BasicFeature interface {
 }
 
 type Feature struct {
-	Name           string
+	name           string
 	featureElement BasicFeature
 	handlerElement FeatureHandler
-	Required       bool
+	required       bool
 }
 
 func NewFeature(name string, felement BasicFeature, required bool) *Feature {
-	return &Feature{Name: name, featureElement: felement, Required: required}
+	return &Feature{name: name, featureElement: felement, required: required}
+}
+
+func (fw *Feature) Required() bool {
+	return fw.required
+}
+
+func (fw *Feature) Name() string {
+	return fw.name
 }
 
 func (fw *Feature) InitHandler() xtream.Element {
@@ -39,18 +48,24 @@ func (fw *Feature) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 	return d.DecodeElement(fw.handlerElement, &start)
 }
 
-func (fw *Feature) Handle(strm FeatureContainable, opts Options) error {
+func (fw *Feature) Handle(strm *stream.Stream, opts Options) error {
 	if err := fw.handlerElement.Handle(strm, opts); err != nil {
 		return err
 	}
 
-	/*for _, dep := range depgraph.ListNodes(fw.Name) {
-		if feature := Features.Get(dep); feature != nil {
-			strm.AddFeature(feature)
+	for _, dep := range strm.DependancyGraph().Get(fw.name) {
+		if ffe := FeatureFactory.Get(dep); ffe != nil {
+			f := ffe.Constructor(nil) // Get config for feature from stream
+			strm.ElementFactory.AddNamed(
+				func() xtream.Element { return f.InitHandler() },
+				ffe.Parent,
+				ffe.Name,
+			)
+			strm.AddFeature(f)
 		}
-	}*/
+	}
 
-	strm.RemoveFeature(fw.Name)
+	strm.RemoveFeature(fw.name)
 
 	return nil
 }

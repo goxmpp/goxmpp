@@ -6,7 +6,6 @@ import (
 	"io"
 	"log"
 
-	"github.com/goxmpp/goxmpp/stream/features"
 	"github.com/goxmpp/xtream"
 )
 
@@ -26,7 +25,7 @@ type Stream struct {
 	State            State
 	ElementFactory   xtream.Factory `xml:"-"`
 	Connection
-	*features.FeatureContainer
+	*FeatureContainer
 }
 
 type streamElementFactory struct {
@@ -61,9 +60,9 @@ func (sef streamElementFactory) Get(outer, inner *xml.Name) xtream.Element {
 	return setFactory(sef.elementsFactory.Get(outer, inner))
 }
 
-func NewStream(rw io.ReadWriteCloser) *Stream {
+func NewStream(rw io.ReadWriteCloser, depGraph DependancyManageable) *Stream {
 	st := &Stream{
-		FeatureContainer: features.NewFeatureContainer(),
+		FeatureContainer: NewFeatureContainer(depGraph),
 		ElementFactory:   newStreamElementFactory(),
 	}
 	st.SetRW(rw)
