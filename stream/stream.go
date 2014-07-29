@@ -60,7 +60,7 @@ func (sef streamElementFactory) Get(outer, inner *xml.Name) xtream.Element {
 	return setFactory(sef.elementsFactory.Get(outer, inner))
 }
 
-func NewStream(rw io.ReadWriteCloser, depGraph DependancyManageable) *Stream {
+func NewStream(rw io.ReadWriteCloser, depGraph DependencyManageable) *Stream {
 	st := &Stream{
 		FeatureContainer: NewFeatureContainer(depGraph),
 		ElementFactory:   newStreamElementFactory(),

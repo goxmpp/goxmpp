@@ -34,7 +34,7 @@ func (ff *featureFactory) Add(name string, ffe *FeatureFactoryElement) {
 	if len(ffe.Wants) == 0 {
 		ffe.Wants = []string{"stream"}
 	}
-	DependancyGraph.Add(name, ffe.Wants...)
+	DependencyGraph.Add(name, ffe.Wants...)
 	ff.feature_cons[name] = ffe
 }
 

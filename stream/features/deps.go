@@ -4,9 +4,9 @@ import "github.com/goxmpp/goxmpp/stream"
 
 type depGraph map[string][]string
 
-var DependancyGraph stream.DependancyManageable = NewDependancyGraph()
+var DependencyGraph stream.DependencyManageable = NewDependencyGraph()
 
-func NewDependancyGraph() depGraph {
+func NewDependencyGraph() depGraph {
 	return depGraph(make(map[string][]string))
 }
 

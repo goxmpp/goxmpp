@@ -53,7 +53,7 @@ func (fw *Feature) Handle(strm *stream.Stream, opts Options) error {
 		return err
 	}
 
-	for _, dep := range strm.DependancyGraph().Get(fw.name) {
+	for _, dep := range strm.DependencyGraph().Get(fw.name) {
 		if ffe := FeatureFactory.Get(dep); ffe != nil {
 			f := ffe.Constructor(nil) // Get config for feature from stream
 			strm.ElementFactory.AddNamed(

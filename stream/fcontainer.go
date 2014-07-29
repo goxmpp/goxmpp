@@ -2,7 +2,7 @@ package stream
 
 import "encoding/xml"
 
-type DependancyManageable interface {
+type DependencyManageable interface {
 	Add(name string, depends ...string)
 	Get(name string) []string
 }
@@ -16,20 +16,20 @@ type FeatureContainable interface {
 	AddFeature(Feature)
 	RemoveFeature(string)
 	HasRequired() bool
-	DependancyGraph() DependancyManageable
+	DependencyGraph() DependencyManageable
 }
 
 type FeatureContainer struct {
 	features     map[string]Feature
 	num_required int
-	dg           DependancyManageable
+	dg           DependencyManageable
 }
 
-func NewFeatureContainer(dg DependancyManageable) *FeatureContainer {
+func NewFeatureContainer(dg DependencyManageable) *FeatureContainer {
 	return &FeatureContainer{features: make(map[string]Feature), dg: dg}
 }
 
-func (fc *FeatureContainer) DependancyGraph() DependancyManageable {
+func (fc *FeatureContainer) DependencyGraph() DependencyManageable {
 	return fc.dg
 }
 
