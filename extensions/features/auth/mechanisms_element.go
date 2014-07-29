@@ -21,8 +21,10 @@ func newMechanismsElement(opts features.Options) features.BasicFeature {
 		Mechanisms: make([]*mechanisms.MechanismElement, 0),
 	}
 
-	for mech := range mechanism_handlers {
-		auth.Mechanisms = append(auth.Mechanisms, mechanisms.NewMechanismElement(mech))
+	for _, mech := range opts.(AuthConfig) {
+		if _, ok := mechanism_handlers[mech]; ok {
+			auth.Mechanisms = append(auth.Mechanisms, mechanisms.NewMechanismElement(mech))
+		}
 	}
 
 	return auth
@@ -47,7 +49,14 @@ type AuthElement struct {
 }
 
 func (self *AuthElement) Handle(st *stream.Stream, opts features.Options) error {
-	if handler := mechanism_handlers[self.Mechanism]; handler != nil {
+	mechs := map[string]Handler{} // create this on stack - no garbage
+	for _, mech := range opts.(AuthConfig) {
+		if handler, ok := mechanism_handlers[mech]; ok {
+			mechs[mech] = handler
+		}
+	}
+
+	if handler := mechs[self.Mechanism]; handler != nil {
 		if err := handler(self, st); err != nil {
 			log.Println("Authorization failed:", err)
 			if err := st.WriteElement(NewFailute(NotAuthorized{})); err != nil {
@@ -81,9 +90,13 @@ func DecodeBase64(data string, strm *stream.Stream) ([]byte, error) {
 func init() {
 	features.FeatureFactory.Add("auth", &features.FeatureFactoryElement{
 		Constructor: func(opts features.Options) *features.Feature {
-			return features.NewFeature("auth", newMechanismsElement(opts), true)
+			conf := *opts.(*AuthConfig)
+			return features.NewFeature("auth", newMechanismsElement(conf), true, conf)
 		},
 		Name:   xml.Name{Local: "auth"},
 		Parent: stream.StreamXMLName,
+		Config: func() interface{} { return &AuthConfig{} },
 	})
 }
+
+type AuthConfig []string

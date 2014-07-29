@@ -13,10 +13,12 @@ import (
 func init() {
 	features.FeatureFactory.Add("compression", &features.FeatureFactoryElement{
 		Constructor: func(opts features.Options) *features.Feature {
-			return features.NewFeature("compression", NewCompression(opts), false)
+			conf := *opts.(*CompressionConfig)
+			return features.NewFeature("compression", NewCompression(conf), false, conf)
 		},
 		Name:   xml.Name{Local: "compress"},
 		Parent: stream.StreamXMLName,
+		Config: func() interface{} { return &CompressionConfig{} },
 	})
 }
 
@@ -26,8 +28,9 @@ type Compressor interface {
 	Name() string
 }
 
+type CompressionConfig map[string]CompressorConfig
 type CompressorConfig struct {
-	Level int
+	Level int `json:"level"`
 }
 
 type CompressState struct {
@@ -59,8 +62,12 @@ func NewCompression(opts features.Options) features.BasicFeature {
 		Compressors: make([]Compressor, 0),
 	}
 
-	for _, method := range Methods {
-		comp.Compressors = append(comp.Compressors, method)
+	methods := opts.(CompressionConfig)
+
+	for name, method := range Methods {
+		if _, ok := methods[name]; ok {
+			comp.Compressors = append(comp.Compressors, method)
+		}
 	}
 
 	return comp
@@ -70,7 +77,7 @@ func (c *compression) NewHandler() features.FeatureHandler {
 	return &compressElement{}
 }
 
-var Methods = make([]Compressor, 0, 3)
+var Methods = make(map[string]Compressor, 3)
 
 type compressElement struct {
 	XMLName xml.Name `xml:"http://jabber.org/protocol/compress compress"`
@@ -83,11 +90,11 @@ func NewCompressHandler() *compressElement {
 
 func (c *compressElement) Handle(s *stream.Stream, opts features.Options) error {
 	var compressor Compressor
+	conf := opts.(CompressionConfig)
 
-	for _, element := range Methods {
-		if compr, ok := element.(Compressor); ok && compr.Name() == c.Method {
+	if _, ok := conf[c.Method]; ok {
+		if compr, ok := Methods[c.Method]; ok {
 			compressor = compr
-			break
 		}
 	}
 
@@ -100,10 +107,8 @@ func (c *compressElement) Handle(s *stream.Stream, opts features.Options) error 
 
 	var state *CompressState
 	if err := s.State.Get(&state); err != nil {
-		if err := s.WriteElement(&ProcessingFailedError{}); err != nil {
-			return err
-		}
-		return err
+		state = NewCompressState()
+		s.State.Push(state)
 	}
 
 	state.Compressed = true

@@ -5,6 +5,7 @@ import "encoding/xml"
 type FeatureConstructor func(Options) *Feature
 type FeatureFactoryElement struct {
 	Constructor FeatureConstructor
+	Config      func() interface{}
 	Name        xml.Name
 	Parent      xml.Name
 	Wants       []string

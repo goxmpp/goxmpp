@@ -8,7 +8,7 @@ import (
 )
 
 func init() {
-	compression.Methods = append(compression.Methods, compressor{compression.BaseCompressor{MethodName: "gzip"}})
+	compression.Methods["gzip"] = compressor{compression.BaseCompressor{MethodName: "gzip"}}
 }
 
 type State struct {

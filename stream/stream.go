@@ -1,6 +1,7 @@
 package stream
 
 import (
+	"encoding/json"
 	"encoding/xml"
 	"fmt"
 	"io"
@@ -10,20 +11,22 @@ import (
 )
 
 type StreamHandler func(*Stream) error
+type RawConfig map[string]json.RawMessage
 
 var StreamXMLName = xml.Name{Local: "stream:stream"}
 
 type Stream struct {
 	XMLName          xml.Name
-	ID               string `xml:"id,attr"`
-	From             string `xml:"from,attr,omitempty"` // This holds server domain name.
-	To               string `xml:"to,attr,omitempty"`   // This holds user JID after bind.
-	Version          string `xml:"version,attr"`
-	DefaultNamespace string `xml:"-"`
-	Opened           bool   `xml:"-"`
-	ReOpen           bool   `xml:"-"`
-	State            State
+	ID               string         `xml:"id,attr"`
+	From             string         `xml:"from,attr,omitempty"` // This holds server domain name.
+	To               string         `xml:"to,attr,omitempty"`   // This holds user JID after bind.
+	Version          string         `xml:"version,attr"`
+	DefaultNamespace string         `xml:"-"`
+	Opened           bool           `xml:"-"`
+	ReOpen           bool           `xml:"-"`
+	Config           RawConfig      `xml:"-"`
 	ElementFactory   xtream.Factory `xml:"-"`
+	State            State
 	Connection
 	*FeatureContainer
 }

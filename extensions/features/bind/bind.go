@@ -62,7 +62,7 @@ func (self *BindElement) Handle(strm *stream.Stream, opts features.Options) erro
 func init() {
 	features.FeatureFactory.Add("bind", &features.FeatureFactoryElement{
 		Constructor: func(opts features.Options) *features.Feature {
-			return features.NewFeature("bind", &bindElement{}, true)
+			return features.NewFeature("bind", &bindElement{}, true, nil)
 		},
 		Name:   xml.Name{Local: "bind", Space: "urn:ietf:params:xml:ns:xmpp-bind"},
 		Parent: iq.IQXMLName,

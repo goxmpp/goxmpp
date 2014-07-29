@@ -51,7 +51,7 @@ func (s *sessionFeatureElement) NewHandler() features.FeatureHandler {
 func init() {
 	features.FeatureFactory.Add("session", &features.FeatureFactoryElement{
 		Constructor: func(opts features.Options) *features.Feature {
-			return features.NewFeature("session", &sessionFeatureElement{}, false)
+			return features.NewFeature("session", &sessionFeatureElement{}, false, nil)
 		},
 		Name:   xml.Name{Local: "session", Space: "urn:ietf:params:xml:ns:xmpp-session"},
 		Parent: iq.IQXMLName,

@@ -23,8 +23,8 @@ type shaHandler struct {
 	shaState  *SHAState
 }
 
-func newSHAHandler(strm *stream.Stream, scram *scram.Server, astate *auth.AuthState, sstate *SHAState) *shaHandler {
-	return &shaHandler{strm: strm, scram: scram, authState: astate, shaState: sstate}
+func newSHAHandler(strm *stream.Stream, scram *scram.Server, astate *auth.AuthState) *shaHandler {
+	return &shaHandler{strm: strm, scram: scram, authState: astate}
 }
 
 func (h *shaHandler) Handle() error {
@@ -56,8 +56,6 @@ func (h *shaHandler) Handle() error {
 
 	h.authState.UserName = h.scram.UserName()
 
-	h.shaState.Authenticated = true
-
 	h.strm.ReOpen = true
 
 	return nil
@@ -66,12 +64,6 @@ func (h *shaHandler) Handle() error {
 func init() {
 	auth.AddMechanism("SCRAM-SHA-1",
 		func(e *auth.AuthElement, strm *stream.Stream) error {
-			var state *SHAState
-			if err := strm.State.Get(&state); err != nil {
-				log.Println("SCRAM-SHA-1 is not available but tried to be used")
-				return err
-			}
-
 			var auth_state *auth.AuthState
 			if err := strm.State.Get(&auth_state); err != nil {
 				log.Println("SHAM-SHA-1 AuthState is not set can't get auth data")
@@ -89,7 +81,7 @@ func init() {
 			}
 			scram.SaltPassword([]byte(auth_state.GetPasswordByUserName(scram.UserName())))
 
-			handler := newSHAHandler(strm, scram, auth_state, state)
+			handler := newSHAHandler(strm, scram, auth_state)
 
 			return handler.Handle()
 		})

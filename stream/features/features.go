@@ -1,7 +1,9 @@
 package features
 
 import (
+	"encoding/json"
 	"encoding/xml"
+	"log"
 
 	"github.com/goxmpp/goxmpp/stream"
 	"github.com/goxmpp/xtream"
@@ -21,10 +23,11 @@ type Feature struct {
 	featureElement BasicFeature
 	handlerElement FeatureHandler
 	required       bool
+	config         Options
 }
 
-func NewFeature(name string, felement BasicFeature, required bool) *Feature {
-	return &Feature{name: name, featureElement: felement, required: required}
+func NewFeature(name string, felement BasicFeature, required bool, conf Options) *Feature {
+	return &Feature{name: name, featureElement: felement, required: required, config: conf}
 }
 
 func (fw *Feature) Required() bool {
@@ -49,23 +52,47 @@ func (fw *Feature) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 }
 
 func (fw *Feature) Handle(strm *stream.Stream, opts Options) error {
+	if opts == nil {
+		opts = fw.config
+	}
+
 	if err := fw.handlerElement.Handle(strm, opts); err != nil {
 		return err
 	}
 
-	for _, dep := range strm.DependencyGraph().Get(fw.name) {
-		if ffe := FeatureFactory.Get(dep); ffe != nil {
-			f := ffe.Constructor(nil) // Get config for feature from stream
-			strm.ElementFactory.AddNamed(
-				func() xtream.Element { return f.InitHandler() },
-				ffe.Parent,
-				ffe.Name,
-			)
-			strm.AddFeature(f)
-		}
-	}
+	EnableStreamFeatures(strm, fw.name)
 
 	strm.RemoveFeature(fw.name)
 
 	return nil
+}
+
+func EnableStreamFeatures(s *stream.Stream, name string) {
+	for _, fname := range DependencyGraph.Get(name) {
+		fe := FeatureFactory.Get(fname)
+
+		func(fe *FeatureFactoryElement, fname string) {
+			log.Printf("%#v", fe)
+			var conf interface{}
+			if fe.Config != nil {
+				conf = fe.Config()
+				log.Printf("config template %#v", conf)
+				log.Printf("%s", s.Config[fname])
+				if err := json.Unmarshal(s.Config[fname], conf); err != nil {
+					log.Printf("goxmpp: unable to handle config for feature %s: %s", fname, err)
+					return
+				}
+			}
+			log.Printf("parsed config %#v", conf)
+
+			feature := fe.Constructor(conf)
+
+			s.ElementFactory.AddNamed(
+				func() xtream.Element { return feature.InitHandler() },
+				fe.Parent,
+				fe.Name,
+			)
+			s.AddFeature(feature)
+		}(fe, fname)
+	}
 }
