@@ -8,11 +8,7 @@ import (
 )
 
 func init() {
-	compression.Methods = append(compression.Methods, compressor{compression.BaseCompressor{MethodName: "zlib"}})
-}
-
-type State struct {
-	Level int
+	compression.Methods["zlib"] = compressor{compression.BaseCompressor{MethodName: "zlib"}}
 }
 
 type compressor struct {

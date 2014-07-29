@@ -5,9 +5,12 @@ import "encoding/xml"
 type FeatureConstructor func(Options) *Feature
 type FeatureFactoryElement struct {
 	Constructor FeatureConstructor
+	Config      func() interface{}
 	Name        xml.Name
 	Parent      xml.Name
+	Wants       []string
 }
+
 type FF interface {
 	Add(string, *FeatureFactoryElement)
 	Get(string) *FeatureFactoryElement
@@ -29,6 +32,10 @@ func (ff *featureFactory) Add(name string, ffe *FeatureFactoryElement) {
 		panic("Feature element already registered")
 	}
 
+	if len(ffe.Wants) == 0 {
+		ffe.Wants = []string{"stream"}
+	}
+	DependencyGraph.Add(name, ffe.Wants...)
 	ff.feature_cons[name] = ffe
 }
 

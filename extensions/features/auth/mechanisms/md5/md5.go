@@ -9,20 +9,14 @@ import (
 	"github.com/goxmpp/sasl/digest"
 )
 
-type DigestMD5State struct {
-	Realm []string
-	Host  string
-}
-
 type digestMD5Handler struct {
-	state *DigestMD5State
-	strm  *stream.Stream
-	md5   *digest.Server
+	strm *stream.Stream
+	md5  *digest.Server
 }
 
-func newDigestMD5Handler(state *DigestMD5State, strm *stream.Stream) (*digestMD5Handler, error) {
-	md5 := digest.NewServer(&digest.Options{Realms: state.Realm, QOPs: []string{"auth"}})
-	return &digestMD5Handler{md5: md5, state: state, strm: strm}, nil
+func newDigestMD5Handler(strm *stream.Stream) (*digestMD5Handler, error) {
+	md5 := digest.NewServer(&digest.Options{Realms: []string{"test"}, QOPs: []string{"auth"}})
+	return &digestMD5Handler{md5: md5, strm: strm}, nil
 }
 
 func (h *digestMD5Handler) Handle() error {
@@ -83,11 +77,7 @@ func (h *digestMD5Handler) Handle() error {
 func init() {
 	auth.AddMechanism("DIGEST-MD5",
 		func(e *auth.AuthElement, strm *stream.Stream) error {
-			var state *DigestMD5State
-			if err := strm.State.Get(&state); err != nil {
-				return err
-			}
-			handler, err := newDigestMD5Handler(state, strm)
+			handler, err := newDigestMD5Handler(strm)
 			if err != nil {
 				return err
 			}

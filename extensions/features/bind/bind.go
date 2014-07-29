@@ -29,9 +29,8 @@ func (be *bindElement) NewHandler() features.FeatureHandler {
 	return &BindElement{}
 }
 
-func (self *BindElement) Handle(fc features.FeatureContainable, opts features.Options) error {
+func (self *BindElement) Handle(strm *stream.Stream, opts features.Options) error {
 	request_id := opts.(*iq.IQElement)
-	strm := fc.(*stream.Stream)
 
 	// FIXME(goxmpp): 2014-04-03: auth check, state presence check, resource check required
 	var state *BindState
@@ -63,9 +62,10 @@ func (self *BindElement) Handle(fc features.FeatureContainable, opts features.Op
 func init() {
 	features.FeatureFactory.Add("bind", &features.FeatureFactoryElement{
 		Constructor: func(opts features.Options) *features.Feature {
-			return features.NewFeature("bind", &bindElement{}, true)
+			return features.NewFeature("bind", &bindElement{}, true, nil)
 		},
 		Name:   xml.Name{Local: "bind", Space: "urn:ietf:params:xml:ns:xmpp-bind"},
 		Parent: iq.IQXMLName,
+		Wants:  []string{"auth"},
 	})
 }

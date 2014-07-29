@@ -5,6 +5,7 @@ import (
 
 	_ "github.com/goxmpp/goxmpp"
 	"github.com/goxmpp/goxmpp/stream"
+	"github.com/goxmpp/goxmpp/stream/features"
 )
 
 import "bytes"
@@ -67,7 +68,7 @@ func logEpectations(t *testing.T, got, expect, source []byte) {
 }
 
 func unmarshalTester(t *testing.T, source, expect []byte) {
-	st := stream.NewStream(BytesBuffer{bytes.NewBuffer(source)})
+	st := stream.NewStream(BytesBuffer{bytes.NewBuffer(source)}, features.NewDependencyGraph())
 	s, err := st.ReadElement()
 	if err != nil {
 		t.Fatal(err)

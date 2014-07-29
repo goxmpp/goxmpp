@@ -18,12 +18,20 @@ func init() {
 		"starttls",
 		&features.FeatureFactoryElement{
 			Constructor: func(opts features.Options) *features.Feature {
-				return features.NewFeature("starttls", NewStartTLSFeature(false), false)
+				conf := opts.(*startTLSConf)
+				return features.NewFeature("starttls", NewStartTLSFeature(conf), false, conf)
 			},
 			Name:   xml.Name{Local: "starttls", Space: "urn:ietf:params:xml:ns:xmpp-tls"},
 			Parent: stream.StreamXMLName,
+			Config: func() interface{} { return &startTLSConf{} },
 		},
 	)
+}
+
+type startTLSConf struct {
+	Required bool   `json:"required"`
+	PEMPath  string `json:"pem"`
+	KeyPath  string `json:"key"`
 }
 
 type StartTLSFeatureElement struct {
@@ -31,8 +39,8 @@ type StartTLSFeatureElement struct {
 	StartTLSElement      // will get XMLName from here
 }
 
-func NewStartTLSFeature(required bool) *StartTLSFeatureElement {
-	return &StartTLSFeatureElement{Required: required}
+func NewStartTLSFeature(conf *startTLSConf) *StartTLSFeatureElement {
+	return &StartTLSFeatureElement{Required: conf.Required}
 }
 
 func (tls *StartTLSFeatureElement) NewHandler() features.FeatureHandler {
@@ -43,37 +51,19 @@ type StartTLSElement struct {
 	XMLName xml.Name `xml:"urn:ietf:params:xml:ns:xmpp-tls starttls"`
 }
 
-type TLSConfig struct {
-	PEMPath string
-	KeyPath string
-}
-
-func NewTLSConfig(pem, key string) *TLSConfig {
-	return &TLSConfig{PEMPath: pem, KeyPath: key}
-}
-
 type StartTLSState struct {
-	Required bool
-	Started  bool
-	Config   *TLSConfig
+	Started bool
 }
 
-func NewStartTLSState(required bool, conf *TLSConfig) *StartTLSState {
+func NewStartTLSState() *StartTLSState {
 	return &StartTLSState{
-		Started:  false,
-		Config:   conf,
-		Required: required,
+		Started: false,
 	}
 }
 
-func (s *StartTLSElement) Handle(strm features.FeatureContainable, opts features.Options) error {
-	var state *StartTLSState
-	st := strm.(*stream.Stream)
-	if err := st.State.Get(&state); err != nil {
-		return err
-	}
-
-	cert, err := tls.LoadX509KeyPair(state.Config.PEMPath, state.Config.KeyPath)
+func (s *StartTLSElement) Handle(st *stream.Stream, opts features.Options) error {
+	conf := opts.(*startTLSConf)
+	cert, err := tls.LoadX509KeyPair(conf.PEMPath, conf.KeyPath)
 	if err != nil {
 		log.Println("Could not load keys:", err)
 		return err
@@ -108,7 +98,9 @@ func (s *StartTLSElement) Handle(strm features.FeatureContainable, opts features
 		return err
 	}
 
+	state := NewStartTLSState()
 	state.Started = true
+	st.State.Push(state)
 	st.ReOpen = true
 
 	return nil

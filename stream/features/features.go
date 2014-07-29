@@ -1,14 +1,17 @@
 package features
 
 import (
+	"encoding/json"
 	"encoding/xml"
+	"log"
 
+	"github.com/goxmpp/goxmpp/stream"
 	"github.com/goxmpp/xtream"
 )
 
 type Options interface{}
 type FeatureHandler interface {
-	Handle(FeatureContainable, Options) error
+	Handle(*stream.Stream, Options) error
 }
 
 type BasicFeature interface {
@@ -16,14 +19,23 @@ type BasicFeature interface {
 }
 
 type Feature struct {
-	Name           string
+	name           string
 	featureElement BasicFeature
 	handlerElement FeatureHandler
-	Required       bool
+	required       bool
+	config         Options
 }
 
-func NewFeature(name string, felement BasicFeature, required bool) *Feature {
-	return &Feature{Name: name, featureElement: felement, Required: required}
+func NewFeature(name string, felement BasicFeature, required bool, conf Options) *Feature {
+	return &Feature{name: name, featureElement: felement, required: required, config: conf}
+}
+
+func (fw *Feature) Required() bool {
+	return fw.required
+}
+
+func (fw *Feature) Name() string {
+	return fw.name
 }
 
 func (fw *Feature) InitHandler() xtream.Element {
@@ -39,18 +51,48 @@ func (fw *Feature) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 	return d.DecodeElement(fw.handlerElement, &start)
 }
 
-func (fw *Feature) Handle(strm FeatureContainable, opts Options) error {
+func (fw *Feature) Handle(strm *stream.Stream, opts Options) error {
+	if opts == nil {
+		opts = fw.config
+	}
+
 	if err := fw.handlerElement.Handle(strm, opts); err != nil {
 		return err
 	}
 
-	/*for _, dep := range depgraph.ListNodes(fw.Name) {
-		if feature := Features.Get(dep); feature != nil {
-			strm.AddFeature(feature)
-		}
-	}*/
+	EnableStreamFeatures(strm, fw.name)
 
-	strm.RemoveFeature(fw.Name)
+	strm.RemoveFeature(fw.name)
 
 	return nil
+}
+
+func EnableStreamFeatures(s *stream.Stream, name string) {
+	for _, fname := range DependencyGraph.Get(name) {
+		fe := FeatureFactory.Get(fname)
+
+		func(fe *FeatureFactoryElement, fname string) {
+			log.Printf("%#v", fe)
+			var conf interface{}
+			if fe.Config != nil {
+				conf = fe.Config()
+				log.Printf("config template %#v", conf)
+				log.Printf("%s", s.Config[fname])
+				if err := json.Unmarshal(s.Config[fname], conf); err != nil {
+					log.Printf("goxmpp: unable to handle config for feature %s: %s", fname, err)
+					return
+				}
+			}
+			log.Printf("parsed config %#v", conf)
+
+			feature := fe.Constructor(conf)
+
+			s.ElementFactory.AddNamed(
+				func() xtream.Element { return feature.InitHandler() },
+				fe.Parent,
+				fe.Name,
+			)
+			s.AddFeature(feature)
+		}(fe, fname)
+	}
 }
