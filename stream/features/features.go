@@ -1,7 +1,6 @@
 package features
 
 import (
-	"encoding/json"
 	"encoding/xml"
 	"log"
 
@@ -71,28 +70,19 @@ func EnableStreamFeatures(s *stream.Stream, name string) {
 	for _, fname := range DependencyGraph.Get(name) {
 		fe := FeatureFactory.Get(fname)
 
-		func(fe *FeatureFactoryElement, fname string) {
-			log.Printf("%#v", fe)
-			var conf interface{}
-			if fe.Config != nil {
-				conf = fe.Config()
-				log.Printf("config template %#v", conf)
-				log.Printf("%s", s.Config[fname])
-				if err := json.Unmarshal(s.Config[fname], conf); err != nil {
-					log.Printf("goxmpp: unable to handle config for feature %s: %s", fname, err)
-					return
-				}
-			}
-			log.Printf("parsed config %#v", conf)
+		conf, err := fe.GetConfig(s.Config[fname])
+		if err != nil {
+			log.Printf("goxmpp: unable to handle config for feature %s: %s", fname, err)
+			continue
+		}
 
-			feature := fe.Constructor(conf)
+		feature := fe.Constructor(conf)
 
-			s.ElementFactory.AddNamed(
-				func() xtream.Element { return feature.InitHandler() },
-				fe.Parent,
-				fe.Name,
-			)
-			s.AddFeature(feature)
-		}(fe, fname)
+		s.ElementFactory.AddNamed(
+			func() xtream.Element { return feature.InitHandler() },
+			fe.Parent,
+			fe.Name,
+		)
+		s.AddFeature(feature)
 	}
 }
