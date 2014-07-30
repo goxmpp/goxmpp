@@ -1,14 +1,29 @@
 package features
 
-import "encoding/xml"
+import (
+	"encoding/json"
+	"encoding/xml"
+)
 
 type FeatureConstructor func(Options) *Feature
 type FeatureFactoryElement struct {
 	Constructor FeatureConstructor
-	Config      func() interface{}
+	Config      interface{}
 	Name        xml.Name
 	Parent      xml.Name
 	Wants       []string
+}
+
+func (ffe *FeatureFactoryElement) GetConfig(conf json.RawMessage) (interface{}, error) {
+	if fn, ok := ffe.Config.(func() interface{}); ok {
+		config := fn()
+		if err := json.Unmarshal(conf, config); err != nil {
+			return nil, err
+		}
+		ffe.Config = config
+	}
+
+	return ffe.Config, nil
 }
 
 type FF interface {
