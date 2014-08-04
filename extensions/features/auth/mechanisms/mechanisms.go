@@ -45,7 +45,7 @@ func NewResponseElement(data string) ResponseElement {
 	return ResponseElement{Data: base64.StdEncoding.EncodeToString([]byte(data))}
 }
 
-func ReadResponse(strm *stream.Stream) (*ResponseElement, error) {
+func ReadResponse(strm stream.Stream) (*ResponseElement, error) {
 	el, err := strm.ReadElement()
 	if err != nil {
 		return nil, err

@@ -88,7 +88,7 @@ func NewCompressHandler() *compressElement {
 	return &compressElement{}
 }
 
-func (c *compressElement) Handle(s *stream.Stream, opts features.Options) error {
+func (c *compressElement) Handle(s stream.ServerStream, opts features.Options) error {
 	var compressor Compressor
 	conf := opts.(CompressionConfig)
 
@@ -106,9 +106,9 @@ func (c *compressElement) Handle(s *stream.Stream, opts features.Options) error 
 	}
 
 	var state *CompressState
-	if err := s.State.Get(&state); err != nil {
+	if err := s.State().Get(&state); err != nil {
 		state = NewCompressState()
-		s.State.Push(state)
+		s.State().Push(state)
 	}
 
 	state.Compressed = true
@@ -123,11 +123,11 @@ func (c *compressElement) Handle(s *stream.Stream, opts features.Options) error 
 		return err
 	}
 
-	s.ReOpen = true
+	s.ReOpen()
 	return nil
 }
 
-func swapStreamRW(strm *stream.Stream, compressor Compressor) error {
+func swapStreamRW(strm stream.Stream, compressor Compressor) error {
 	return strm.UpdateRW(
 		func(srwc io.ReadWriteCloser) (io.ReadWriteCloser, error) {
 			writer := compressor.GetWriter(srwc)

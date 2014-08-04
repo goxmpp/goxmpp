@@ -30,10 +30,10 @@ type IQElement struct {
 }
 
 type Handler interface {
-	Handle(*IQElement, *stream.Stream) error
+	Handle(*IQElement, stream.Stream) error
 }
 
-func (self *IQElement) Handle(strm *stream.Stream, opts features.Options) error {
+func (self *IQElement) Handle(strm stream.ServerStream, opts features.Options) error {
 	log.Printf("Handling IQ: from = %#v, to = %#v\n", self.From, self.To)
 
 	match := false

@@ -16,7 +16,7 @@ type PrivateElement struct {
 	xtream.InnerElements `xml:",any"`
 }
 
-func (self *PrivateElement) Handle(request_id *iq.IQElement, stream *stream.Stream) error {
+func (self *PrivateElement) Handle(request_id *iq.IQElement, stream stream.Stream) error {
 	log.Printf("Private storage request received")
 
 	response_iq := iq.NewIQElement()

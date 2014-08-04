@@ -61,7 +61,7 @@ func NewStartTLSState() *StartTLSState {
 	}
 }
 
-func (s *StartTLSElement) Handle(st *stream.Stream, opts features.Options) error {
+func (s *StartTLSElement) Handle(st stream.ServerStream, opts features.Options) error {
 	conf := opts.(*startTLSConf)
 	cert, err := tls.LoadX509KeyPair(conf.PEMPath, conf.KeyPath)
 	if err != nil {
@@ -100,8 +100,8 @@ func (s *StartTLSElement) Handle(st *stream.Stream, opts features.Options) error
 
 	state := NewStartTLSState()
 	state.Started = true
-	st.State.Push(state)
-	st.ReOpen = true
+	st.State().Push(state)
+	st.ReOpen()
 
 	return nil
 }
