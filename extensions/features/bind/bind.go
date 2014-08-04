@@ -29,12 +29,12 @@ func (be *bindElement) NewHandler() features.FeatureHandler {
 	return &BindElement{}
 }
 
-func (self *BindElement) Handle(strm *stream.Stream, opts features.Options) error {
+func (self *BindElement) Handle(strm stream.ServerStream, opts features.Options) error {
 	request_id := opts.(*iq.IQElement)
 
 	// FIXME(goxmpp): 2014-04-03: auth check, state presence check, resource check required
 	var state *BindState
-	strm.State.Get(&state)
+	strm.State().Get(&state)
 	if state.VerifyResource(self.Resource) {
 		state.Resource = self.Resource
 	} else {
@@ -42,16 +42,16 @@ func (self *BindElement) Handle(strm *stream.Stream, opts features.Options) erro
 	}
 
 	var authState *auth.AuthState
-	strm.State.Get(&authState)
+	strm.State().Get(&authState)
 
-	strm.To = authState.UserName + "@" + strm.From + "/" + state.Resource
-	log.Printf("Bound to JID: %#v", strm.To)
+	strm.SetTo(authState.UserName + "@" + strm.From() + "/" + state.Resource)
+	log.Printf("Bound to JID: %#v", strm.To())
 
 	// TODO(goxmpp): 2014-04-03: might be easier to just use original IQ?
 	response_iq := iq.NewIQElement()
 	response_iq.Type = "result"
 	response_iq.ID = request_id.ID
-	response_iq.AddElement(&BindElement{JID: strm.To})
+	response_iq.AddElement(&BindElement{JID: strm.To()})
 	if err := strm.WriteElement(response_iq); err != nil {
 		return err
 	}

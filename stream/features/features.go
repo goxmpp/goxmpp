@@ -10,7 +10,7 @@ import (
 
 type Options interface{}
 type FeatureHandler interface {
-	Handle(*stream.Stream, Options) error
+	Handle(stream.ServerStream, Options) error
 }
 
 type BasicFeature interface {
@@ -50,7 +50,7 @@ func (fw *Feature) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 	return d.DecodeElement(fw.handlerElement, &start)
 }
 
-func (fw *Feature) Handle(strm *stream.Stream, opts Options) error {
+func (fw *Feature) Handle(strm stream.ServerStream, opts Options) error {
 	if opts == nil {
 		opts = fw.config
 	}
@@ -66,11 +66,11 @@ func (fw *Feature) Handle(strm *stream.Stream, opts Options) error {
 	return nil
 }
 
-func EnableStreamFeatures(s *stream.Stream, name string) {
-	for _, fname := range DependencyGraph.Get(name) {
+func EnableStreamFeatures(s stream.ServerStream, name string) {
+	for _, fname := range s.DependencyGraph().Get(name) {
 		fe := FeatureFactory.Get(fname)
 
-		conf, err := fe.GetConfig(s.Config[fname])
+		conf, err := fe.GetConfig(s.Config()[fname])
 		if err != nil {
 			log.Printf("goxmpp: unable to handle config for feature %s: %s", fname, err)
 			continue
@@ -78,7 +78,7 @@ func EnableStreamFeatures(s *stream.Stream, name string) {
 
 		feature := fe.Constructor(conf)
 
-		s.ElementFactory.AddNamed(
+		s.AddNamed(
 			func() xtream.Element { return feature.InitHandler() },
 			fe.Parent,
 			fe.Name,

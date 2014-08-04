@@ -21,13 +21,13 @@ type SessionState struct {
 	Active bool
 }
 
-func (self *SessionElement) Handle(strm *stream.Stream, opts features.Options) error {
+func (self *SessionElement) Handle(strm stream.ServerStream, opts features.Options) error {
 	request_id := opts.(*iq.IQElement)
 	// FIXME(goxmpp): 2014-04-04: auth check, state presence check, resource check required
 	var state *SessionState
-	if err := strm.State.Get(&state); err != nil {
+	if err := strm.State().Get(&state); err != nil {
 		state = &SessionState{}
-		strm.State.Push(state)
+		strm.State().Push(state)
 	}
 	state.Active = true
 

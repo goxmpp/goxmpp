@@ -18,12 +18,12 @@ type SHAState struct {
 
 type shaHandler struct {
 	scram     *scram.Server
-	strm      *stream.Stream
+	strm      stream.ServerStream
 	authState *auth.AuthState
 	shaState  *SHAState
 }
 
-func newSHAHandler(strm *stream.Stream, scram *scram.Server, astate *auth.AuthState) *shaHandler {
+func newSHAHandler(strm stream.ServerStream, scram *scram.Server, astate *auth.AuthState) *shaHandler {
 	return &shaHandler{strm: strm, scram: scram, authState: astate}
 }
 
@@ -56,16 +56,16 @@ func (h *shaHandler) Handle() error {
 
 	h.authState.UserName = h.scram.UserName()
 
-	h.strm.ReOpen = true
+	h.strm.ReOpen()
 
 	return nil
 }
 
 func init() {
 	auth.AddMechanism("SCRAM-SHA-1",
-		func(e *auth.AuthElement, strm *stream.Stream) error {
+		func(e *auth.AuthElement, strm stream.ServerStream) error {
 			var auth_state *auth.AuthState
-			if err := strm.State.Get(&auth_state); err != nil {
+			if err := strm.State().Get(&auth_state); err != nil {
 				log.Println("SHAM-SHA-1 AuthState is not set can't get auth data")
 				return err
 			}

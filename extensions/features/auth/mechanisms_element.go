@@ -40,7 +40,7 @@ func AddMechanism(name string, handler Handler) {
 	mechanism_handlers[name] = handler
 }
 
-type Handler func(*AuthElement, *stream.Stream) error
+type Handler func(*AuthElement, stream.ServerStream) error
 
 type AuthElement struct {
 	XMLName   xml.Name `xml:"auth"`
@@ -48,7 +48,7 @@ type AuthElement struct {
 	Data      string   `xml:",chardata"`
 }
 
-func (self *AuthElement) Handle(st *stream.Stream, opts features.Options) error {
+func (self *AuthElement) Handle(st stream.ServerStream, opts features.Options) error {
 	mechs := map[string]Handler{} // create this on stack - no garbage
 	for _, mech := range opts.(AuthConfig) {
 		if handler, ok := mechanism_handlers[mech]; ok {
@@ -74,7 +74,7 @@ func (self *AuthElement) Handle(st *stream.Stream, opts features.Options) error 
 	return nil
 }
 
-func DecodeBase64(data string, strm *stream.Stream) ([]byte, error) {
+func DecodeBase64(data string, strm stream.Stream) ([]byte, error) {
 	raw_data, err := base64.StdEncoding.DecodeString(data)
 
 	if err != nil {

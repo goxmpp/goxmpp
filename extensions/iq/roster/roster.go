@@ -29,10 +29,10 @@ type RosterElement struct {
 	Items   []RosterItemElement
 }
 
-func (self *RosterElement) Handle(request_id *iq.IQElement, stream *stream.Stream) error {
+func (self *RosterElement) Handle(request_id *iq.IQElement, stream stream.Stream) error {
 	// FIXME(goxmpp): 2014-04-03: auth check, state presence check, bind etc
 	var state *RosterState
-	stream.State.Get(&state)
+	stream.State().Get(&state)
 
 	log.Printf("Roster request received")
 

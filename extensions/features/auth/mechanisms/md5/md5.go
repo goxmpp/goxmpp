@@ -10,20 +10,20 @@ import (
 )
 
 type digestMD5Handler struct {
-	strm *stream.Stream
+	strm stream.ServerStream
 	md5  *digest.Server
 }
 
-func newDigestMD5Handler(strm *stream.Stream) (*digestMD5Handler, error) {
+func newDigestMD5Handler(strm stream.ServerStream) (*digestMD5Handler, error) {
 	md5 := digest.NewServer(&digest.Options{Realms: []string{"test"}, QOPs: []string{"auth"}})
 	return &digestMD5Handler{md5: md5, strm: strm}, nil
 }
 
 func (h *digestMD5Handler) Handle() error {
 	var auth_state *auth.AuthState
-	if err := h.strm.State.Get(&auth_state); err != nil {
+	if err := h.strm.State().Get(&auth_state); err != nil {
 		auth_state = &auth.AuthState{}
-		h.strm.State.Push(auth_state)
+		h.strm.State().Push(auth_state)
 	}
 
 	if err := h.strm.WriteElement(mechanisms.NewChallengeElement(h.md5.Challenge())); err != nil {
@@ -69,14 +69,14 @@ func (h *digestMD5Handler) Handle() error {
 
 	auth_state.UserName = h.md5.AuthID()
 
-	h.strm.ReOpen = true
+	h.strm.ReOpen()
 
 	return nil
 }
 
 func init() {
 	auth.AddMechanism("DIGEST-MD5",
-		func(e *auth.AuthElement, strm *stream.Stream) error {
+		func(e *auth.AuthElement, strm stream.ServerStream) error {
 			handler, err := newDigestMD5Handler(strm)
 			if err != nil {
 				return err

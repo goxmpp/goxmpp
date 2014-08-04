@@ -18,9 +18,9 @@ var usernamePasswordSeparator = []byte{0}
 
 func init() {
 	auth.AddMechanism("PLAIN",
-		func(e *auth.AuthElement, stream *stream.Stream) error {
+		func(e *auth.AuthElement, stream stream.ServerStream) error {
 			var auth_state *auth.AuthState
-			if err := stream.State.Get(&auth_state); err != nil {
+			if err := stream.State().Get(&auth_state); err != nil {
 				return err
 			}
 
@@ -38,7 +38,7 @@ func init() {
 
 				auth_state.UserName = string(user_password[1])
 				auth_state.Mechanism = "PLAIN"
-				stream.ReOpen = true
+				stream.ReOpen()
 
 				return nil
 			} else {
