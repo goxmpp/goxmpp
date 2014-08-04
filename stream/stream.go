@@ -20,11 +20,14 @@ type Stream interface {
 
 	ID() string
 	To() string
+	SetTo(string)
 	From() string
 	Open(StreamHandler) error
 	Close() error
 	State() *State
 	Opened() bool
+	Version() string
+	SetVersion(string)
 	UpdateRW(SwapRW) error
 	ReadElement() (xtream.Element, error)
 	WriteElement(xtream.Element) error
@@ -37,7 +40,6 @@ type ServerStream interface {
 	ReOpen()
 	Config() RawConfig
 	SetDefaultNamespace(string)
-	SetTo(string)
 }
 
 type serverStream struct {
@@ -115,10 +117,6 @@ func (s *serverStream) readSentOpen() error {
 	return nil
 }
 
-func (s *serverStream) SetTo(to string) {
-	s.stream.to = to
-}
-
 func (s *serverStream) SetDefaultNamespace(ns string) {
 	s.stream.DefaultNamespace = ns
 }
@@ -152,6 +150,18 @@ func (s *stream) To() string {
 
 func (s *stream) From() string {
 	return s.from
+}
+
+func (s *stream) Version() string {
+	return s.version
+}
+
+func (s *stream) SetVersion(version string) {
+	s.version = version
+}
+
+func (s *stream) SetTo(to string) {
+	s.to = to
 }
 
 func (s *stream) State() *State {
