@@ -19,9 +19,8 @@ type Stream interface {
 	xtream.Factory
 
 	ID() string
-	To() string
-	SetTo(string)
-	From() string
+	ServerName() string
+	SetServerName(string)
 	Open(StreamHandler) error
 	Close() error
 	State() *State
@@ -37,16 +36,19 @@ type ServerStream interface {
 	Stream
 	FeatureContainable
 	SendFeatures() error
+	RequestedServerName() string
+	ClientJID() string
+	SetClientJID(string)
 	ReOpen()
 	Config() RawConfig
-	SetDefaultNamespace(string)
 }
 
 type serverStream struct {
 	*stream
 	*FeatureContainer
-	reOpen bool
-	config RawConfig
+	reOpen    bool
+	config    RawConfig
+	clientJID string
 }
 
 func NewServerStream(rw io.ReadWriteCloser, depGraph DependencyManageable, conf RawConfig) ServerStream {
@@ -72,14 +74,34 @@ func (s *serverStream) Config() RawConfig {
 	return s.config
 }
 
+func (s *serverStream) RequestedServerName() string {
+	return s.to
+}
+
+func (s *serverStream) SetServerName(serverName string) {
+	s.from = serverName
+}
+
+func (s *serverStream) ServerName() string {
+	return s.from
+}
+
+func (s *serverStream) ClientJID() string {
+	return s.clientJID
+}
+
+func (s *serverStream) SetClientJID(clientJID string) {
+	s.clientJID = clientJID
+}
+
 func (s *serverStream) Open(handler StreamHandler) error {
-	if err := s.readSentOpen(); err != nil {
+	if err := s.exchangeStreamOpens(); err != nil {
 		return err
 	}
 
 	for s.HasRequired() {
 		if s.reOpen {
-			if err := s.readSentOpen(); err != nil {
+			if err := s.exchangeStreamOpens(); err != nil {
 				return err
 			}
 		}
@@ -94,18 +116,16 @@ func (s *serverStream) Open(handler StreamHandler) error {
 	return nil
 }
 
-func (s *serverStream) readSentOpen() error {
-	if err := s.stream.readOpen(); err != nil {
+func (s *serverStream) exchangeStreamOpens() error {
+	if err := s.readOpen(); err != nil {
 		return err
 	}
 
-	if !s.reOpen {
-		if _, err := io.WriteString(s.rw, xml.Header); err != nil {
-			return err
-		}
+	if _, err := io.WriteString(s.rw, xml.Header); err != nil {
+		return err
 	}
 
-	if err := s.stream.sendOpen(); err != nil {
+	if err := s.writeOpen(); err != nil {
 		return err
 	}
 
@@ -117,20 +137,15 @@ func (s *serverStream) readSentOpen() error {
 	return nil
 }
 
-func (s *serverStream) SetDefaultNamespace(ns string) {
-	s.stream.DefaultNamespace = ns
-}
-
 type stream struct {
-	XMLName          xml.Name
-	id               string `xml:"id,attr"`
-	from             string `xml:"from,attr,omitempty"` // This holds server domain name.
-	to               string `xml:"to,attr,omitempty"`   // This holds user JID after bind.
-	version          string `xml:"version,attr"`
-	DefaultNamespace string `xml:"-"`
-	opened           bool
-	state            *State
-	xtream.Factory   `xml:"-"`
+	XMLName xml.Name
+	id      string
+	from    string
+	to      string
+	version string
+	opened  bool
+	state   *State
+	xtream.Factory
 	Connection
 }
 
@@ -144,24 +159,12 @@ func (s *stream) ID() string {
 	return s.id
 }
 
-func (s *stream) To() string {
-	return s.to
-}
-
-func (s *stream) From() string {
-	return s.from
-}
-
 func (s *stream) Version() string {
 	return s.version
 }
 
 func (s *stream) SetVersion(version string) {
 	s.version = version
-}
-
-func (s *stream) SetTo(to string) {
-	s.to = to
 }
 
 func (s *stream) State() *State {
@@ -176,9 +179,9 @@ func (s *stream) sendClose() error {
 	return s.streamEncoder.EncodeToken(xml.EndElement{xml.Name{Local: "stream:stream"}})
 }
 
-func (self *stream) readOpen() error {
+func (s *serverStream) readOpen() error {
 	for {
-		t, err := self.streamDecoder.Token()
+		t, err := s.streamDecoder.Token()
 		if err != nil {
 			return err
 		}
@@ -187,34 +190,31 @@ func (self *stream) readOpen() error {
 			// Good.
 		case xml.StartElement:
 			if t.Name.Local == "stream" {
-				self.XMLName = t.Name
-				self.XMLName.Local = "stream:stream"
+				s.XMLName = t.Name
+				s.XMLName.Local = "stream:stream"
 				for _, attr := range t.Attr {
 					switch attr.Name.Local {
 					case "to":
-						self.from = attr.Value
-					case "from":
-						self.to = attr.Value
+						s.to = attr.Value
 					case "version":
-						self.version = attr.Value
+						s.version = attr.Value
 					}
 				}
-				log.Printf("got <stream> from: %v, to: %v, version: %v\n", self.from, self.to, self.version)
+				log.Printf("got <stream> to: %v, version: %v\n", s.to, s.version)
 				return nil
 			}
 		}
 	}
 }
 
-func (s *stream) sendOpen() error {
+func (s *serverStream) writeOpen() error {
 	var start xml.StartElement
 	start.Name = xml.Name{Local: "stream:stream", Space: "jabber:client"}
 	start.Attr = append(start.Attr,
 		xml.Attr{Name: xml.Name{Local: "xmlns:stream"}, Value: "http://etherx.jabber.org/streams"},
 		xml.Attr{Name: xml.Name{Local: "xmlns:xml"}, Value: "http://www.w3.org/XML/1998/namespace"},
-		xml.Attr{Name: xml.Name{Local: "to"}, Value: s.to},
-		xml.Attr{Name: xml.Name{Local: "version"}, Value: s.version},
 		xml.Attr{Name: xml.Name{Local: "from"}, Value: s.from},
+		xml.Attr{Name: xml.Name{Local: "version"}, Value: s.version},
 	)
 	if err := s.streamEncoder.EncodeToken(start); err != nil {
 		return err
@@ -223,16 +223,6 @@ func (s *stream) sendOpen() error {
 	// xml.Encoder doesn't flush until it generated end tag
 	// so we flush here to make it send stream's open tag
 	return s.streamEncoder.Flush()
-}
-
-func (s *stream) Open() error {
-	if err := s.sendOpen(); err != nil {
-		return err
-	}
-
-	s.opened = true
-
-	return s.readOpen()
 }
 
 func (self *stream) Close() error {

@@ -44,14 +44,14 @@ func (self *BindElement) Handle(strm stream.ServerStream, opts features.Options)
 	var authState *auth.AuthState
 	strm.State().Get(&authState)
 
-	strm.SetTo(authState.UserName + "@" + strm.From() + "/" + state.Resource)
-	log.Printf("Bound to JID: %#v", strm.To())
+	strm.SetClientJID(authState.UserName + "@" + strm.ServerName() + "/" + state.Resource)
+	log.Printf("Bound to JID: %#v", strm.ClientJID())
 
 	// TODO(goxmpp): 2014-04-03: might be easier to just use original IQ?
 	response_iq := iq.NewIQElement()
 	response_iq.Type = "result"
 	response_iq.ID = request_id.ID
-	response_iq.AddElement(&BindElement{JID: strm.To()})
+	response_iq.AddElement(&BindElement{JID: strm.ClientJID()})
 	if err := strm.WriteElement(response_iq); err != nil {
 		return err
 	}
