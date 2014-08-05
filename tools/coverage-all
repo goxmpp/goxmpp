@@ -4,7 +4,7 @@ COVERAGE_ERROR_FILE=coverage.err
 LOCAL_COVERAGE_FILE=coverage.out
 GLOBAL_COVERAGE_FILE=coverage-all.out
 
-find . -mindepth 1 -type d ! -path './.git*' -exec sh -c "cd {}; go test -covermode=count -coverprofile=$LOCAL_COVERAGE_FILE" \; >/dev/null 2>$COVERAGE_ERROR_FILE
+find . -mindepth 1 -name '*_test.go' -exec sh -c "cd \$(dirname {}); go test -covermode=count -coverprofile=$LOCAL_COVERAGE_FILE" \; >/dev/null 2>$COVERAGE_ERROR_FILE
 echo 'mode: count' >$GLOBAL_COVERAGE_FILE
 
 LOCAL_COVERAGE_FILES=$(find . -name $LOCAL_COVERAGE_FILE)

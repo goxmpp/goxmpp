@@ -175,24 +175,29 @@ func TestAttributes(t *testing.T) {
 	xmlns:stream="http://etherx.jabber.org/streams"
 	version="1.0"
 	xmlns="jabber:client"
+	from="remotehost"
 	to="localhost"
 	xml:lang="en"
 	xmlns:xml="http://www.w3.org/XML/1998/namespace">
 `
-	var st = stream.NewStream(ReadonlyBytesBuffer{&BytesBuffer{bytes.NewBuffer([]byte(streamOpen))}})
+	var st = stream.NewServerStream(ReadonlyBytesBuffer{&BytesBuffer{bytes.NewBuffer([]byte(streamOpen))}},
+		nil, nil)
 
-	st.SetTo("test")
-	if st.To() != "test" {
+	st.SetServerName("test")
+	if st.ServerName() != "test" {
 		t.Fatal("Cannot set 'to' field")
 	}
 
-	if err := st.Open(); err != nil {
+	if err := st.Open(nil); err != nil {
 		t.Fatal("Cannot open stream")
 	}
-	if st.From() != "localhost" {
-		t.Fatal("Unknown 'to' attribute value")
+	if st.RequestedServerName() != "localhost" {
+		t.Fatal("Unknown 'from' attribute value")
 	}
 	if st.Version() != "1.0" {
 		t.Fatal("Unknown 'version' attribute value")
 	}
+}
+
+func TestServerStream(t *testing.T) {
 }
