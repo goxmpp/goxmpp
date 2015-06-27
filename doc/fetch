@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
 #
 # This script removes existing 'xep' and 'rfc' subdirs and fetches RFC and XEP from XMPP Foundation(tm) website
