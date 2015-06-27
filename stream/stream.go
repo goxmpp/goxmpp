@@ -176,7 +176,7 @@ func (s *stream) Opened() bool {
 }
 
 func (s *stream) sendClose() error {
-	return s.streamEncoder.EncodeToken(xml.EndElement{xml.Name{Local: "stream:stream"}})
+	return s.streamEncoder.EncodeToken(xml.EndElement{Name: xml.Name{Local: "stream:stream"}})
 }
 
 func (s *serverStream) readOpen() error {

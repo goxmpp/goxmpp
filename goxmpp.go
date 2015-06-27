@@ -1,7 +1,7 @@
 package goxmpp
 
 import (
-	_ "github.com/goxmpp/goxmpp/extensions/features/auth/mechanisms/md5"
+	_ "github.com/goxmpp/goxmpp/extensions/features/auth/mechanisms/md5" // TODO(dotdoom): make lint happy
 	_ "github.com/goxmpp/goxmpp/extensions/features/auth/mechanisms/plain"
 	_ "github.com/goxmpp/goxmpp/extensions/features/auth/mechanisms/sha1"
 	_ "github.com/goxmpp/goxmpp/extensions/features/bind"

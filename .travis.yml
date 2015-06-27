@@ -5,14 +5,17 @@ go:
     - release
 
 install:
-    - go get code.google.com/p/go.tools/cmd/cover
+    - go get golang.org/x/tools/cmd/goimports
+    - go get golang.org/x/tools/cover
+    - go get github.com/hailiang/gosweep
+    - go get github.com/golang/lint/golint
     - go get github.com/mattn/goveralls
 
 script:
     - go get -v ./...
     - go test -v ./...
-    - tools/coverage-all
-    - $HOME/gopath/bin/goveralls -coverprofile=coverage-all.out -service=travis-ci -repotoken rL3QaMJ8DmJYUSFmeF5V3DFZf21ICaTRN
+    - ../../hailiang/gosweep/gosweep.sh
+    - $HOME/gopath/bin/goveralls -coverprofile=profile.cov -service=travis-ci
 
 branches:
     only:
