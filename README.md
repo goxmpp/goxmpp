@@ -1,4 +1,5 @@
-[![Build Status](https://travis-ci.org/goxmpp/goxmpp.png?branch=master)](https://travis-ci.org/goxmpp/goxmpp) [![Coverage Status](https://coveralls.io/repos/goxmpp/goxmpp/badge.png)](https://coveralls.io/r/goxmpp/goxmpp)
+[![Build Status](https://travis-ci.org/goxmpp/goxmpp.svg?branch=master)](https://travis-ci.org/goxmpp/goxmpp)
+[![Coverage Status](https://coveralls.io/repos/goxmpp/goxmpp/badge.svg?branch=master&service=github)](https://coveralls.io/github/goxmpp/goxmpp?branch=master)
 
 NOTE: XMPP Session Establishment, described in outdated RFC 3921, is no longer a part of standard: [RFC 6121: Functional Summary](http://xmpp.org/rfcs/rfc6121.html#intro-summary).
 However since this is a widely used feature, it is implemented in goxmpp.
