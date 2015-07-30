@@ -176,7 +176,9 @@ func (s *stream) Opened() bool {
 }
 
 func (s *stream) sendClose() error {
-	return s.streamEncoder.EncodeToken(xml.EndElement{Name: xml.Name{Local: "stream:stream"}})
+	return s.streamEncoder.EncodeToken(xml.EndElement{
+		Name: xml.Name{Local: "stream:stream"},
+	})
 }
 
 func (s *serverStream) readOpen() error {
@@ -200,7 +202,8 @@ func (s *serverStream) readOpen() error {
 						s.version = attr.Value
 					}
 				}
-				log.Printf("got <stream> to: %v, version: %v\n", s.to, s.version)
+				log.Printf("got <stream> to: %v, version: %v\n",
+					s.to, s.version)
 				return nil
 			}
 		}
@@ -211,10 +214,22 @@ func (s *serverStream) writeOpen() error {
 	var start xml.StartElement
 	start.Name = xml.Name{Local: "stream:stream", Space: "jabber:client"}
 	start.Attr = append(start.Attr,
-		xml.Attr{Name: xml.Name{Local: "xmlns:stream"}, Value: "http://etherx.jabber.org/streams"},
-		xml.Attr{Name: xml.Name{Local: "xmlns:xml"}, Value: "http://www.w3.org/XML/1998/namespace"},
-		xml.Attr{Name: xml.Name{Local: "from"}, Value: s.from},
-		xml.Attr{Name: xml.Name{Local: "version"}, Value: s.version},
+		xml.Attr{
+			Name:  xml.Name{Local: "xmlns:stream"},
+			Value: "http://etherx.jabber.org/streams",
+		},
+		xml.Attr{
+			Name:  xml.Name{Local: "xmlns:xml"},
+			Value: "http://www.w3.org/XML/1998/namespace",
+		},
+		xml.Attr{
+			Name:  xml.Name{Local: "from"},
+			Value: s.from,
+		},
+		xml.Attr{
+			Name:  xml.Name{Local: "version"},
+			Value: s.version,
+		},
 	)
 	if err := s.streamEncoder.EncodeToken(start); err != nil {
 		return err
@@ -236,7 +251,7 @@ func (self *stream) Close() error {
 func (self *stream) WriteElement(element xtream.Element) error {
 	err := self.streamEncoder.Encode(element)
 	if err != nil {
-		log.Println("Error sending rely:", err)
+		log.Println("Error sending reply:", err)
 	}
 	return err
 }
@@ -247,11 +262,13 @@ func (self *stream) ReadElement() (xtream.Element, error) {
 
 	for token, err = self.streamDecoder.Token(); err == nil; token, err = self.streamDecoder.Token() {
 		if start, ok := token.(xml.StartElement); ok {
-			log.Printf("got element: %v (ns %v)\n", start.Name.Local, start.Name.Space)
+			log.Printf("got element: %v (ns %v)\n", start.Name.Local,
+				start.Name.Space)
 
 			element := self.Factory.Get(&StreamXMLName, &start.Name)
 			if element == nil {
-				return nil, fmt.Errorf("Unknown node encountered: %s", start.Name.Local)
+				return nil, fmt.Errorf("Unknown node encountered: %s",
+					start.Name.Local)
 			}
 
 			err := self.streamDecoder.DecodeElement(element, &start)
@@ -275,7 +292,8 @@ func (sef *streamElementFactory) Add(cons xtream.Constructor) {
 	sef.featuresFactory.Add(cons)
 }
 
-func (sef *streamElementFactory) AddNamed(cons xtream.Constructor, outer, inner xml.Name) {
+func (sef *streamElementFactory) AddNamed(cons xtream.Constructor, outer,
+	inner xml.Name) {
 	sef.featuresFactory.AddNamed(cons, outer, inner)
 }
 
