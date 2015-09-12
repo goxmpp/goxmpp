@@ -16,7 +16,7 @@ script:
     - go get -v ./...
     - go test -v ./...
     - ../../hailiang/gosweep/gosweep.sh
-    - $HOME/gopath/bin/goveralls -coverprofile=profile.cov -service=travis-ci
+    - $GOPATH/bin/goveralls -coverprofile=profile.cov -service=travis-ci
 
 branches:
     only:
